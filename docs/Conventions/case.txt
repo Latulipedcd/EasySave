@@ -1,0 +1,215 @@
+https://learn.microsoft.com/fr-fr/dotnet/csharp/fundamentals/coding-style/identifier-names
+
+
+
+
+Règles et conventions de nommage d’identificateurs C#
+Un identificateur est le nom que vous attribuez à un type (classe, interface, struct, délégué ou énumération), membre, variable ou espace de noms.
+
+Cet article décrit les règles essentielles pour les identificateurs C# valides et les conventions d’affectation de noms utilisées pour vous aider à écrire du code professionnel cohérent.
+
+Règles de nommage
+Les identificateurs valides doivent respecter ces règles. Le compilateur C# génère une erreur pour tout identificateur qui ne suit pas ces règles :
+
+Les identificateurs doivent commencer par une lettre ou un trait de soulignement (_).
+Les identificateurs peuvent contenir des caractères de lettre Unicode, des caractères décimaux, des caractères de connexion Unicode, des caractères de combinaison Unicode ou des caractères de mise en forme Unicode. Pour plus d’informations sur les catégories Unicode, consultez la base de données des catégories Unicode .
+Vous pouvez déclarer des identificateurs qui correspondent à des mots clés C# à l’aide du préfixe @ sur l’identificateur. Le @ ne fait pas partie du nom de l’identificateur. Par exemple, @if déclare un identificateur nommé if. Ces identificateurs textuels sont destinés principalement à assurer l’interopérabilité avec les identificateurs déclarés dans d’autres langages.
+
+Pour obtenir une définition complète des identificateurs valides, consultez l’article Identificateurs dans la spécification du langage C#.
+
+ Important
+
+La spécification du langage C# autorise uniquement la lettre (Lu, Ll, Lt, Lm ou Nl), le chiffre (Nd), la connexion (Pc), la combinaison (Mn ou Mc) et la mise en forme (Cf). Tout ce qui est en dehors de cette limite est automatiquement remplacé par _ Cela peut avoir un impact sur certains caractères Unicode.
+
+Conventions d’affectation de noms
+En plus des règles, les conventions pour les noms d’identificateurs sont utilisées dans les API .NET. Ces conventions fournissent une cohérence pour les noms, mais le compilateur ne les applique pas. Vous êtes libre d’utiliser différentes conventions dans vos projets.
+
+Par convention, les programmes C# utilisent PascalCase pour les noms de types, les espaces de noms et tous les membres publics. En outre, l’équipe dotnet/docs utilise les conventions suivantes, adoptées à partir du style de codage de l’équipe .NET Runtime :
+
+Les noms d’interface commencent par un Imajuscule.
+
+Les types d’attributs se terminent par le mot Attribute.
+
+Les types enum utilisent un nom singulier pour les non-indicateurs et un nom pluriel pour les indicateurs.
+
+Les identificateurs ne doivent pas contenir deux caractères de soulignement consécutifs (_). Ces noms sont réservés aux identificateurs générés par le compilateur.
+
+Utilisez des noms explicites et descriptifs pour les variables, les méthodes et les classes.
+
+Préférez la clarté par rapport à la concision.
+
+Utilisez PascalCase pour les noms de classes et les noms de méthode.
+
+Utilisez camelCase pour les arguments de méthode, les variables locales et les champs privés.
+
+Utilisez PascalCase pour les noms de constantes, à la fois les champs et les constantes locales.
+
+Les champs d’instance privée commencent par un trait de soulignement (_).
+
+Les champs statiques commencent par s_. Cette convention n’est pas le comportement par défaut de Visual Studio, ni une partie des instructions de conception Framework, mais elle est configurable dans editorconfig.
+
+Évitez d’utiliser des abréviations ou des acronymes dans des noms, à l’exception des abréviations largement connues et acceptées.
+
+Utilisez des espaces de noms explicites et descriptifs qui suivent la notation de nom de domaine inverse.
+
+Choisissez les noms d’assemblée qui désignent l’objectif principal de l’assemblée.
+
+Évitez d’utiliser des noms à lettres uniques, sauf pour les compteurs de boucles simples. En outre, les exemples de syntaxe qui décrivent la syntaxe des constructions C# utilisent souvent les noms de lettre unique suivants qui correspondent à la convention utilisée dans la spécification du langage C# . Les exemples de syntaxe sont une exception à la règle.
+
+Utilisez S pour les structs, C pour les classes.
+Utilisez M pour les méthodes.
+Utilisez v pour les variables, p pour les paramètres.
+Utilisez r pour les paramètres ref.
+ Conseil
+
+Vous pouvez appliquer des conventions de nommage qui concernent la capitalisation, les préfixes, les suffixes et les séparateurs de mots à l’aide des règles de nommage de style code .
+
+Dans les exemples suivants, les conseils relatifs aux éléments marqués public s’appliquent également lors de l’utilisation de protected et d’éléments protected internal, tous destinés à être visibles par les appelants externes.
+
+Cas Pascal
+Utilisez la casse Pascal (« PascalCasing ») lorsque vous nommez un type class, interface, struct ou delegate.
+
+C#
+public class DataService
+{
+}
+C#
+public record PhysicalAddress(
+    string Street,
+    string City,
+    string StateOrProvince,
+    string ZipCode);
+C#
+public struct ValueCoordinate
+{
+}
+C#
+public delegate void DelegateType(string message);
+Lorsque vous nommez un interface, utilisez la casse Pascal en plus d’ajouter le préfixe I au nom. Ce préfixe indique clairement aux consommateurs qu’il s’agit d’une interface.
+
+C#
+public interface IWorkerQueue
+{
+}
+Lorsque vous nommez des membres public de types, tels que des champs, des propriétés et des événements, utilisez la casse Pascal. Utilisez également la casse Pascal pour toute méthode et fonction locale.
+
+C#
+public class ExampleEvents
+{
+    // A public field, these should be used sparingly
+    public bool IsValid;
+
+    // An init-only property
+    public IWorkerQueue WorkerQueue { get; init; }
+
+    // An event
+    public event Action EventProcessing;
+
+    // Method
+    public void StartEventProcessing()
+    {
+        // Local function
+        static int CountQueueItems() => WorkerQueue.Count;
+        // ...
+    }
+}
+Lors de l’écriture d’enregistrements positionnels, utilisez la casse Pascal pour les paramètres, car ils sont les propriétés publiques de l’enregistrement.
+
+C#
+public record PhysicalAddress(
+    string Street,
+    string City,
+    string StateOrProvince,
+    string ZipCode);
+Pour plus d’informations sur les enregistrements positionnels, consultez Syntaxe positionnelle pour la définition de propriété.
+
+Casse mixte
+Utilisez la casse camel (« camelCasing ») lors du nommage des champs private ou internal et ajoutez-leur un préfixe avec _. Utilisez la casse camel lors du nommage de variables locales, y compris les instances d’un type délégué.
+
+C#
+public class DataService
+{
+    private IWorkerQueue _workerQueue;
+}
+ Conseil
+
+Lors de la modification de code C# qui suit ces conventions d’affectation de noms dans un IDE qui prend en charge la saisie semi-automatique des instructions, la saisie de _ affiche tous les membres délimités à l’objet.
+
+Lorsque vous utilisez des champs static qui sont private ou internal, utilisez le préfixe s_ et pour le thread static, utilisez t_.
+
+C#
+public class DataService
+{
+    private static IWorkerQueue s_workerQueue;
+
+    [ThreadStatic]
+    private static TimeSpan t_timeSpan;
+}
+Lors de l’écriture de paramètres de méthode, utilisez la casse mixte.
+
+C#
+public T SomeMethod<T>(int someNumber, bool isValid)
+{
+}
+Paramètres du constructeur principal
+La façon dont vous nommez les paramètres du constructeur principal dépend du type déclaré :
+
+Pour les types class et struct : Utilisez la casse chameau, cohérente avec d'autres paramètres de méthode.
+
+C#
+public class DataService(IWorkerQueue workerQueue, ILogger logger)
+{
+    public void ProcessData()
+    {
+        // Use the parameters directly
+        logger.LogInformation("Processing data");
+        workerQueue.Enqueue("data");
+    }
+}
+C#
+public struct Point(double x, double y)
+{
+    public double Distance => Math.Sqrt(x * x + y * y);
+}
+Pour record les types : Utilisez la casse Pascal, car les paramètres deviennent des propriétés publiques.
+
+C#
+public record Person(string FirstName, string LastName);
+public record Address(string Street, string City, string PostalCode);
+Pour plus d’informations sur les constructeurs principaux, consultez Constructeurs principaux.
+
+Pour plus d'informations sur les conventions de dénomination en C#, voir le style de codage de l'équipe .NET Runtime.
+
+Directives de nommage des paramètres de type
+Les instructions suivantes s’appliquent aux paramètres de type sur les paramètres de type générique. Les paramètres de type sont les espaces réservés pour les arguments d’un type générique ou d’une méthode générique. Vous pouvez en savoir plus sur paramètres de type générique dans le guide de programmation C#.
+
+Ne nommez pas les paramètres de type générique avec des noms descriptifs, sauf si une seule lettre est complètement explicite et qu’un nom descriptif n’ajouterait pas de valeur.
+
+C#
+public interface ISessionChannel<TSession> { /*...*/ }
+public delegate TOutput Converter<TInput, TOutput>(TInput from);
+public class List<T> { /*...*/ }
+Envisagez d'utiliser T comme nom de paramètre de type pour les types dont le paramètre est composé d'une seule lettre.
+
+C#
+public int IComparer<T>() => 0;
+public delegate bool Predicate<T>(T item);
+public struct Nullable<T> where T : struct { /*...*/ }
+Les noms des paramètres des types descriptifs doivent être préfixés par « T ».
+
+C#
+public interface ISessionChannel<TSession>
+{
+    TSession Session { get; }
+}
+Considérez indiquant les contraintes placées sur un paramètre de type dans le nom du paramètre. Par exemple, un paramètre limité à ISession peut être appelé TSession.
+
+La règle d’analyse du code CA1715 peut être utilisée pour vous assurer que les paramètres de type sont nommés de manière appropriée.
+
+Conventions de nommage supplémentaires
+Dans les exemples qui ne comprennent pas de directives, utilisez les qualifications d’espace de noms. Si vous savez qu’un espace de noms est importé par défaut dans un projet, vous n’avez pas besoin de qualifier entièrement les noms de cet espace de noms. Les noms qualifiés peuvent être rompus après un point (.) s’ils sont trop longs pour une seule ligne, comme illustré dans l’exemple suivant.
+
+C#
+var currentPerformanceCounterCategory = new System.Diagnostics.
+    PerformanceCounterCategory();
+Vous n’avez pas besoin de modifier les noms d’objets créés à l’aide des outils de concepteur Visual Studio pour les adapter à d’autres instructions.

@@ -1,0 +1,23 @@
+Types standards (officiels)
+
+feat : ajout d’une nouvelle fonctionnalité
+
+fix : correction de bug
+
+docs : documentation uniquement (README, commentaires, etc.)
+
+style : formatage, espaces, lint, sans impact sur le code (pas de logique)
+
+refactor : refactorisation du code sans ajout de feature ni fix
+
+perf : amélioration des performances
+
+test : ajout ou modification de tests
+
+build : changements qui affectent le build ou les dépendances (npm, nuget, webpack…)
+
+ci : configuration ou scripts de CI/CD (GitHub Actions, GitLab CI…)
+
+chore : maintenance générale (update deps, nettoyage, scripts divers)
+
+revert : annulation d’un commit précédent
