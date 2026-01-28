@@ -36,12 +36,17 @@ This project follows **Conventional Commits**.
 
 <type>(optional scope): <description>
 ### Allowed types
-- `feat` – new feature
-- `fix` – bug fix
-- `refactor` – code change without behavior change
-- `docs` – documentation only
-- `test` – adding or updating tests
-- `chore` – maintenance tasks
+- **feat** : add a new feature
+- **fix** : fix a bug
+- **docs** : documentation only (README, comments, guides, etc.)
+- **style** : formatting, spacing, linting (no code logic change)
+- **refactor** : code refactoring without adding features or fixing bugs
+- **perf** : performance improvements
+- **test** : add or update tests
+- **build** : changes affecting the build system or dependencies (npm, NuGet, Webpack, etc.)
+- **ci** : CI/CD configuration or scripts (GitHub Actions, GitLab CI, etc.)
+- **chore** : general maintenance (dependency updates, cleanup, scripts)
+- **revert** : revert a previous commit
 
 Example:
   feat(auth): add JWT authentication
