@@ -1,1 +1,6 @@
-<Solution />
+<Solution>
+  <Project Path="src/Application/Application.csproj" />
+  <Project Path="src/Console/Console.csproj" />
+  <Project Path="src/Core/Core.csproj" />
+  <Project Path="src/Log/Log.csproj" />
+</Solution>
