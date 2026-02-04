@@ -5,7 +5,6 @@ using Core.Services;
 class Program
 {
     static void Main()
-//This is an harcoded test
     {
         var job = new BackupJob(
             "TestBackup",
