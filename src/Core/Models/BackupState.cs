@@ -9,6 +9,7 @@ namespace Core.Models
     {
         public BackupJob Job { get; }
 
+
         public BackupStatus Status { get; set; }
         public long TotalFiles { get; set; }
         public long FilesRemaining { get; set; }
