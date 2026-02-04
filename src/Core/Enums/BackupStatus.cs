@@ -4,7 +4,12 @@ using System.Text;
 
 namespace Core.Enums
 {
-    internal class BackupStatus
+   public enum BackupStatus
     {
+        Completed,
+        Error,
+        Active,
+        Inactive
+
     }
 }
