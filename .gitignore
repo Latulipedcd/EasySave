@@ -426,3 +426,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/src/Console/Program.cs
+/src/Console/Console.csproj
