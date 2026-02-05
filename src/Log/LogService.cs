@@ -6,7 +6,7 @@ namespace Log
 {
     public class LogService
     {
-        private static LogService? _instance;
+        private static LogService? _instance; // Singleton instance
 
         private ILogWriter writer;
 
@@ -14,7 +14,7 @@ namespace Log
         {
             get
             {
-
+                // Double-checked locking to ensure thread safety
                 if (_instance == null)
                 {
                     _instance = new LogService();
@@ -25,7 +25,7 @@ namespace Log
 
         private LogService()
         {
-            writer = new JsonLogWriter();
+            writer = new JsonLogWriter(); 
         }
 
         public void LogBackup(Object entry)

@@ -5,37 +5,49 @@ namespace Log
 {
     internal interface ILogWriter
     {
+        
         void Write(Object entry);
     }
 
 
     class JsonLogWriter : ILogWriter
     {
+        private readonly string _folder;
+        string _fileName;
+        string _path;
+
+        public JsonLogWriter()
+        {
+            _folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.json";
+            _path = Path.Combine(_folder, _fileName);
+
+        }
+
         public void Write(Object entry)
         {
-            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-            string fileName = $"log-{DateTime.Now:yyyy-MM-dd}.json";
-            string path = Path.Combine(folder, fileName);
+            
 
-            if (!Directory.Exists(folder))
+            if (!Directory.Exists(_folder))
             {
-                Directory.CreateDirectory(folder);
+                Directory.CreateDirectory(_folder); // Ensure the Logs directory exists
             }
 
-            if (!File.Exists(path))
+            if (!File.Exists(_path))
             {
-                File.WriteAllText(path, "[]");
+                File.WriteAllText(_path, "[]"); // Create an empty JSON array if the file doesn't exist
             }
 
-            var json = File.ReadAllText(path);
+            var json = File.ReadAllText(_path);
 
-            JsonArray array = JsonNode.Parse(json)?.AsArray() ?? new JsonArray();
+            JsonArray array = JsonNode.Parse(json)?.AsArray() ?? new JsonArray(); // Parse existing JSON or create a new array if parsing fails
 
-            JsonNode newEntry = JsonSerializer.SerializeToNode(entry);
+            JsonNode newEntry = JsonSerializer.SerializeToNode(entry); // Serialize the new log entry to a JsonNode
 
-            array.Add(newEntry);
+            array.Add(newEntry); // Add the new entry to the array
 
-            File.WriteAllText(path, array.ToJsonString(new JsonSerializerOptions
+            // Write the updated array back to the file with indentation for readability
+            File.WriteAllText(_path, array.ToJsonString(new JsonSerializerOptions
             {
                 WriteIndented = true
             }));
