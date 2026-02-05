@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Interfaces;
 using Core.Models;
 using System;
 using System.Collections.Generic;
@@ -6,15 +7,21 @@ using System.Text;
 
 namespace Core.Services
 {
-    public class BackupService
+    public class BackupService: IBackupService
     {
         //private readonly LogService _logService;
-
+        private readonly IFileService _fileService;
+        private readonly ICopyService _copyService;
+         
         public BackupService(
             //LogService logService
+            IFileService fileService,
+            ICopyService copyService
             )
         {
             //_logService = logService;
+            _fileService = fileService;
+            _copyService = copyService;
         }
 
         public BackupState ExecuteBackup(BackupJob job)
@@ -24,7 +31,7 @@ namespace Core.Services
                 Status = BackupStatus.Active
             };
 
-            var files = Directory.GetFiles(job.SourceDirectory, "*", SearchOption.AllDirectories);
+            var files = _fileService.GetFiles(job.SourceDirectory);
             state.TotalFiles = files.Length;
             state.FilesRemaining = files.Length;
 
@@ -36,7 +43,7 @@ namespace Core.Services
 
                 state.CurrentFileSource = file;
                 state.CurrentFileTarget = targetPath;
-                bool success = CopyFile(file, targetPath);
+                bool success = _copyService.CopyFiles(file, targetPath);
 
                 if (!success)
                     state.Status = BackupStatus.Error;
@@ -52,17 +59,6 @@ namespace Core.Services
             return state;
         }
 
-        private bool CopyFile(string source, string target)
-        {
-            try
-            {
-                File.Copy(source, target, true);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+       
     }
 }

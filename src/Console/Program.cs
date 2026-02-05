@@ -9,13 +9,15 @@ class Program
     {
         var job = new BackupJob(
             "TestBackup",
-            @"C:\Users\enzo.casse\Documents\test",
-            @"C:\Users\enzo.casse\Documents\result",
+            @"C:\Users\latul\Desktop\projets\test",
+            @"C:\Users\latul\Desktop\projets\result",
             BackupType.Full
         );
 
         //var logService = new LogService();
-        var backupService = new BackupService();
+        var fileService= new FileService();
+        var copyService= new CopyService();
+        var backupService = new BackupService(fileService, copyService);
 
         var state = backupService.ExecuteBackup(job);
 
