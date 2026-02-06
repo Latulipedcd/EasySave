@@ -11,4 +11,13 @@
     <ProjectReference Include="..\Log\Log.csproj" />
   </ItemGroup>
 
+<ItemGroup>
+	<None Update="Resources\Languages\lang.en.json">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Update="Resources\Languages\lang.fr.json">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+</ItemGroup>
+
 </Project>
