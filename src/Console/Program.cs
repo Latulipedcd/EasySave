@@ -50,7 +50,7 @@ class Program
                 "Job6",
                 @"C:\Source6",
                 @"D:\Target6",
-                BackupType.Differenciate
+                BackupType.Differencial
             ));
         }
         catch (Exception ex)

@@ -43,7 +43,7 @@ namespace Core.Services
 
                 bool shouldCopy = true;
 
-                if (job.Type == BackupType.Differenciate && File.Exists(targetPath))
+                if (job.Type == BackupType.Differencial && File.Exists(targetPath))
                 {
                     var sourceInfo = new FileInfo(file);
                     var targetInfo = new FileInfo(targetPath);
