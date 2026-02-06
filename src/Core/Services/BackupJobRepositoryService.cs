@@ -63,9 +63,6 @@ namespace Core.Services
             SaveJobs(jobs);
         }
 
-        // --------------------------------------------------
-        // Private helpers
-        // --------------------------------------------------
 
         private void EnsureStorageExists()
         {

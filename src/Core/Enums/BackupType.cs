@@ -7,6 +7,6 @@ namespace Core.Enums
   public enum BackupType
     {
         Full,
-        Differenciate
+        Differencial
     }
 }
