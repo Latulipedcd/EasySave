@@ -1,25 +1,48 @@
 using EasySave.Application.Configuration;
+using System.Collections.Generic;
 
 namespace EasySave.Application.ViewModels
 {
     public class MainViewModel
     {
-        private LanguageManager _langManager;
+        private readonly LanguageManager _langManager;
+        private readonly UserConfigManager _userConfigManager;
 
         public MainViewModel()
         {
             _langManager = LanguageManager.GetInstance();
+            _userConfigManager = new UserConfigManager();
         }
 
-        // Method to switch language from the View
-        public void ChangeLanguage(string cultureCode)
+        public bool TryLoadSavedLanguage()
         {
-            _langManager.LoadLanguage(cultureCode);
+            string? savedLanguage = _userConfigManager.LoadLanguage();
+
+            if (string.IsNullOrWhiteSpace(savedLanguage))
+            {
+                return false;
+            }
+
+            return _langManager.LoadLanguage(savedLanguage);
         }
 
-        // Property to access strings (Simulating Binding)
-        // In WPF, this would use an Indexer or a specific Binding object.
-        // In Console, a simple method suffices.
+        public bool ChangeLanguage(string cultureCode)
+        {
+            bool isLanguageLoaded = _langManager.LoadLanguage(cultureCode);
+            if (!isLanguageLoaded)
+            {
+                return false;
+            }
+
+            _userConfigManager.SaveLanguage(_langManager.CurrentCultureCode);
+            return true;
+        }
+
+        public IReadOnlyList<string> GetSupportedLanguages()
+        {
+            return _langManager.GetSupportedLanguages();
+        }
+
         public string GetText(string key)
         {
             return _langManager.GetString(key);
