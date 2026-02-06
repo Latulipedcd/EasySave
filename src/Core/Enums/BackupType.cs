@@ -4,7 +4,9 @@ using System.Text;
 
 namespace Core.Enums
 {
-    internal class BackupType
+  public enum BackupType
     {
+        Full,
+        Differencial
     }
 }
