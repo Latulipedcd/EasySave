@@ -7,12 +7,12 @@ using System.Text;
 
 namespace Core.Services
 {
-    public class BackupService: IBackupService
+    public class BackupService : IBackupService
     {
         //private readonly LogService _logService;
         private readonly IFileService _fileService;
         private readonly ICopyService _copyService;
-         
+
         public BackupService(
             //LogService logService
             IFileService fileService,
@@ -41,16 +41,31 @@ namespace Core.Services
                 var targetPath = Path.Combine(job.TargetDirectory, relativePath);
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
 
+                bool shouldCopy = true;
+
+                if (job.Type == BackupType.Differenciate && File.Exists(targetPath))
+                {
+                    var sourceInfo = new FileInfo(file);
+                    var targetInfo = new FileInfo(targetPath);
+
+                    shouldCopy = sourceInfo.LastWriteTime > targetInfo.LastWriteTime;
+                }
+
+                if (!shouldCopy)
+                {
+                    state.FilesRemaining--;
+                    continue;
+                }
+
                 state.CurrentFileSource = file;
                 state.CurrentFileTarget = targetPath;
+
                 bool success = _copyService.CopyFiles(file, targetPath);
 
                 if (!success)
                     state.Status = BackupStatus.Error;
 
                 state.FilesRemaining--;
-                state.BytesRemaining = files.Length; //A revoir
-                //_logService.LogFileCopy(state, success);
             }
 
             if (state.Status != BackupStatus.Error)
@@ -58,7 +73,5 @@ namespace Core.Services
 
             return state;
         }
-
-       
     }
 }
