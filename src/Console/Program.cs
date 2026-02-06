@@ -71,7 +71,7 @@ class Program
             "Job3",
             @"C:\NewSource",
             @"E:\NewTarget",
-            BackupType.Differenciate
+            BackupType.Differencial
         );
         repository.Update(updatedJob);
 
@@ -91,7 +91,7 @@ class Program
                 "JobT",
                 @"C:\Users\latul\Desktop\projets\test",
                 @"C:\Users\latul\Desktop\projets\result",
-                BackupType.Differenciate
+                BackupType.Differencial
             ));
 
         var job2 = repository
