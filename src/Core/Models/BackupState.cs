@@ -18,12 +18,10 @@ namespace Core.Models
         public string CurrentFileSource { get; set; }
         public string CurrentFileTarget { get; set; }
 
-        public double Progress =>
+        public double ProgressPercentage =>
             TotalBytes == 0 ? 0 :
             (1.0 - (double)BytesRemaining / TotalBytes) * 100;
-        public string ProgressBar =>
-            TotalBytes == 0 ? "[--------------------] 0%" :
-            $"[{new string('#', (int)(Progress / 5)).PadRight(20)}] {Progress:0.##}%";
+        
 
         public BackupState(string job)
         {

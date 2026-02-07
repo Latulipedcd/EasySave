@@ -1,15 +1,18 @@
-﻿using System;
+﻿using Core.Models;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Core.Services
 {
-    using Core.Models;
+    using Core.Interfaces;
+    using System.Diagnostics;
     using System.Text.Json;
     using System.Text.Json.Serialization;
 
-    public class ProgressJsonWriter
+    public class ProgressJsonWriter :  IProgressWriter
     {
         private readonly string _appData;
         private readonly string _folder;
@@ -25,11 +28,17 @@ namespace Core.Services
 
         public void Write(BackupState backupState)
         {
+            var  ProgressBar = backupState.TotalBytes == 0 ? "[--------------------] 0%" : $"[{new string('#', (int)(backupState.ProgressPercentage / 5)).PadRight(20)}] {backupState.ProgressPercentage:0.##}%";
+            var dataToWrite = new
+            {
+                Backup = backupState,
+                ExtraInfo = "Sauvegarde terminée avec succès",
+                Timestamp = DateTime.Now
+            };
             // Serialize the backup state to JSON with indented formatting and enum as string
             var json = JsonSerializer.Serialize(backupState, new JsonSerializerOptions { WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
 
             File.WriteAllText(_path, json);
         }
     }
-
 }
