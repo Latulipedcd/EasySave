@@ -1,10 +1,11 @@
-﻿using System.Reflection.Metadata;
+﻿using Log.Interfaces;
+using System.Reflection.Metadata;
 
 
 
-namespace Log
+namespace Log.Services
 {
-    public class LogService
+    public class LogService: ILog
     {
         private static LogService? _instance; // Singleton instance
 
@@ -32,7 +33,6 @@ namespace Log
         {
             writer.Write(entry);
         }
-
 
     }
 }

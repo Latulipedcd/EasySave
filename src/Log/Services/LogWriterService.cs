@@ -1,15 +1,12 @@
-﻿using System.Text.Json;
+﻿using Log.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Log
+namespace Log.Services
 {
-    internal interface ILogWriter
-    {
-        
-        void Write(Object entry);
-    }
-
-
     class JsonLogWriter : ILogWriter
     {
         private readonly string _folder;
@@ -35,7 +32,7 @@ namespace Log
 
         public void Write(Object entry)
         {
-            
+
 
             if (!Directory.Exists(_folder))
             {
@@ -63,4 +60,3 @@ namespace Log
         }
     }
 }
-
