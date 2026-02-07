@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Core.Models
 {
-    internal class BackupJob
+    public class BackupJob
     {
     }
 }
