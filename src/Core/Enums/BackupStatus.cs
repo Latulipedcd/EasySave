@@ -4,12 +4,11 @@ using System.Text;
 
 namespace Core.Enums
 {
-   public enum BackupStatus
+    public enum BackupStatus
     {
         Completed,
         Error,
         Active,
         Inactive
-
     }
 }
