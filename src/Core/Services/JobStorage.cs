@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Core.Services
 {
-    public class AppDataJobStorage : IJobStorage
+    public class JobStorage : IJobStorage
     {
         public string JobsDirectory =>
             Path.Combine(

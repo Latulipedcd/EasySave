@@ -8,5 +8,16 @@
   "MenuOptionLang": "6. Change Language / Langue",
   "MenuOptionExit": "7. Quitter",
   "MenuPrompt": "\nSélectionnez une option : ",
-  "ErrorInvalidOption": "Option invalide. Veuillez réessayer."
+  "ErrorInvalidOption": "Option invalide. Veuillez réessayer.",
+  "AskJobName": "Saisissez le nom du job.",
+  "AskSrcPath": "Saisissez le chemin d'origine.",
+  "AskTargetPath": "Saisissez le chemin vers lequel vous voulez sauvegarder.",
+  "AskJobType": "Saisissez le type de job (0 pour Complète, 1 pour Differentielle)",
+  "JobCreatedSuccess": "Job Créé",
+  "AskJobNameToDelete": "Saisissez le nom du job que vous voulez supprimer.",
+  "JobDeletedSuccess": "Job supprimé",
+  "AskJobNameToUpdate": "Quel job voulez vous modifier ?",
+  "JobUpdatedSuccess": "Job créé"
+
+
 }

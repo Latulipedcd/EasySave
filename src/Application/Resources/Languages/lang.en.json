@@ -8,5 +8,16 @@
   "MenuOptionLang": "6. Change Language / Langue",
   "MenuOptionExit": "7. Exit",
   "MenuPrompt": "\nSelect an option: ",
-  "ErrorInvalidOption": "Invalid option. Please try again."
+  "ErrorInvalidOption": "Invalid option. Please try again.",
+  "AskJobName": "Insert job name.",
+  "AskSrcPath": "Insert source path.",
+  "AskTargetPath": "Insert target path.",
+  "AskJobType": "Insert Job type (0 for full 1 for Differential)",
+  "JobCreatedSuccess": "Job Created",
+  "AskJobNameToDelete": "Insert the name of the job you want to delete.",
+  "JobDeletedSuccess": "Job deleted",
+  "AskJobNameToUpdate": "Wich job do you want to update",
+  "JobUpdatedSuccess":  "Job created"
+
+
 }
