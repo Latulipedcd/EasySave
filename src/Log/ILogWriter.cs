@@ -18,9 +18,18 @@ namespace Log
 
         public JsonLogWriter()
         {
-            _folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+            // %APPDATA%\EasyLog\Logs
+            _folder = Path.Combine(appData, "EasyLog", "Logs");
+
+            // Crée le dossier s'il n'existe pas
+            Directory.CreateDirectory(_folder);
+
             _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.json";
             _path = Path.Combine(_folder, _fileName);
+
+            Console.WriteLine($"Log file path: {_path}");
 
         }
 
