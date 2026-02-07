@@ -1,4 +1,4 @@
-﻿using Core.Enums;
+using Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +7,7 @@ namespace Core.Models
 {
     public class BackupState
     {
-        public string Job { get; }
+        public BackupJob Job { get; }
 
 
         public BackupStatus Status { get; set; }
@@ -23,7 +23,7 @@ namespace Core.Models
             (1.0 - (double)BytesRemaining / TotalBytes) * 100;
         
 
-        public BackupState(string job)
+        public BackupState(BackupJob job)
         {
             Job = job ?? throw new ArgumentNullException(nameof(job));
             Status = BackupStatus.Inactive;
