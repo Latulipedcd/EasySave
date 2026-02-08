@@ -1,0 +1,12 @@
+{
+  "MainMenuTitle": "=== EasySave V1.0 ===",
+  "MenuOptionList": "1. List Backup Jobs",
+  "MenuOptionCreate": "2. Create a Backup Job",
+  "MenuOptionExecute": "3. Execute Backup Job(s)",
+  "MenuOptionModify": "4. Modify Backup Job",
+  "MenuOptionDelete": "5. Delete Backup Job",
+  "MenuOptionLang": "6. Change Language / Langue",
+  "MenuOptionExit": "7. Exit",
+  "MenuPrompt": "\nSelect an option: ",
+  "ErrorInvalidOption": "Invalid option. Please try again."
+}

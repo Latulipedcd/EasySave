@@ -1,0 +1,12 @@
+﻿{
+  "MainMenuTitle": "=== EasySave V1.0 ===",
+  "MenuOptionList": "1. Lister les travaux de sauvegarde",
+  "MenuOptionCreate": "2. Créer un travail de sauvegarde",
+  "MenuOptionExecute": "3. Exécuter un ou plusieurs travaux",
+  "MenuOptionModify": "4. Modifier un travail de sauvegarde",
+  "MenuOptionDelete": "5. Supprimer un travail de sauvegarde",
+  "MenuOptionLang": "6. Change Language / Langue",
+  "MenuOptionExit": "7. Quitter",
+  "MenuPrompt": "\nSélectionnez une option : ",
+  "ErrorInvalidOption": "Option invalide. Veuillez réessayer."
+}
