@@ -16,8 +16,8 @@
   "JobCreatedSuccess": "Job Created",
   "AskJobNameToDelete": "Insert the name of the job you want to delete.",
   "JobDeletedSuccess": "Job deleted",
-  "AskJobNameToUpdate": "Wich job do you want to update",
-  "JobUpdatedSuccess":  "Job created"
-
-
+  "AskJobNameToUpdate": "Which job do you want to update",
+  "JobUpdatedSuccess": "Job created",
+   "AskJobsToExecute": "Which job do you want to execute ?",
+  "ExecuteHelp":  "Two jobs separated by a hyphen (-): execution of the jobs between the first given job and the second given job (given jobs included). \nMultiple jobs separated by a semicolon (;): execution of the listed jobs."
 }

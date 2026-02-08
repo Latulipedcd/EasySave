@@ -12,12 +12,14 @@ namespace EasySave.Application.ViewModels
         private readonly LanguageManager _langManager;
         private readonly UserConfigManager _userConfigManager;
         private readonly IBackupJobRepository _backupJobRepository;
+        private readonly IBackupService _backupService;
 
         public MainViewModel()
         {
             _langManager = LanguageManager.GetInstance();
             _userConfigManager = new UserConfigManager();
             _backupJobRepository= new BackupJobRepository(new JobStorage());
+            _backupService= new BackupService(new FileService(), new CopyService());
         }
 
 
