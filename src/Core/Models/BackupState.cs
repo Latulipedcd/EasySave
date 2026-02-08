@@ -1,4 +1,4 @@
-﻿using Core.Enums;
+using Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,6 +18,11 @@ namespace Core.Models
         public string CurrentFileSource { get; set; }
         public string CurrentFileTarget { get; set; }
 
+        public double ProgressPercentage =>
+            TotalBytes == 0 ? 0 :
+            (1.0 - (double)BytesRemaining / TotalBytes) * 100;
+        
+
         public BackupState(BackupJob job)
         {
             Job = job ?? throw new ArgumentNullException(nameof(job));
@@ -28,6 +33,15 @@ namespace Core.Models
             BytesRemaining = 0;
             CurrentFileSource = string.Empty;
             CurrentFileTarget = string.Empty;
+        }
+
+        public void UpdateProgress()
+        {
+
+            if (FilesRemaining == 0 && BytesRemaining == 0)
+                Status = BackupStatus.Completed;
+            else if (Status == BackupStatus.Inactive)
+                Status = BackupStatus.Active;
         }
     }
 }
