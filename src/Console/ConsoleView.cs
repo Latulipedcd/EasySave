@@ -5,10 +5,12 @@ namespace EasySave.ConsoleApp
     public class ConsoleView
     {
         private readonly MainViewModel _vm;
+        private readonly ConsoleLogic _logic;
 
         public ConsoleView()
         {
             _vm = new MainViewModel();
+            _logic = new ConsoleLogic();
         }
 
         public void Start()
@@ -24,14 +26,24 @@ namespace EasySave.ConsoleApp
                 switch (choice)
                 {
                     case "1":
+                        _logic.DisplayJobs();
+                        Pause();
                         break;
                     case "2":
+                        _logic.CreateJob();
+                        Pause();
                         break;
                     case "3":
+                        _logic.ExecuteJobs();
+                        Pause();
                         break;
                     case "4":
+                        _logic.UpdateJob();
+                        Pause();
                         break;
                     case "5":
+                        _logic.DeleteJob();
+                        Pause();
                         break;
                     case "6":
                         ChangeLanguage();
@@ -78,7 +90,7 @@ namespace EasySave.ConsoleApp
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== EasySafe ===");
+                Console.WriteLine("=== EasySave ===");
                 Console.WriteLine("Choose your language / Choisissez votre langue");
                 Console.WriteLine("1. English");
                 Console.WriteLine("2. Français");
@@ -129,5 +141,7 @@ namespace EasySave.ConsoleApp
             Console.WriteLine("Press Enter to continue...");
             Console.ReadLine();
         }
+
+       
     }
-}
+    }
