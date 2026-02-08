@@ -5,10 +5,12 @@ namespace EasySave.ConsoleApp
     public class ConsoleView
     {
         private readonly MainViewModel _vm;
+        private readonly ConsoleLogic _logic;
 
         public ConsoleView()
         {
             _vm = new MainViewModel();
+            _logic = new ConsoleLogic();
         }
 
         public void Start()
@@ -24,19 +26,24 @@ namespace EasySave.ConsoleApp
                 switch (choice)
                 {
                     case "1":
-                        DisplayJobs();
+                        _logic.DisplayJobs();
+                        Pause();
                         break;
                     case "2":
-                        CreateJob();
+                        _logic.CreateJob();
+                        Pause();
                         break;
                     case "3":
-                        ExecuteJobs();
+                        _logic.ExecuteJobs();
+                        Pause();
                         break;
                     case "4":
-                        UpdateJob();
+                        _logic.UpdateJob();
+                        Pause();
                         break;
                     case "5":
-                        DeleteJob();
+                        _logic.DeleteJob();
+                        Pause();
                         break;
                     case "6":
                         ChangeLanguage();
@@ -135,180 +142,6 @@ namespace EasySave.ConsoleApp
             Console.ReadLine();
         }
 
-        private void DisplayJobs()
-        {
-            Console.Clear();
-            Console.WriteLine(_vm.GetText("JobListTitle"));
-            Console.WriteLine();
-
-            var jobs = _vm.GetBackupJobs();
-
-            if (jobs.Count == 0)
-            {
-                Console.WriteLine(_vm.GetText("NoJobsFound"));
-                Pause();
-                return;
-            }
-
-            int index = 1;
-            foreach (var job in jobs)
-            {
-                Console.WriteLine($"{index}. {job.Name}");
-                Console.WriteLine($"   Source : {job.SourceDirectory}");
-                Console.WriteLine($"   Target : {job.TargetDirectory}");
-                Console.WriteLine($"   Type   : {job.Type}");
-                Console.WriteLine();
-                index++;
-            }
-
-            Pause();
-        }
-
-
-        private void CreateJob()
-        {
-            Console.Clear();
-
-            Console.WriteLine(_vm.GetText("AskJobName"));
-            var jobTitle = Console.ReadLine();
-
-            Console.WriteLine(_vm.GetText("AskSrcPath"));
-            var jobSrcPath = Console.ReadLine();
-
-            Console.WriteLine(_vm.GetText("AskTargetPath"));
-            var jobDestPath = Console.ReadLine();
-
-            Console.WriteLine(_vm.GetText("AskJobType"));
-            var jobTypeInput = Console.ReadLine();
-
-            if (!int.TryParse(jobTypeInput, out int jobType))
-            {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-                Pause();
-                return;
-            }
-
-            bool success = _vm.CreateBackupJob(
-                jobTitle!,
-                jobSrcPath!,
-                jobDestPath!,
-                jobType,
-                out string resultMessage
-            );
-
-            Console.WriteLine(resultMessage);
-            Pause();
-        }
-
-        private void DeleteJob()
-        {
-            Console.Clear();
-
-            Console.WriteLine(_vm.GetText("AskJobNameToDelete"));
-            var jobName = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(jobName))
-            {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-                Pause();
-                return;
-            }
-
-            bool success = _vm.DeleteBackupJob(
-                jobName,
-                out string resultMessage
-            );
-
-            Console.WriteLine(resultMessage);
-            Pause();
-        }
-
-        private void UpdateJob()
-        {
-            Console.Clear();
-
-            Console.WriteLine(_vm.GetText("AskJobNameToUpdate"));
-            var jobName = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(jobName))
-            {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-                Pause();
-                return;
-            }
-
-            if (!_vm.BackupJobExists(jobName))
-            {
-                Console.WriteLine(_vm.GetText("ErrorJobNotFound"));
-                Pause();
-                return;
-            }
-
-            Console.WriteLine(_vm.GetText("AskSrcPath"));
-            var newSrcPath = Console.ReadLine();
-
-            Console.WriteLine(_vm.GetText("AskTargetPath"));
-            var newTargetPath = Console.ReadLine();
-
-            Console.WriteLine(_vm.GetText("AskJobType"));
-            var jobTypeInput = Console.ReadLine();
-
-            if (!int.TryParse(jobTypeInput, out int jobType))
-            {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-                Pause();
-                return;
-            }
-
-            bool success = _vm.UpdateBackupJob(
-                jobName,
-                newSrcPath!,
-                newTargetPath!,
-                jobType,
-                out string resultMessage
-            );
-
-            Console.WriteLine(resultMessage);
-            Pause();
-        }
-
-
-        private void ExecuteJobs()
-        {
-            Console.Clear();
-
-            Console.WriteLine(_vm.GetText("AskJobsToExecute"));
-            Console.WriteLine(_vm.GetText("ExecuteHelp"));
-            var input = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-                Pause();
-                return;
-            }
-
-            bool success = _vm.ExecuteBackupJobs(
-                input,
-                out var results,
-                out string errorMessage
-            );
-
-            if (!success)
-            {
-                Console.WriteLine(errorMessage);
-                Pause();
-                return;
-            }
-
-            Console.WriteLine();
-
-            foreach (var state in results)
-            {
-                Console.WriteLine($"{state.Job.Name} : {state.Status}");
-            }
-
-            Pause();
-        }
+       
     }
     }
