@@ -9,6 +9,7 @@ namespace Core.Services
 {
     public class BackupJobRepository : IBackupJobRepository
     {
+        //Service for Backup job storage
         private const int MaxJobs = 5;
         private readonly IJobStorage _storage;
 

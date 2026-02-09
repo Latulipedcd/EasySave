@@ -4,6 +4,8 @@ using System.Text.Json;
 
 namespace EasySave.Application.Configuration
 {
+
+    //Persistant language configuration
     public class UserConfigManager
     {
         private readonly string _configDirectoryPath;

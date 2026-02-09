@@ -10,12 +10,14 @@ namespace EasySave.Application.Configuration
         private static LanguageManager? _instance;
         private Dictionary<string, string>? _currentStrings;
 
+        //Path to the Language directory
         private readonly string _langPath = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
             "Resources",
             "Languages"
         );
 
+        //Language code (en, fr,...) currently in use
         public string CurrentCultureCode { get; private set; } = "en";
 
         public static LanguageManager GetInstance()
@@ -29,7 +31,7 @@ namespace EasySave.Application.Configuration
             LoadLanguage("en");
         }
 
-        public bool LoadLanguage(string cultureCode)
+        public bool LoadLanguage(string cultureCode)//Load a language with it's culture code
         {
             string normalizedCultureCode = NormalizeCultureCode(cultureCode);
             string filePath = Path.Combine(_langPath, $"lang.{normalizedCultureCode}.json");
@@ -41,6 +43,7 @@ namespace EasySave.Application.Configuration
 
             try
             {
+                //Change json to key, value
                 string jsonContent = File.ReadAllText(filePath);
                 Dictionary<string, string>? strings = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
 
@@ -59,7 +62,7 @@ namespace EasySave.Application.Configuration
             }
         }
 
-        public IReadOnlyList<string> GetSupportedLanguages()
+        public IReadOnlyList<string> GetSupportedLanguages() //Get the list of language code supported
         {
             if (!Directory.Exists(_langPath))
             {
@@ -82,7 +85,7 @@ namespace EasySave.Application.Configuration
             return GetSupportedLanguages().Contains(normalizedCultureCode);
         }
 
-        public string GetString(string key)
+        public string GetString(string key) //Get a text in current language
         {
             if (_currentStrings != null && _currentStrings.ContainsKey(key))
             {
