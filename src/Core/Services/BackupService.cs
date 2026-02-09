@@ -64,8 +64,8 @@ namespace Core.Services
                     var logEntryFolder = new
                     {
                         BackupName = job.Name,
-                        Source = file,
-                        Target = folderPath,
+                        Source = PathHelper.ToUncPath(file),
+                        Target = PathHelper.ToUncPath(folderPath),
                         Duration = stopwatchFolder.Elapsed,
                         Timestamp = DateTime.Now,
                         FileSize = 0,
@@ -111,8 +111,8 @@ namespace Core.Services
                 var logEntry = new LogEntry
                 {
                     BackupName = job.Name,
-                    Source = file,
-                    Target = targetPath,
+                    Source = PathHelper.ToUncPath(file),
+                    Target = PathHelper.ToUncPath(targetPath),
                     Duration = stopwatch.Elapsed, //Calculate copy time by the time between the two spotwatch
                     Timestamp = DateTime.Now,
                     FileSize = sizeInBytes,
