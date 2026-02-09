@@ -17,20 +17,13 @@ namespace Core.Models
 
         public DateTime Timestamp { get; set; }
         
-        public int FileSize { get; set; }
+        public long FileSize { get; set; }
 
         public WorkType WorkType { get; set; }
 
         public LogEntry()
         {
-            BackupName = string.Empty;
-            Source = string.Empty;
-            Target = string.Empty;
-            Duration = TimeSpan.Zero;
-            Timestamp = DateTime.MinValue;
-            FileSize = 0;
-            WorkType = WorkType.file_transfer;
-        }
+            }
 
     }
 }

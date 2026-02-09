@@ -3,25 +3,31 @@ using Core.Interfaces;
 using Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
+using Log.Interfaces;
 
 namespace Core.Services
 {
     public class BackupService : IBackupService
     {
-        //private readonly LogService _logService;
+        private readonly ILog _logService;
         private readonly IFileService _fileService;
         private readonly ICopyService _copyService;
+        private readonly IProgressWriter _progressWriter;
 
         public BackupService(
-            //LogService logService
+            ILog logService,
             IFileService fileService,
-            ICopyService copyService
+            ICopyService copyService,
+            IProgressWriter progressWriter
             )
         {
-            //_logService = logService;
+            _logService = logService;
             _fileService = fileService;
             _copyService = copyService;
+            _progressWriter = progressWriter;   
         }
 
         public BackupState ExecuteBackup(BackupJob job)
@@ -34,12 +40,18 @@ namespace Core.Services
             var files = _fileService.GetFiles(job.SourceDirectory);
             state.TotalFiles = files.Length;
             state.FilesRemaining = files.Length;
+            
+            long totalBytes = files.Sum(f => new FileInfo(f).Length);
+            state.TotalBytes = totalBytes;
+            state.BytesRemaining = totalBytes;
 
             foreach (var file in files)
             {
                 var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
                 var targetPath = Path.Combine(job.TargetDirectory, relativePath);
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+
+                var stopwatch = Stopwatch.StartNew();
 
                 bool shouldCopy = true;
 
@@ -66,6 +78,40 @@ namespace Core.Services
                     state.Status = BackupStatus.Error;
 
                 state.FilesRemaining--;
+
+                stopwatch.Stop();
+
+                FileInfo fileInfo = new FileInfo(state.CurrentFileSource);
+                long sizeInBytes = fileInfo.Length;
+
+                var logEntry = new LogEntry
+                {
+                    BackupName = job.Name,
+                    Source = file,
+                    Target = targetPath,
+                    Duration = stopwatch.Elapsed,
+                    Timestamp = DateTime.Now,
+                    FileSize = sizeInBytes,
+                    WorkType = WorkType.file_transfer
+                };
+
+                _logService.LogBackup(logEntry);
+
+                state.BytesRemaining -= sizeInBytes;
+
+                var backupState = new BackupState(job)
+                {
+                    Status = state.Status,
+                    TotalFiles = state.TotalFiles,
+                    FilesRemaining = state.FilesRemaining,
+                    TotalBytes = state.TotalBytes,
+                    BytesRemaining = state.BytesRemaining,
+                    CurrentFileSource = state.CurrentFileSource,
+                    CurrentFileTarget = state.CurrentFileTarget
+                };
+
+                _progressWriter.Write(backupState);
+
             }
 
             if (state.Status != BackupStatus.Error)

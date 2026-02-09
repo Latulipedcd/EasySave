@@ -4,6 +4,7 @@ using Core.Models;
 using Core.Services;
 using EasySave.Application.Configuration;
 using System.Collections.Generic;
+using Log.Services;
 
 namespace EasySave.Application.ViewModels
 {
@@ -19,7 +20,7 @@ namespace EasySave.Application.ViewModels
             _langManager = LanguageManager.GetInstance();
             _userConfigManager = new UserConfigManager();
             _backupJobRepository= new BackupJobRepository(new JobStorage());
-            _backupService= new BackupService(new FileService(), new CopyService());
+            _backupService= new BackupService(LogService.Instance, new FileService(), new CopyService(), new ProgressJsonWriter());
         }
 
 
