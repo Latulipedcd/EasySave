@@ -14,12 +14,16 @@
   "AskTargetPath": "Saisissez le chemin vers lequel vous voulez sauvegarder.",
   "AskJobType": "Saisissez le type de job (0 pour Complète, 1 pour Differentielle)",
   "JobCreatedSuccess": "Job Créé",
-  "AskJobNameToDelete": "Saisissez le nom du job que vous voulez supprimer.",
+  "AskJobNameToDelete": "Saisissez l'ID du job que vous voulez supprimer.",
   "JobDeletedSuccess": "Job supprimé",
-  "AskJobNameToUpdate": "Quel job voulez vous modifier ?",
+  "AskJobNameToUpdate": "Saisissez l'ID du job que vous voulez modifier.",
   "JobUpdatedSuccess": "Job créé",
-  "AskJobsToExecute": "Quels jobs souhaitez vous exécuter ?",
-  "ExecuteHelp":  "Deux jobs séparés par un - : Exécution des jobs compris entre le premier jobs donné et le dexième jobs donné (jobs donnés inclus) \nPlusieurs jobs séparés par un ; : Exécutions des jobs listés"
+  "JobListTitle": "Jobs de sauvegarde disponibles",
+  "NoJobsFound": "Aucun job de sauvegarde trouvé.",
+  "AskJobsToExecute": "Quels IDs de jobs souhaitez vous exécuter ?",
+  "ExecuteHelp":  "Deux IDs séparés par un - : exécute tous les jobs entre ces deux IDs (inclus). \nPlusieurs IDs séparés par un ; : exécute uniquement les IDs listés.",
+  "ErrorJobNotFound": "Job introuvable pour cet ID.",
+  "ErrorInvalidRange": "Plage d'IDs invalide."
 
 
 

@@ -17,7 +17,7 @@ namespace EasySave.ConsoleApp
 
 
 
-        public void DisplayJobs()
+        public bool DisplayJobs()
         {
             Console.Clear();
             Console.WriteLine(_vm.GetText("JobListTitle"));
@@ -28,7 +28,7 @@ namespace EasySave.ConsoleApp
             if (jobs.Count == 0)
             {
                 Console.WriteLine(_vm.GetText("NoJobsFound"));
-                return;
+                return false;
             }
 
             int index = 1;
@@ -42,6 +42,7 @@ namespace EasySave.ConsoleApp
                 index++;
             }
 
+            return true;
         }
 
 
@@ -80,12 +81,16 @@ namespace EasySave.ConsoleApp
 
         public void DeleteJob()
         {
-            Console.Clear();
+            bool hasJobs = DisplayJobs();
+            if (!hasJobs)
+            {
+                return;
+            }
 
             Console.WriteLine(_vm.GetText("AskJobNameToDelete"));
-            var jobName = Console.ReadLine();
+            var jobIdInput = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(jobName))
+            if (!int.TryParse(jobIdInput, out int jobId))
             {
                 Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
                 
@@ -93,7 +98,7 @@ namespace EasySave.ConsoleApp
             }
 
             bool success = _vm.DeleteBackupJob(
-                jobName,
+                jobId,
                 out string resultMessage
             );
 
@@ -103,22 +108,19 @@ namespace EasySave.ConsoleApp
 
         public void UpdateJob()
         {
-            Console.Clear();
-
-            Console.WriteLine(_vm.GetText("AskJobNameToUpdate"));
-            var jobName = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(jobName))
+            bool hasJobs = DisplayJobs();
+            if (!hasJobs)
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-               
                 return;
             }
 
-            if (!_vm.BackupJobExists(jobName))
+            Console.WriteLine(_vm.GetText("AskJobNameToUpdate"));
+            var jobIdInput = Console.ReadLine();
+
+            if (!int.TryParse(jobIdInput, out int jobId))
             {
-                Console.WriteLine(_vm.GetText("ErrorJobNotFound"));
-                
+                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
+               
                 return;
             }
 
@@ -139,7 +141,7 @@ namespace EasySave.ConsoleApp
             }
 
             bool success = _vm.UpdateBackupJob(
-                jobName,
+                jobId,
                 newSrcPath!,
                 newTargetPath!,
                 jobType,
@@ -153,7 +155,11 @@ namespace EasySave.ConsoleApp
 
         public void ExecuteJobs()
         {
-            Console.Clear();
+            bool hasJobs = DisplayJobs();
+            if (!hasJobs)
+            {
+                return;
+            }
 
             Console.WriteLine(_vm.GetText("AskJobsToExecute"));
             Console.WriteLine(_vm.GetText("ExecuteHelp"));
