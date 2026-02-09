@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Log.Interfaces;
+using Log.Services;
 
 namespace Core.Services
 {
@@ -49,9 +50,31 @@ namespace Core.Services
             {
                 var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
                 var targetPath = Path.Combine(job.TargetDirectory, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+                
+                var folderPath = Path.GetDirectoryName(targetPath)!;
+                if (!Directory.Exists(folderPath))
+                {
+                    var stopwatchFolder = Stopwatch.StartNew();// Start timing the folder creation
 
-                var stopwatch = Stopwatch.StartNew();
+                    Directory.CreateDirectory(folderPath);
+
+                    stopwatchFolder.Stop();// Stop timing the folder creation
+
+                    // Log the folder creation
+                    var logEntryFolder = new
+                    {
+                        BackupName = job.Name,
+                        Source = file,
+                        Target = folderPath,
+                        Duration = stopwatchFolder.Elapsed,
+                        Timestamp = DateTime.Now,
+                        FileSize = 0,
+                        WorkType = WorkType.folder_creation
+                    };
+                    _logService.LogBackup(logEntryFolder);
+                }
+
+                var stopwatch = Stopwatch.StartNew(); // Start timing the file transfer
 
                 bool shouldCopy = true; //In use when backup type is Differencial
 
@@ -79,11 +102,12 @@ namespace Core.Services
 
                 state.FilesRemaining--;
 
-                stopwatch.Stop();
+                stopwatch.Stop();// Stop timing the file transfer
 
                 FileInfo fileInfo = new FileInfo(state.CurrentFileSource);
                 long sizeInBytes = fileInfo.Length;
 
+                // Log the file transfer
                 var logEntry = new LogEntry
                 {
                     BackupName = job.Name,
@@ -94,12 +118,12 @@ namespace Core.Services
                     FileSize = sizeInBytes,
                     WorkType = WorkType.file_transfer
                 };
-
-                _logService.LogBackup(logEntry); //Daily log
+                _logService.LogBackup(logEntry);
 
                 state.BytesRemaining -= sizeInBytes;
 
-                var backupState = new BackupState(job) 
+                // Update progress after each file
+                var backupState = new BackupState(job)
                 {
                     Status = state.Status,
                     TimeStamp = DateTime.Now,
@@ -118,7 +142,8 @@ namespace Core.Services
             if (state.Status != BackupStatus.Error)
                 state.Status = BackupStatus.Completed;
 
-            var ResetInfo = new BackupState(job)
+            // Final progress update to ensure 100% completion is reflected
+            var resetInfo = new BackupState(job)
             {
                 Status = state.Status,
                 TimeStamp = DateTime.Now,
@@ -130,7 +155,7 @@ namespace Core.Services
                 CurrentFileTarget = null
             };
 
-            _progressWriter.Write(ResetInfo); //Remove some informations that need to disapear once job is done
+            _progressWriter.Write(resetInfo); //Remove some informations that need to disapear once job is done
 
             return state;
         }
