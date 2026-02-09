@@ -108,7 +108,3 @@ At runtime, EasySave writes:
 - progress state file (JSON)
 
 Paths depend on environment and user profile configuration.
-
-## Contributing
-
-Please read `CONTRIBUTING.md` before opening a PR.
