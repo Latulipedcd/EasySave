@@ -16,7 +16,7 @@ namespace EasySave.Application.Configuration
             _configDirectoryPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "EasySave",
-                "Userdata"
+                "userdata"
             );
 
             _configFilePath = Path.Combine(_configDirectoryPath, "userconfig.json");
