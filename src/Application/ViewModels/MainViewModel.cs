@@ -60,11 +60,19 @@ namespace EasySave.Application.ViewModels
         }
 
 
-        public bool DeleteBackupJob(string jobName, out string message)
+        public bool DeleteBackupJob(int jobId, out string message)
         {
             try
             {
-                _backupJobRepository.Delete(jobName);
+                var jobs = _backupJobRepository.GetAll();
+                if (jobId < 1 || jobId > jobs.Count)
+                {
+                    message = GetText("ErrorJobNotFound");
+                    return false;
+                }
+
+                var job = jobs[jobId - 1];
+                _backupJobRepository.Delete(job.Name);
 
                 message = GetText("JobDeletedSuccess");
                 return true;
@@ -76,13 +84,8 @@ namespace EasySave.Application.ViewModels
             }
         }
 
-        public bool BackupJobExists(string jobName)
-        {
-            var jobs = _backupJobRepository.GetAll();
-            return jobs.Any(j => j.Name == jobName);
-        }
         public bool UpdateBackupJob(
-    string existingJobName,
+    int jobId,
     string newSrcPath,
     string newTargetPath,
     int jobType,
@@ -90,12 +93,20 @@ namespace EasySave.Application.ViewModels
         {
             try
             {
+                var jobs = _backupJobRepository.GetAll();
+                if (jobId < 1 || jobId > jobs.Count)
+                {
+                    message = GetText("ErrorJobNotFound");
+                    return false;
+                }
+
+                var existingJob = jobs[jobId - 1];
                 BackupType trueJobType = jobType == 0
                     ? BackupType.Full
                     : BackupType.Differencial;
 
                 var updatedJob = new BackupJob(
-                    existingJobName,
+                    existingJob.Name,
                     newSrcPath,
                     newTargetPath,
                     trueJobType
@@ -147,42 +158,50 @@ namespace EasySave.Application.ViewModels
             errorMessage = string.Empty;
             var result = new List<BackupJob>();
 
-            var orderedJobs = allJobs.OrderBy(j => j.Name).ToList();
+            var indexedJobs = allJobs;
 
-            var parts = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            var parts = input.Split(
+                ';',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             foreach (var part in parts)
             {
                 if (part.Contains('-'))
                 {
-                    var range = part.Split('-', StringSplitOptions.RemoveEmptyEntries);
+                    var range = part.Split(
+                        '-',
+                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     if (range.Length != 2)
                     {
                         errorMessage = GetText("ErrorInvalidRange");
                         return null;
                     }
 
-                    var start = orderedJobs.FindIndex(j => j.Name == range[0]);
-                    var end = orderedJobs.FindIndex(j => j.Name == range[1]);
-
-                    if (start == -1 || end == -1 || start > end)
+                    if (!int.TryParse(range[0], out int startId)
+                        || !int.TryParse(range[1], out int endId)
+                        || startId < 1
+                        || endId < 1
+                        || startId > indexedJobs.Count
+                        || endId > indexedJobs.Count
+                        || startId > endId)
                     {
                         errorMessage = GetText("ErrorInvalidRange");
                         return null;
                     }
 
-                    result.AddRange(orderedJobs.Skip(start).Take(end - start + 1));
+                    result.AddRange(
+                        indexedJobs.Skip(startId - 1).Take(endId - startId + 1));
                 }
                 else
                 {
-                    var job = orderedJobs.FirstOrDefault(j => j.Name == part);
-                    if (job == null)
+                    bool isIdValid = int.TryParse(part, out int jobId);
+                    if (!isIdValid || jobId < 1 || jobId > indexedJobs.Count)
                     {
                         errorMessage = GetText("ErrorJobNotFound");
                         return null;
                     }
 
-                    result.Add(job);
+                    result.Add(indexedJobs[jobId - 1]);
                 }
             }
 
