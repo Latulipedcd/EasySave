@@ -8,7 +8,7 @@ namespace Core.Services
     public class FileService : IFileService
     {
         public FileService() { }
-        public string[] GetFiles(string path)
+        public string[] GetFiles(string path) //List all the files in a directory
         {
             return Directory.GetFiles(path, "*", SearchOption.AllDirectories);
         }

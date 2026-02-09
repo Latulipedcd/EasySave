@@ -8,6 +8,7 @@ namespace EasySave.ConsoleApp
 
     public class ConsoleLogic
     {
+        //All the logical part of the console
         private readonly MainViewModel _vm;
 
         public ConsoleLogic()

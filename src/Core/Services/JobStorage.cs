@@ -7,7 +7,7 @@ namespace Core.Services
 {
     public class JobStorage : IJobStorage
     {
-        public string JobsDirectory =>
+        public string JobsDirectory => //Set directory for the jobs
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "EasySave",

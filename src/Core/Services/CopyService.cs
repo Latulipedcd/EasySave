@@ -9,7 +9,7 @@ namespace Core.Services
     {
         public CopyService() { }
 
-        public bool CopyFiles(string file, string target)
+        public bool CopyFiles(string file, string target) //Return boolean to know if any errors happened
         {
             try
             {
