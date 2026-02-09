@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Log.Services
 {
@@ -55,7 +56,8 @@ namespace Log.Services
             // Write the updated array back to the file with indentation for readability
             File.WriteAllText(_path, array.ToJsonString(new JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() }
             }));
         }
     }

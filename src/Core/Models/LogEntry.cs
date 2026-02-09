@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -18,6 +19,8 @@ namespace Core.Models
         
         public int FileSize { get; set; }
 
+        public WorkType WorkType { get; set; }
+
         public LogEntry()
         {
             BackupName = string.Empty;
@@ -26,6 +29,7 @@ namespace Core.Models
             Duration = TimeSpan.Zero;
             Timestamp = DateTime.MinValue;
             FileSize = 0;
+            WorkType = WorkType.file_transfer;
         }
 
     }
