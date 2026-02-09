@@ -81,6 +81,24 @@ namespace EasySave.ConsoleApp
         public void DeleteJob()
         {
             Console.Clear();
+            var jobs = _vm.GetBackupJobs();
+            Console.WriteLine(_vm.GetText("JobListTitle"));
+            Console.WriteLine();
+
+            if (jobs.Count == 0)
+            {
+                Console.WriteLine(_vm.GetText("NoJobsFound"));
+                return;
+            }
+
+            int index = 1;
+            foreach (var job in jobs)
+            {
+                Console.WriteLine($"{index}. {job.Name}");
+                index++;
+            }
+
+            Console.WriteLine();
 
             Console.WriteLine(_vm.GetText("AskJobNameToDelete"));
             var jobName = Console.ReadLine();

@@ -18,6 +18,8 @@
   "JobDeletedSuccess": "Job supprimé",
   "AskJobNameToUpdate": "Quel job voulez vous modifier ?",
   "JobUpdatedSuccess": "Job créé",
+  "JobListTitle": "Jobs de sauvegarde disponibles",
+  "NoJobsFound": "Aucun job de sauvegarde trouvé.",
   "AskJobsToExecute": "Quels jobs souhaitez vous exécuter ?",
   "ExecuteHelp":  "Deux jobs séparés par un - : Exécution des jobs compris entre le premier jobs donné et le dexième jobs donné (jobs donnés inclus) \nPlusieurs jobs séparés par un ; : Exécutions des jobs listés"
 
