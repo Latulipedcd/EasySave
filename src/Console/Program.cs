@@ -1,37 +1,31 @@
-﻿namespace EasySave.ConsoleApp
+using EasySave.Application.ViewModels;
+
+namespace EasySave.ConsoleApp
 {
     class Program
     {
-        // static MainViewModel _viewModel; // The binding context
-
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            // _viewModel = new MainViewModel(); // Initialize ViewModel
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            Console.OutputEncoding = System.Text.Encoding.Unicode;
-            if (args.Length > 0)
+            if (args.Length == 0)
             {
-                // --- COMMAND LINE MODE ---
-                // Used when arguments are passed (e.g., "EasySave.exe 1-3")
-                HandleCommandLineArgs(args);
-            }
-            else
-            {
-                // --- INTERACTIVE MODE ---
-                // Used when the user opens the executable directly
                 var view = new ConsoleView();
                 view.Start();
+                return 0;
             }
-        }
 
-        static void HandleCommandLineArgs(string[] args)
-        {
-            string command = args[0];
+            string command = string.Concat(args).Trim();
+            if (string.IsNullOrWhiteSpace(command))
+            {
+                return 0;
+            }
 
-            // TODO: Pass this logic to the ViewModel to parse ranges (1-3) or lists (1;3)
-            // Example: _viewModel.ExecuteJobsByCommandLine(command);
+            var viewModel = new MainViewModel();
+            viewModel.TryLoadSavedLanguage();
+            viewModel.ExecuteBackupJobs(command, out _, out _);
 
-            Console.WriteLine($"[View Log]: Requesting execution for arguments: {command}");
+            return 0;
         }
     }
 }

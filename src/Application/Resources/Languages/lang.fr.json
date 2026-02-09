@@ -19,7 +19,10 @@
   "AskJobNameToUpdate": "Quel job voulez vous modifier ?",
   "JobUpdatedSuccess": "Job créé",
   "AskJobsToExecute": "Quels jobs souhaitez vous exécuter ?",
-  "ExecuteHelp":  "Deux jobs séparés par un - : Exécution des jobs compris entre le premier jobs donné et le dexième jobs donné (jobs donnés inclus) \nPlusieurs jobs séparés par un ; : Exécutions des jobs listés"
+  "ExecuteHelp":  "Deux jobs separes par un - : execution des jobs compris entre le premier et le deuxieme (inclus). \nPlusieurs jobs separes par un ; : execution des jobs listes (ex: 1;3).",
+  "NoJobsFound": "Aucun job de sauvegarde trouve.",
+  "ErrorJobNotFound": "Job introuvable pour la selection donnee.",
+  "ErrorInvalidRange": "Selection invalide. Utilisez un index (ex: 1), une plage (ex: 1-3) ou une liste (ex: 1;3)."
 
 
 

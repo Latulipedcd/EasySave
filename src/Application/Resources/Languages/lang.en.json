@@ -19,5 +19,8 @@
   "AskJobNameToUpdate": "Which job do you want to update",
   "JobUpdatedSuccess": "Job created",
    "AskJobsToExecute": "Which job do you want to execute ?",
-  "ExecuteHelp":  "Two jobs separated by a hyphen (-): execution of the jobs between the first given job and the second given job (given jobs included). \nMultiple jobs separated by a semicolon (;): execution of the listed jobs."
+  "ExecuteHelp":  "Two jobs separated by a hyphen (-): execution between the first and second jobs (included). \nMultiple jobs separated by a semicolon (;): execution of listed jobs (ex: 1;3).",
+  "NoJobsFound": "No backup job found.",
+  "ErrorJobNotFound": "Job not found for the provided selection.",
+  "ErrorInvalidRange": "Invalid selection. Use an index (ex: 1), a range (ex: 1-3), or a list (ex: 1;3)."
 }

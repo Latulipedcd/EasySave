@@ -3,6 +3,7 @@ using Core.Interfaces;
 using Core.Models;
 using Core.Services;
 using EasySave.Application.Configuration;
+using System;
 using System.Collections.Generic;
 
 namespace EasySave.Application.ViewModels
@@ -124,8 +125,19 @@ namespace EasySave.Application.ViewModels
             errorMessage = string.Empty;
 
             var jobs = _backupJobRepository.GetAll().ToList();
+            if (jobs.Count == 0)
+            {
+                errorMessage = GetText("NoJobsFound");
+                return false;
+            }
 
-            var jobsToExecute = ResolveJobsFromInput(userInput, jobs, out errorMessage);
+            if (string.IsNullOrWhiteSpace(userInput))
+            {
+                errorMessage = GetText("ErrorInvalidOption");
+                return false;
+            }
+
+            var jobsToExecute = TryResolveJobsFromIndexInput(userInput, jobs, out errorMessage);
             if (jobsToExecute == null)
                 return false;
 
@@ -137,56 +149,90 @@ namespace EasySave.Application.ViewModels
 
             return true;
         }
-
-
-        private List<BackupJob>? ResolveJobsFromInput(
+        private List<BackupJob>? TryResolveJobsFromIndexInput(
     string input,
     List<BackupJob> allJobs,
     out string errorMessage)
         {
             errorMessage = string.Empty;
             var result = new List<BackupJob>();
+            var distinctIndexes = new HashSet<int>();
+            var parts = input.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-            var orderedJobs = allJobs.OrderBy(j => j.Name).ToList();
+            if (parts.Length == 0)
+            {
+                return null;
+            }
 
-            var parts = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Any(part => !IsIndexSelectionPart(part)))
+            {
+                errorMessage = GetText("ErrorInvalidRange");
+                return null;
+            }
 
             foreach (var part in parts)
             {
                 if (part.Contains('-'))
                 {
-                    var range = part.Split('-', StringSplitOptions.RemoveEmptyEntries);
-                    if (range.Length != 2)
+                    var range = part.Split('-', StringSplitOptions.TrimEntries);
+                    if (range.Length != 2
+                        || !int.TryParse(range[0], out int start)
+                        || !int.TryParse(range[1], out int end))
                     {
                         errorMessage = GetText("ErrorInvalidRange");
                         return null;
                     }
 
-                    var start = orderedJobs.FindIndex(j => j.Name == range[0]);
-                    var end = orderedJobs.FindIndex(j => j.Name == range[1]);
-
-                    if (start == -1 || end == -1 || start > end)
+                    if (!IsValidJobIndex(start, allJobs.Count)
+                        || !IsValidJobIndex(end, allJobs.Count)
+                        || start > end)
                     {
                         errorMessage = GetText("ErrorInvalidRange");
                         return null;
                     }
 
-                    result.AddRange(orderedJobs.Skip(start).Take(end - start + 1));
+                    for (int index = start; index <= end; index++)
+                    {
+                        if (distinctIndexes.Add(index))
+                        {
+                            result.Add(allJobs[index - 1]);
+                        }
+                    }
                 }
                 else
                 {
-                    var job = orderedJobs.FirstOrDefault(j => j.Name == part);
-                    if (job == null)
+                    if (!int.TryParse(part, out int index) || !IsValidJobIndex(index, allJobs.Count))
                     {
                         errorMessage = GetText("ErrorJobNotFound");
                         return null;
                     }
 
-                    result.Add(job);
+                    if (distinctIndexes.Add(index))
+                    {
+                        result.Add(allJobs[index - 1]);
+                    }
                 }
             }
 
-            return result.Distinct().ToList();
+            return result;
+        }
+
+        private static bool IsIndexSelectionPart(string part)
+        {
+            if (int.TryParse(part, out _))
+            {
+                return true;
+            }
+
+            var range = part.Split('-', StringSplitOptions.TrimEntries);
+            return range.Length == 2
+                && int.TryParse(range[0], out _)
+                && int.TryParse(range[1], out _);
+        }
+
+        private static bool IsValidJobIndex(int index, int totalJobs)
+        {
+            return index >= 1 && index <= totalJobs;
         }
 
 
