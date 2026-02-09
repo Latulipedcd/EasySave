@@ -17,7 +17,7 @@ namespace EasySave.ConsoleApp
 
 
 
-        public void DisplayJobs()
+        public bool DisplayJobs()
         {
             Console.Clear();
             Console.WriteLine(_vm.GetText("JobListTitle"));
@@ -28,7 +28,7 @@ namespace EasySave.ConsoleApp
             if (jobs.Count == 0)
             {
                 Console.WriteLine(_vm.GetText("NoJobsFound"));
-                return;
+                return false;
             }
 
             int index = 1;
@@ -42,6 +42,7 @@ namespace EasySave.ConsoleApp
                 index++;
             }
 
+            return true;
         }
 
 
@@ -80,25 +81,11 @@ namespace EasySave.ConsoleApp
 
         public void DeleteJob()
         {
-            Console.Clear();
-            var jobs = _vm.GetBackupJobs();
-            Console.WriteLine(_vm.GetText("JobListTitle"));
-            Console.WriteLine();
-
-            if (jobs.Count == 0)
+            bool hasJobs = DisplayJobs();
+            if (!hasJobs)
             {
-                Console.WriteLine(_vm.GetText("NoJobsFound"));
                 return;
             }
-
-            int index = 1;
-            foreach (var job in jobs)
-            {
-                Console.WriteLine($"{index}. {job.Name}");
-                index++;
-            }
-
-            Console.WriteLine();
 
             Console.WriteLine(_vm.GetText("AskJobNameToDelete"));
             var jobName = Console.ReadLine();
@@ -121,25 +108,11 @@ namespace EasySave.ConsoleApp
 
         public void UpdateJob()
         {
-            Console.Clear();
-            var jobs = _vm.GetBackupJobs();
-            Console.WriteLine(_vm.GetText("JobListTitle"));
-            Console.WriteLine();
-
-            if (jobs.Count == 0)
+            bool hasJobs = DisplayJobs();
+            if (!hasJobs)
             {
-                Console.WriteLine(_vm.GetText("NoJobsFound"));
                 return;
             }
-
-            int index = 1;
-            foreach (var job in jobs)
-            {
-                Console.WriteLine($"{index}. {job.Name}");
-                index++;
-            }
-
-            Console.WriteLine();
 
             Console.WriteLine(_vm.GetText("AskJobNameToUpdate"));
             var jobName = Console.ReadLine();
@@ -189,26 +162,11 @@ namespace EasySave.ConsoleApp
 
         public void ExecuteJobs()
         {
-            Console.Clear();
-
-            var jobs = _vm.GetBackupJobs();
-            Console.WriteLine(_vm.GetText("JobListTitle"));
-            Console.WriteLine();
-
-            if (jobs.Count == 0)
+            bool hasJobs = DisplayJobs();
+            if (!hasJobs)
             {
-                Console.WriteLine(_vm.GetText("NoJobsFound"));
                 return;
             }
-
-            int index = 1;
-            foreach (var job in jobs)
-            {
-                Console.WriteLine($"{index}. {job.Name}");
-                index++;
-            }
-
-            Console.WriteLine();
 
             Console.WriteLine(_vm.GetText("AskJobsToExecute"));
             Console.WriteLine(_vm.GetText("ExecuteHelp"));
