@@ -59,6 +59,10 @@ namespace Log.Services
                 WriteIndented = true,
                 Converters = { new JsonStringEnumConverter() }
             }));
+
+            var outputJson = JsonSerializer.Serialize(array, new JsonSerializerOptions { WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
+
+            File.WriteAllText(_path, outputJson);
         }
     }
 }

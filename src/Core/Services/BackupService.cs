@@ -102,6 +102,7 @@ namespace Core.Services
                 var backupState = new BackupState(job)
                 {
                     Status = state.Status,
+                    TimeStamp = DateTime.Now,
                     TotalFiles = state.TotalFiles,
                     FilesRemaining = state.FilesRemaining,
                     TotalBytes = state.TotalBytes,
@@ -116,6 +117,20 @@ namespace Core.Services
 
             if (state.Status != BackupStatus.Error)
                 state.Status = BackupStatus.Completed;
+
+            var backupState2 = new BackupState(job)
+            {
+                Status = state.Status,
+                TimeStamp = DateTime.Now,
+                TotalFiles = 0,
+                FilesRemaining = 0,
+                TotalBytes = 0,
+                BytesRemaining = 0,
+                CurrentFileSource = null,
+                CurrentFileTarget = null
+            };
+
+            _progressWriter.Write(backupState2);
 
             return state;
         }

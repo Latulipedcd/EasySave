@@ -2,6 +2,7 @@ using Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Core.Models
 {
@@ -11,13 +12,22 @@ namespace Core.Models
 
 
         public BackupStatus Status { get; set; }
-        public long TotalFiles { get; set; }
-        public long FilesRemaining { get; set; }
-        public long TotalBytes { get; set; }
-        public long BytesRemaining { get; set; }
-        public string CurrentFileSource { get; set; }
-        public string CurrentFileTarget { get; set; }
+        public DateTime TimeStamp { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public long TotalFiles { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public long FilesRemaining { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public long TotalBytes { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public long BytesRemaining { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? CurrentFileSource { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? CurrentFileTarget { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public double ProgressPercentage =>
             TotalBytes == 0 ? 0 :
             (1.0 - (double)BytesRemaining / TotalBytes) * 100;
