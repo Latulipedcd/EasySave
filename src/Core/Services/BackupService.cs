@@ -53,19 +53,19 @@ namespace Core.Services
 
                 var stopwatch = Stopwatch.StartNew();
 
-                bool shouldCopy = true;
+                bool shouldCopy = true; //In use when backup type is Differencial
 
                 if (job.Type == BackupType.Differencial && File.Exists(targetPath))
                 {
                     var sourceInfo = new FileInfo(file);
                     var targetInfo = new FileInfo(targetPath);
 
-                    shouldCopy = sourceInfo.LastWriteTime > targetInfo.LastWriteTime;
+                    shouldCopy = sourceInfo.LastWriteTime > targetInfo.LastWriteTime; //Verify if the file in the save directory is newer than the one in the original directory
                 }
 
                 if (!shouldCopy)
                 {
-                    state.FilesRemaining--;
+                    state.FilesRemaining--; //Reduction of number of file to copy if the file shouldn't be copied
                     continue;
                 }
 
@@ -89,17 +89,17 @@ namespace Core.Services
                     BackupName = job.Name,
                     Source = file,
                     Target = targetPath,
-                    Duration = stopwatch.Elapsed,
+                    Duration = stopwatch.Elapsed, //Calculate copy time by the time between the two spotwatch
                     Timestamp = DateTime.Now,
                     FileSize = sizeInBytes,
                     WorkType = WorkType.file_transfer
                 };
 
-                _logService.LogBackup(logEntry);
+                _logService.LogBackup(logEntry); //Daily log
 
                 state.BytesRemaining -= sizeInBytes;
 
-                var backupState = new BackupState(job)
+                var backupState = new BackupState(job) 
                 {
                     Status = state.Status,
                     TimeStamp = DateTime.Now,
@@ -111,14 +111,14 @@ namespace Core.Services
                     CurrentFileTarget = state.CurrentFileTarget
                 };
 
-                _progressWriter.Write(backupState);
+                _progressWriter.Write(backupState); //Current job progress and informations
 
             }
 
             if (state.Status != BackupStatus.Error)
                 state.Status = BackupStatus.Completed;
 
-            var backupState2 = new BackupState(job)
+            var ResetInfo = new BackupState(job)
             {
                 Status = state.Status,
                 TimeStamp = DateTime.Now,
@@ -130,7 +130,7 @@ namespace Core.Services
                 CurrentFileTarget = null
             };
 
-            _progressWriter.Write(backupState2);
+            _progressWriter.Write(ResetInfo); //Remove some informations that need to disapear once job is done
 
             return state;
         }

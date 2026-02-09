@@ -4,6 +4,8 @@ namespace EasySave.ConsoleApp
 {
     public class ConsoleView
     {
+
+        //Console display
         private readonly MainViewModel _vm;
         private readonly ConsoleLogic _logic;
 

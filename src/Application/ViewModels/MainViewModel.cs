@@ -3,8 +3,10 @@ using Core.Interfaces;
 using Core.Models;
 using Core.Services;
 using EasySave.Application.Configuration;
-using System.Collections.Generic;
 using Log.Services;
+using System;
+using System.Collections.Generic;
+using System.Reflection.Metadata;
 
 namespace EasySave.Application.ViewModels
 {
@@ -38,6 +40,7 @@ namespace EasySave.Application.ViewModels
         {
             try
             {
+                //Change UI job type to a real value of the enum
                 BackupType trueJobType = jobType == 0
                     ? BackupType.Full
                     : BackupType.Differencial;
@@ -48,7 +51,7 @@ namespace EasySave.Application.ViewModels
                     jobTargetPath,
                     trueJobType);
 
-                _backupJobRepository.Add(job);
+                _backupJobRepository.Add(job); //Add job to repository
 
                 message = GetText("JobCreatedSuccess");
                 return true;
@@ -61,7 +64,7 @@ namespace EasySave.Application.ViewModels
         }
 
 
-        public bool DeleteBackupJob(int jobId, out string message)
+        public bool DeleteBackupJob(int jobId, out string message) //Jobid is the display job id when job are display
         {
             try
             {
@@ -150,7 +153,7 @@ namespace EasySave.Application.ViewModels
             return true;
         }
 
-
+        // Parses user input and resolves the corresponding backup jobs, differentiate - and ;
         private List<BackupJob>? ResolveJobsFromInput(
     string input,
     List<BackupJob> allJobs,
@@ -160,13 +163,14 @@ namespace EasySave.Application.ViewModels
             var result = new List<BackupJob>();
 
             var indexedJobs = allJobs;
-
+            // Split input by ';' to support multiple selections
             var parts = input.Split(
                 ';',
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             foreach (var part in parts)
             {
+                // Handle range syntax (e.g. 1-3)
                 if (part.Contains('-'))
                 {
                     var range = part.Split(
@@ -195,6 +199,8 @@ namespace EasySave.Application.ViewModels
                 }
                 else
                 {
+                    // Handle single job ID
+
                     bool isIdValid = int.TryParse(part, out int jobId);
                     if (!isIdValid || jobId < 1 || jobId > indexedJobs.Count)
                     {
@@ -205,10 +211,11 @@ namespace EasySave.Application.ViewModels
                     result.Add(indexedJobs[jobId - 1]);
                 }
             }
-
+            // Remove duplicates and return final list
             return result.Distinct().ToList();
         }
 
+        // Attempts to load the saved language from user configuration
 
         public bool TryLoadSavedLanguage()
         {
@@ -222,6 +229,7 @@ namespace EasySave.Application.ViewModels
             return _langManager.LoadLanguage(savedLanguage);
         }
 
+        // Changes the current language and persists it to user configuration
         public bool ChangeLanguage(string cultureCode)
         {
             bool isLanguageLoaded = _langManager.LoadLanguage(cultureCode);
