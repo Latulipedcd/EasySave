@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Log.Interfaces;
+using Log.Services;
 
 namespace Core.Services
 {
@@ -49,7 +50,30 @@ namespace Core.Services
             {
                 var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
                 var targetPath = Path.Combine(job.TargetDirectory, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+                
+                var folderPath = Path.GetDirectoryName(targetPath)!;
+                if (!Directory.Exists(folderPath))
+                {
+                    var stopwatchFolder = Stopwatch.StartNew();
+
+                    Directory.CreateDirectory(folderPath);
+
+                    stopwatchFolder.Stop();
+
+                    
+                    var logEntryFolder = new
+                    {
+                        BackupName = job.Name,
+                        Source = file,
+                        Target = folderPath,
+                        Duration = stopwatchFolder.Elapsed,
+                        Timestamp = DateTime.Now,
+                        FileSize = 0,
+                        WorkType = WorkType.folder_creation
+                    };
+
+                    _logService.LogBackup(logEntryFolder);
+                }
 
                 var stopwatch = Stopwatch.StartNew();
 

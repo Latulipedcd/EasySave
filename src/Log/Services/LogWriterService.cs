@@ -49,17 +49,17 @@ namespace Log.Services
 
             JsonArray array = JsonNode.Parse(json)?.AsArray() ?? new JsonArray(); // Parse existing JSON or create a new array if parsing fails
 
-            JsonNode newEntry = JsonSerializer.SerializeToNode(entry); // Serialize the new log entry to a JsonNode
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
+
+            JsonNode newEntry = JsonSerializer.SerializeToNode(entry, options); // Serialize the new log entry to a JsonNode
 
             array.Add(newEntry); // Add the new entry to the array
 
             // Write the updated array back to the file with indentation for readability
-            File.WriteAllText(_path, array.ToJsonString(new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Converters = { new JsonStringEnumConverter() }
-            }));
-
             var outputJson = JsonSerializer.Serialize(array, new JsonSerializerOptions { WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
 
             File.WriteAllText(_path, outputJson);
