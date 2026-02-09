@@ -54,13 +54,13 @@ namespace Core.Services
                 var folderPath = Path.GetDirectoryName(targetPath)!;
                 if (!Directory.Exists(folderPath))
                 {
-                    var stopwatchFolder = Stopwatch.StartNew();
+                    var stopwatchFolder = Stopwatch.StartNew();// Start timing the folder creation
 
                     Directory.CreateDirectory(folderPath);
 
-                    stopwatchFolder.Stop();
+                    stopwatchFolder.Stop();// Stop timing the folder creation
 
-                    
+                    // Log the folder creation
                     var logEntryFolder = new
                     {
                         BackupName = job.Name,
@@ -71,11 +71,10 @@ namespace Core.Services
                         FileSize = 0,
                         WorkType = WorkType.folder_creation
                     };
-
                     _logService.LogBackup(logEntryFolder);
                 }
 
-                var stopwatch = Stopwatch.StartNew();
+                var stopwatch = Stopwatch.StartNew(); // Start timing the file transfer
 
                 bool shouldCopy = true;
 
@@ -103,11 +102,12 @@ namespace Core.Services
 
                 state.FilesRemaining--;
 
-                stopwatch.Stop();
+                stopwatch.Stop();// Stop timing the file transfer
 
                 FileInfo fileInfo = new FileInfo(state.CurrentFileSource);
                 long sizeInBytes = fileInfo.Length;
 
+                // Log the file transfer
                 var logEntry = new LogEntry
                 {
                     BackupName = job.Name,
@@ -118,11 +118,11 @@ namespace Core.Services
                     FileSize = sizeInBytes,
                     WorkType = WorkType.file_transfer
                 };
-
                 _logService.LogBackup(logEntry);
 
                 state.BytesRemaining -= sizeInBytes;
 
+                // Update progress after each file
                 var backupState = new BackupState(job)
                 {
                     Status = state.Status,
@@ -134,7 +134,6 @@ namespace Core.Services
                     CurrentFileSource = state.CurrentFileSource,
                     CurrentFileTarget = state.CurrentFileTarget
                 };
-
                 _progressWriter.Write(backupState);
 
             }
@@ -142,6 +141,7 @@ namespace Core.Services
             if (state.Status != BackupStatus.Error)
                 state.Status = BackupStatus.Completed;
 
+            // Final progress update to ensure 100% completion is reflected
             var backupState2 = new BackupState(job)
             {
                 Status = state.Status,
@@ -153,7 +153,6 @@ namespace Core.Services
                 CurrentFileSource = null,
                 CurrentFileTarget = null
             };
-
             _progressWriter.Write(backupState2);
 
             return state;
