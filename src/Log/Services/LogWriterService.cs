@@ -102,13 +102,14 @@ namespace Log.Services
             }
             else
             {
-                doc = new XDocument(new XElement("Logs"));
+                doc = new XDocument(new XElement("Logs")); // Create an empty XML file if it doesn't exist
             }
 
+            // New XML node
             XElement logElement = new XElement("Log",
             new XAttribute("timestamp", DateTime.Now)
         );
-
+            // Add entry data in the node
             foreach (PropertyInfo prop in entry.GetType().GetProperties())
             {
                 object? value = prop.GetValue(entry);
@@ -118,6 +119,7 @@ namespace Log.Services
                 );
             }
 
+            // Add the node to the file and save
             doc.Root!.Add(logElement);
             doc.Save(_path);
         }
