@@ -1,10 +1,12 @@
 ﻿using Log.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 namespace Log.Services
 {
@@ -26,8 +28,6 @@ namespace Log.Services
 
             _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.json";
             _path = Path.Combine(_folder, _fileName);
-
-            Console.WriteLine($"Log file path: {_path}");
 
         }
 
@@ -65,4 +65,65 @@ namespace Log.Services
             File.WriteAllText(_path, outputJson);
         }
     }
+
+    class XmlLogWriter : ILogWriter
+    {
+        private readonly string _folder;
+        string _fileName;
+        string _path;
+
+        public XmlLogWriter()
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+            // %APPDATA%\EasyLog\Logs
+            _folder = Path.Combine(appData, "EasyLog", "Logs");
+
+            // Crée le dossier s'il n'existe pas
+            Directory.CreateDirectory(_folder);
+
+            _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.xml";
+            _path = Path.Combine(_folder, _fileName);
+
+        }
+
+        public void Write(Object entry)
+        {
+            XDocument doc;
+
+            if (!Directory.Exists(_folder))
+            {
+                Directory.CreateDirectory(_folder); // Ensure the Logs directory exists
+            }
+
+            if (File.Exists(_path))
+            {
+                doc = XDocument.Load(_path);
+            }
+            else
+            {
+                doc = new XDocument(new XElement("Logs")); // Create an empty XML file if it doesn't exist
+            }
+
+            // New XML node
+            XElement logElement = new XElement("Log",
+            new XAttribute("timestamp", DateTime.Now)
+        );
+            // Add entry data in the node
+            foreach (PropertyInfo prop in entry.GetType().GetProperties())
+            {
+                object? value = prop.GetValue(entry);
+
+                logElement.Add(
+                    new XElement(prop.Name, value?.ToString() ?? "null")
+                );
+            }
+
+            // Add the node to the file and save
+            doc.Root!.Add(logElement);
+            doc.Save(_path);
+        }
+    }
 }
+
+
