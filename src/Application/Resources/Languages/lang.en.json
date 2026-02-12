@@ -6,7 +6,8 @@
   "MenuOptionModify": "4. Modify Backup Job",
   "MenuOptionDelete": "5. Delete Backup Job",
   "MenuOptionLang": "6. Change Language / Langue",
-  "MenuOptionExit": "7. Exit",
+  "MenuOptionLog": "7. Choose logs Format",
+  "MenuOptionExit": "8. Exit",
   "MenuPrompt": "\nSelect an option: ",
   "ErrorInvalidOption": "Invalid option. Please try again.",
   "AskJobName": "Insert job name.",
@@ -20,8 +21,8 @@
   "JobUpdatedSuccess": "Job created",
   "JobListTitle": "Available backup jobs",
   "NoJobsFound": "No backup jobs found.",
-   "AskJobsToExecute": "Which job IDs do you want to execute?",
-  "ExecuteHelp":  "Two IDs separated by a hyphen (-): execute all jobs between those IDs (included). \nMultiple IDs separated by a semicolon (;): execute only the listed IDs.",
+  "AskJobsToExecute": "Which job IDs do you want to execute?",
+  "ExecuteHelp": "Two IDs separated by a hyphen (-): execute all jobs between those IDs (included). \nMultiple IDs separated by a semicolon (;): execute only the listed IDs.",
   "ErrorJobNotFound": "No job found for this ID.",
   "ErrorInvalidRange": "Invalid ID range."
 }

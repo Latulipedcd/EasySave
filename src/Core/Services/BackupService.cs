@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using Log.Interfaces;
 using Log.Services;
+using Log.Enums;
 
 namespace Core.Services
 {
@@ -28,10 +29,10 @@ namespace Core.Services
             _logService = logService;
             _fileService = fileService;
             _copyService = copyService;
-            _progressWriter = progressWriter;   
+            _progressWriter = progressWriter;
         }
 
-        public BackupState ExecuteBackup(BackupJob job)
+        public BackupState ExecuteBackup(BackupJob job, LogFormat format)
         {
             var state = new BackupState(job)
             {
@@ -41,16 +42,18 @@ namespace Core.Services
             var files = _fileService.GetFiles(job.SourceDirectory);
             state.TotalFiles = files.Length;
             state.FilesRemaining = files.Length;
-            
+
             long totalBytes = files.Sum(f => new FileInfo(f).Length);
             state.TotalBytes = totalBytes;
             state.BytesRemaining = totalBytes;
+
+            _logService.Configure(format); // Configure log format based on user preference
 
             foreach (var file in files)
             {
                 var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
                 var targetPath = Path.Combine(job.TargetDirectory, relativePath);
-                
+
                 var folderPath = Path.GetDirectoryName(targetPath)!;
                 if (!Directory.Exists(folderPath))
                 {
@@ -159,5 +162,7 @@ namespace Core.Services
 
             return state;
         }
+
+        
     }
 }

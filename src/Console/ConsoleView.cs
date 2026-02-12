@@ -51,6 +51,9 @@ namespace EasySave.ConsoleApp
                         ChangeLanguage();
                         break;
                     case "7":
+                        ChooseLogFormat();
+                        break;
+                    case "8":
                         running = false;
                         break;
                     default:
@@ -83,6 +86,7 @@ namespace EasySave.ConsoleApp
             Console.WriteLine(_vm.GetText("MenuOptionModify"));
             Console.WriteLine(_vm.GetText("MenuOptionDelete"));
             Console.WriteLine(_vm.GetText("MenuOptionLang"));
+            Console.WriteLine(_vm.GetText("MenuOptionLog"));
             Console.WriteLine(_vm.GetText("MenuOptionExit"));
             Console.Write(_vm.GetText("MenuPrompt"));
         }
@@ -134,6 +138,33 @@ namespace EasySave.ConsoleApp
             {
                 "1" => _vm.ChangeLanguage("en"),
                 "2" => _vm.ChangeLanguage("fr"),
+                _ => false
+            };
+        }
+
+        private void ChooseLogFormat()
+        {
+            Console.WriteLine();
+            Console.WriteLine("1. Json (default)");
+            Console.WriteLine("2. Xml");
+            Console.Write("Choice: ");
+
+            string? choice = Console.ReadLine();
+            bool hasChangedLogFormat = TryChangeLogFormatFromChoice(choice);
+
+            if (!hasChangedLogFormat)
+            {
+                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
+                Pause();
+            }
+        }
+
+        private bool TryChangeLogFormatFromChoice(string? choice)
+        {
+            return choice switch
+            {
+                "1" => _vm.ChangeLogFormat("Json"),
+                "2" => _vm.ChangeLogFormat("Xml"),
                 _ => false
             };
         }
