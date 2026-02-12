@@ -1,4 +1,6 @@
-﻿using Log.Interfaces;
+﻿using Log.Enums;
+using Log.Factory;
+using Log.Interfaces;
 using System.Reflection.Metadata;
 
 
@@ -9,7 +11,7 @@ namespace Log.Services
     {
         private static LogService? _instance; // Singleton instance
 
-        private ILogWriter writer;
+        private ILogWriter _writer;
 
         public static LogService Instance
         {
@@ -26,12 +28,17 @@ namespace Log.Services
 
         private LogService()
         {
-            writer = new JsonLogWriter(); 
+            _writer = LogWriterFactory.Create(LogFormat.Json); // Json by default for retrocompatibility
+        }
+
+        public void Configure(LogFormat format)
+        {
+            _writer = LogWriterFactory.Create(format);
         }
 
         public void LogBackup(Object entry)
         {
-            writer.Write(entry);
+            _writer.Write(entry);
         }
 
     }
