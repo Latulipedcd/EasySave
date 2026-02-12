@@ -2,5 +2,6 @@
   <Project Path="src/Application/Application.csproj" />
   <Project Path="src/Console/Console.csproj" />
   <Project Path="src/Core/Core.csproj" />
+  <Project Path="src/GUI/GUI.csproj" Id="18b1db3a-9607-4458-9977-a5c50e2239ab" />
   <Project Path="src/Log/Log.csproj" />
 </Solution>
