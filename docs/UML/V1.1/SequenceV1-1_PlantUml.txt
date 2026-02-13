@@ -1,0 +1,86 @@
+@startuml
+actor User
+participant "ConsoleApp\n(EasySave)" as App
+participant "BackupManager" as Manager
+participant "JobRepository\n(config JSON)" as Repo
+participant "Job" as Job
+participant "FileScanner" as Scanner
+participant "FileCopier" as Copier
+participant "StateManager" as State
+participant "EasyLog.dll" as Log
+participant "FileSystem" as FS
+
+User -> App : Launch EasySave.exe
+App -> Manager : initialize()
+Manager -> Repo : loadJobs()
+Repo -> FS : read jobs.json
+FS --> Repo : jobsData (or empty)
+Repo --> Manager : jobsList
+Manager --> App : ready(jobsList)
+
+== Create job ==
+User -> App : createJob(name, source, target, type)
+App -> Manager : validateJob(data)
+
+alt max 5 jobs reached
+  Manager --> App : error("limit reached")
+  App --> User : displayError
+else ok
+  Manager -> Repo : addJob(data)
+  Repo -> FS : write jobs.json
+  FS --> Repo : ok
+  Repo --> Manager : jobId
+  Manager --> App : jobCreated(jobId)
+  App --> User : displayCreated(jobId)
+end
+
+== Run job ==
+User -> App : runJob(jobId)
+App -> Manager : startJob(jobId)
+Manager -> Repo : getJob(jobId)
+Repo --> Manager : jobData
+Manager -> Job : init(jobData)
+
+Job -> Scanner : scanSourceDirectory(source, type)
+Scanner -> FS : listFilesRecursive(source)
+FS --> Scanner : filesList
+Scanner --> Job : eligibleFiles
+
+Job -> State : initState(job)
+State -> FS : write state.json
+FS --> State : ok
+
+loop for each eligible file
+  Job -> Copier : copyFile(file, target)
+  Copier -> FS : read(file)
+  FS --> Copier : data
+  Copier -> FS : write(target\file)
+  FS --> Copier : ok (or error)
+
+  Job -> Log : LogBackup(LogEntry, logsType)
+
+  alt logsType == JSON
+    Log -> Serializer : serializeToJson(LogEntry)
+    Serializer --> Log : jsonData
+    Log -> FS : append YYYY-MM-DD.json
+    FS --> Log : ok
+  else logsType == XML
+    Log -> Serializer : serializeToXml(LogEntry)
+    Serializer --> Log : xmlData
+    Log -> FS : append YYYY-MM-DD.xml
+    FS --> Log : ok
+  end
+
+  Job -> State : updateProgress(fileInfo)
+  State -> FS : update state.json
+  FS --> State : ok
+end
+
+Job -> State : finalizeState(status="done")
+State -> FS : update state.json
+FS --> State : ok
+
+Job --> Manager : jobFinished
+Manager --> App : executionDone
+App --> User : displayResult
+@enduml
