@@ -1,6 +1,8 @@
+using Log.Enums;
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace EasySave.Application.Configuration
 {
@@ -61,10 +63,8 @@ namespace EasySave.Application.Configuration
             {
                 Directory.CreateDirectory(_configDirectoryPath);
 
-                UserConfig userConfig = new()
-                {
-                    Language = cultureCode.Trim().ToLowerInvariant()
-                };
+                var userConfig = LoadConfig(); // on charge l’existant
+                userConfig.Language = cultureCode.Trim().ToLowerInvariant();
 
                 string jsonContent = JsonSerializer.Serialize(
                     userConfig,
@@ -80,9 +80,76 @@ namespace EasySave.Application.Configuration
             }
         }
 
+        public LogFormat? LoadLogFormat()
+        {
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                    return null;
+
+                string json = File.ReadAllText(_configFilePath);
+
+                var config = JsonSerializer.Deserialize<UserConfig>(
+                    json,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new JsonStringEnumConverter() }
+                    });
+
+                return config?.SavedLogFormat;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+        public bool SaveLogFormat(LogFormat format)
+        {
+            
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+
+                var userConfig = LoadConfig(); // on charge l’existant
+                userConfig.SavedLogFormat = format;
+
+                string jsonContent = JsonSerializer.Serialize(
+                    userConfig,
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                File.WriteAllText(_configFilePath, jsonContent);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private UserConfig LoadConfig()
+        {
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                    return new UserConfig();
+
+                string json = File.ReadAllText(_configFilePath);
+                return JsonSerializer.Deserialize<UserConfig>(json) ?? new UserConfig();
+            }
+            catch
+            {
+                return new UserConfig();
+            }
+        }
+
         private sealed class UserConfig
         {
             public string? Language { get; set; }
+            public LogFormat? SavedLogFormat { get; set; }
         }
     }
 }

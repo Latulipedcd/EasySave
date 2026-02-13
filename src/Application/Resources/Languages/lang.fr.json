@@ -6,7 +6,8 @@
   "MenuOptionModify": "4. Modifier un travail de sauvegarde",
   "MenuOptionDelete": "5. Supprimer un travail de sauvegarde",
   "MenuOptionLang": "6. Change Language / Langue",
-  "MenuOptionExit": "7. Quitter",
+  "MenuOptionLog": "7. Choisir le format des logs",
+  "MenuOptionExit": "8. Quitter",
   "MenuPrompt": "\nSélectionnez une option : ",
   "ErrorInvalidOption": "Option invalide. Veuillez réessayer.",
   "AskJobName": "Saisissez le nom du job.",
@@ -21,7 +22,7 @@
   "JobListTitle": "Jobs de sauvegarde disponibles",
   "NoJobsFound": "Aucun job de sauvegarde trouvé.",
   "AskJobsToExecute": "Quels IDs de jobs souhaitez vous exécuter ?",
-  "ExecuteHelp":  "Deux IDs séparés par un - : exécute tous les jobs entre ces deux IDs (inclus). \nPlusieurs IDs séparés par un ; : exécute uniquement les IDs listés.",
+  "ExecuteHelp": "Deux IDs séparés par un - : exécute tous les jobs entre ces deux IDs (inclus). \nPlusieurs IDs séparés par un ; : exécute uniquement les IDs listés.",
   "ErrorJobNotFound": "Job introuvable pour cet ID.",
   "ErrorInvalidRange": "Plage d'IDs invalide."
 

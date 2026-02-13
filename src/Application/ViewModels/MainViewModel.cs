@@ -3,6 +3,7 @@ using Core.Interfaces;
 using Core.Models;
 using Core.Services;
 using EasySave.Application.Configuration;
+using Log.Enums;
 using Log.Services;
 using System;
 using System.Collections.Generic;
@@ -146,7 +147,7 @@ namespace EasySave.Application.ViewModels
 
             foreach (var job in jobsToExecute)
             {
-                var state = _backupService.ExecuteBackup(job);
+                var state = _backupService.ExecuteBackup(job, GetSavedLogFormat());
                 results.Add(state);
             }
 
@@ -240,6 +241,31 @@ namespace EasySave.Application.ViewModels
 
             _userConfigManager.SaveLanguage(_langManager.CurrentCultureCode);
             return true;
+        }
+
+        // Changes the current Log format in the user configuration
+        public bool ChangeLogFormat(string format)
+        {
+            if (format == "Json")
+            {
+                _userConfigManager.SaveLogFormat(LogFormat.Json);
+                return true;
+            }
+            else if (format == "Xml")
+            {
+                _userConfigManager.SaveLogFormat(LogFormat.Xml);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+            
+
+        public LogFormat GetSavedLogFormat() 
+        {
+            return _userConfigManager.LoadLogFormat() ?? LogFormat.Json; // Get the saved log format or by default json
         }
 
         public IReadOnlyList<string> GetSupportedLanguages()
