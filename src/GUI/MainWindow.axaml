@@ -2,8 +2,87 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GUI.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="GUI.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
         Title="GUI">
-    Welcome to Avalonia!
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16" RowSpacing="8">
+        <TextBlock Grid.Row="0" Text="Jobs de sauvegarde" FontSize="18" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+            <Button Content="Exécuter la sélection" Click="ExecuteSelected_Click" />
+            <Button Content="Exécuter tout" Click="ExecuteAll_Click" />
+            <Button Content="Supprimer la sélection" Click="DeleteSelected_Click" />
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+
+        <Grid Grid.Row="3" ColumnDefinitions="3*,2*" ColumnSpacing="12">
+            <Border Grid.Column="0" Padding="8">
+                <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="2*,4*,4*,2*" Margin="0,0,0,6">
+                        <TextBlock Grid.Column="0" Text="Nom" FontWeight="Bold" />
+                        <TextBlock Grid.Column="1" Text="Source" FontWeight="Bold" />
+                        <TextBlock Grid.Column="2" Text="Destination" FontWeight="Bold" />
+                        <TextBlock Grid.Column="3" Text="Type" FontWeight="Bold" />
+                    </Grid>
+
+                    <ListBox Name="JobsList"
+                             ItemsSource="{Binding BackupJobs}"
+                             SelectionMode="Multiple"
+                             SelectionChanged="JobsList_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="2*,4*,4*,2*" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" TextWrapping="NoWrap" />
+                                    <TextBlock Grid.Column="1" Text="{Binding SourceDirectory}" TextWrapping="NoWrap" />
+                                    <TextBlock Grid.Column="2" Text="{Binding TargetDirectory}" TextWrapping="NoWrap" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Type}" TextWrapping="NoWrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Padding="8">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Créer / modifier" FontWeight="Bold" />
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Nom" />
+                        <TextBox Text="{Binding NewJobName, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Dossier source" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                            <TextBox Grid.Column="0" Text="{Binding NewJobSourceDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Column="1" Content="Parcourir" Click="BrowseSource_Click" />
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Dossier destination" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                            <TextBox Grid.Column="0" Text="{Binding NewJobTargetDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Column="1" Content="Parcourir" Click="BrowseTarget_Click" />
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Type" />
+                        <ComboBox SelectedIndex="{Binding NewJobTypeIndex}">
+                            <ComboBoxItem Content="Full" />
+                            <ComboBoxItem Content="Differential" />
+                        </ComboBox>
+                    </StackPanel>
+
+                    <Button Content="Créer" Click="CreateJob_Click" />
+                    <Button Content="Modifier" Click="UpdateJob_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
 </Window>
