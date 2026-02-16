@@ -1,10 +1,240 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="GUI.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
 
     <Application.Styles>
         <FluentTheme />
+        
+        <!-- Professional Dark Mode Color Palette -->
+        <Style>
+            <Style.Resources>
+                <SolidColorBrush x:Key="PrimaryBrush">#3B82F6</SolidColorBrush>
+                <SolidColorBrush x:Key="PrimaryHoverBrush">#60A5FA</SolidColorBrush>
+                <SolidColorBrush x:Key="SecondaryBrush">#10B981</SolidColorBrush>
+                <SolidColorBrush x:Key="SecondaryHoverBrush">#34D399</SolidColorBrush>
+                <SolidColorBrush x:Key="DangerBrush">#EF4444</SolidColorBrush>
+                <SolidColorBrush x:Key="DangerHoverBrush">#F87171</SolidColorBrush>
+                <SolidColorBrush x:Key="CardBrush">#1E293B</SolidColorBrush>
+                <SolidColorBrush x:Key="CardDarkBrush">#1E293B</SolidColorBrush>
+                <SolidColorBrush x:Key="BackgroundBrush">#0F172A</SolidColorBrush>
+                <SolidColorBrush x:Key="BackgroundDarkBrush">#0F172A</SolidColorBrush>
+                <SolidColorBrush x:Key="BorderBrush">#334155</SolidColorBrush>
+                <SolidColorBrush x:Key="TextPrimaryBrush">#F1F5F9</SolidColorBrush>
+                <SolidColorBrush x:Key="TextSecondaryBrush">#94A3B8</SolidColorBrush>
+                <Color x:Key="PrimaryColor">#2563EB</Color>
+                <Color x:Key="SecondaryColor">#10B981</Color>
+                <Color x:Key="DangerColor">#EF4444</Color>
+            </Style.Resources>
+        </Style>
+
+        <!-- Window Styling -->
+        <Style Selector="Window">
+            <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+        </Style>
+
+        <!-- Card Containers -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="BoxShadow" Value="0 4 6 0 #00000040, 0 2 4 0 #00000020" />
+        </Style>
+
+        <Style Selector="Border.card-header">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Padding" Value="0,0,0,16" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+
+        <!-- Primary Button -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}" />
+            <Setter Property="RenderTransform" Value="scale(1.02)" />
+        </Style>
+
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.98)" />
+        </Style>
+
+        <!-- Secondary Button -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="{DynamicResource SecondaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        
+        <Style Selector="Button.secondary:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SecondaryHoverBrush}" />
+            <Setter Property="RenderTransform" Value="scale(1.02)" />
+        </Style>
+
+        <Style Selector="Button.secondary:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.98)" />
+        </Style>
+
+        <!-- Danger Button -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        
+        <Style Selector="Button.danger:pointerover">
+            <Setter Property="Background" Value="{DynamicResource DangerHoverBrush}" />
+            <Setter Property="RenderTransform" Value="scale(1.02)" />
+        </Style>
+
+        <Style Selector="Button.danger:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.98)" />
+        </Style>
+
+        <!-- Outline Button -->
+        <Style Selector="Button.outline">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        
+        <Style Selector="Button.outline:pointerover">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- TextBox Styling -->
+        <Style Selector="TextBox">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!-- ComboBox Styling -->
+        <Style Selector="ComboBox">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        </Style>
+
+        <Style Selector="ComboBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+
+        <!-- ListBox Styling -->
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#334155" />
+        </Style>
+
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#1E3A8A" />
+        </Style>
+
+        <Style Selector="ListBoxItem:selected:pointerover">
+            <Setter Property="Background" Value="#1E40AF" />
+        </Style>
+
+        <!-- Typography -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.subtitle">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+
+        <Style Selector="TextBlock.header-cell">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
     </Application.Styles>
 </Application>

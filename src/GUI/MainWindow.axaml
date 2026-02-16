@@ -3,85 +3,337 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:GUI.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="GUI.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="GUI">
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16" RowSpacing="8">
-        <TextBlock Grid.Row="0" Text="Jobs de sauvegarde" FontSize="18" />
-
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
-            <Button Content="Exécuter la sélection" Click="ExecuteSelected_Click" />
-            <Button Content="Exécuter tout" Click="ExecuteAll_Click" />
-            <Button Content="Supprimer la sélection" Click="DeleteSelected_Click" />
-        </StackPanel>
-
-        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" TextWrapping="Wrap" />
-
-        <Grid Grid.Row="3" ColumnDefinitions="3*,2*" ColumnSpacing="12">
-            <Border Grid.Column="0" Padding="8">
-                <StackPanel Spacing="6">
-                    <Grid ColumnDefinitions="2*,4*,4*,2*" Margin="0,0,0,6">
-                        <TextBlock Grid.Column="0" Text="Nom" FontWeight="Bold" />
-                        <TextBlock Grid.Column="1" Text="Source" FontWeight="Bold" />
-                        <TextBlock Grid.Column="2" Text="Destination" FontWeight="Bold" />
-                        <TextBlock Grid.Column="3" Text="Type" FontWeight="Bold" />
-                    </Grid>
-
-                    <ListBox Name="JobsList"
-                             ItemsSource="{Binding BackupJobs}"
-                             SelectionMode="Multiple"
-                             SelectionChanged="JobsList_SelectionChanged">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="2*,4*,4*,2*" Margin="0,0,0,4">
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" TextWrapping="NoWrap" />
-                                    <TextBlock Grid.Column="1" Text="{Binding SourceDirectory}" TextWrapping="NoWrap" />
-                                    <TextBlock Grid.Column="2" Text="{Binding TargetDirectory}" TextWrapping="NoWrap" />
-                                    <TextBlock Grid.Column="3" Text="{Binding Type}" TextWrapping="NoWrap" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+        Title="{Binding WindowTitle}"
+        MinWidth="900" MinHeight="600"
+        Width="1100" Height="700">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="0">
+        
+        <!-- Header Bar -->
+        <Border Grid.Row="0" 
+                Background="{DynamicResource CardBrush}"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BoxShadow="0 4 6 0 #00000040"
+                Padding="24,16">
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- Title Section -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16">
+                    <Border Background="{DynamicResource PrimaryBrush}"
+                            Width="48" Height="48"
+                            CornerRadius="12"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="ES" 
+                                   FontSize="20" 
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding JobsHeaderTitle}" 
+                                   Classes="title" />
+                        <TextBlock Text="{Binding StatusMessage, FallbackValue='Prêt'}" 
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </StackPanel>
                 </StackPanel>
-            </Border>
-
-            <Border Grid.Column="1" Padding="8">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Créer / modifier" FontWeight="Bold" />
-
+                
+                <!-- Settings Section -->
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal" 
+                            Spacing="12"
+                            VerticalAlignment="Center">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Nom" />
-                        <TextBox Text="{Binding NewJobName, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="{Binding LanguageLabel}" Classes="label" Margin="0,0,0,4" />
+                        <ComboBox Width="120"
+                                  ItemsSource="{Binding SupportedLanguages}"
+                                  SelectedItem="{Binding SelectedLanguageCode}" />
                     </StackPanel>
-
+                    
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Dossier source" />
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                            <TextBox Grid.Column="0" Text="{Binding NewJobSourceDirectory, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button Grid.Column="1" Content="Parcourir" Click="BrowseSource_Click" />
-                        </Grid>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Dossier destination" />
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                            <TextBox Grid.Column="0" Text="{Binding NewJobTargetDirectory, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button Grid.Column="1" Content="Parcourir" Click="BrowseTarget_Click" />
-                        </Grid>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Type" />
-                        <ComboBox SelectedIndex="{Binding NewJobTypeIndex}">
-                            <ComboBoxItem Content="Full" />
-                            <ComboBoxItem Content="Differential" />
+                        <TextBlock Text="{Binding LogFormatLabel}" Classes="label" Margin="0,0,0,4" />
+                        <ComboBox Width="110"
+                                  SelectedIndex="{Binding SelectedLogFormatIndex}">
+                            <ComboBoxItem Content="{Binding LogFormatJsonLabel}" />
+                            <ComboBoxItem Content="{Binding LogFormatXmlLabel}" />
                         </ComboBox>
                     </StackPanel>
-
-                    <Button Content="Créer" Click="CreateJob_Click" />
-                    <Button Content="Modifier" Click="UpdateJob_Click" />
                 </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="24" ColumnDefinitions="2.3*,1.2*" ColumnSpacing="20">
+            
+            <!-- Left Panel - Jobs List -->
+            <Border Grid.Column="0" Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    
+                    <!-- Actions Toolbar -->
+                    <StackPanel Grid.Row="0" 
+                                Orientation="Horizontal" 
+                                Spacing="10"
+                                Margin="0,0,0,20">
+                        <Button Classes="primary" 
+                                Content="{Binding NewJobButtonLabel}" 
+                                Click="NewJob_Click"
+                                MinWidth="140" />
+                        <Button Classes="secondary" 
+                                Content="{Binding EditJobButtonLabel}" 
+                                Click="EditJob_Click"
+                                MinWidth="140" />
+                        <Separator Width="1" Height="32" Background="{DynamicResource BorderBrush}" Margin="6,0" />
+                        <Button Classes="primary" 
+                                Content="{Binding ExecuteSelectedLabel}" 
+                                Click="ExecuteSelected_Click"
+                                MinWidth="180" />
+                        <Button Classes="secondary" 
+                                Content="{Binding ExecuteAllLabel}" 
+                                Click="ExecuteAll_Click"
+                                MinWidth="140" />
+                        <Button Classes="danger" 
+                                Content="{Binding DeleteSelectedLabel}" 
+                                Click="DeleteSelected_Click"
+                                MinWidth="160" />
+                    </StackPanel>
+                    
+                    <!-- Column Headers -->
+                    <Border Grid.Row="1" Classes="card-header">
+                        <Grid ColumnDefinitions="1.5*,3*,3*,1.2*" ColumnSpacing="12">
+                            <TextBlock Grid.Column="0" 
+                                       Text="{Binding HeaderName}" 
+                                       Classes="header-cell" />
+                            <TextBlock Grid.Column="1" 
+                                       Text="{Binding HeaderSource}" 
+                                       Classes="header-cell" />
+                            <TextBlock Grid.Column="2" 
+                                       Text="{Binding HeaderDestination}" 
+                                       Classes="header-cell" />
+                            <TextBlock Grid.Column="3" 
+                                       Text="{Binding HeaderType}" 
+                                       Classes="header-cell" />
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Jobs List -->
+                    <ScrollViewer Grid.Row="2">
+                        <ListBox Name="JobsList"
+                                 ItemsSource="{Binding BackupJobs}"
+                                 SelectionMode="Multiple"
+                                 SelectionChanged="JobsList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="1.5*,3*,3*,1.2*" ColumnSpacing="12">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding Name}" 
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding SourceDirectory}" 
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="13" />
+                                        <TextBlock Grid.Column="2" 
+                                                   Text="{Binding TargetDirectory}" 
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="13" />
+                                        <Border Grid.Column="3"
+                                                Background="#1E3A8A"
+                                                CornerRadius="6"
+                                                Padding="8,4"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock Text="{Binding Type}" 
+                                                       Foreground="#60A5FA"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Right Panel - Job Details -->
+            <Border Grid.Column="1" Classes="card">
+                <ScrollViewer>
+                    <StackPanel Spacing="20">
+                        
+                        <!-- Panel Title -->
+                        <TextBlock Text="{Binding JobDetailsTitle}" 
+                                   Classes="subtitle"
+                                   Margin="0,0,0,8" />
+                        
+                        <!-- No Selection Message -->
+                        <TextBlock Text="{Binding JobDetailsNoSelection}"
+                                   IsVisible="{Binding !HasSelection}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextAlignment="Center"
+                                   Margin="0,40,0,0" />
+                        
+                        <!-- Job Details Content -->
+                        <StackPanel Spacing="20" IsVisible="{Binding HasSelection}">
+                            
+                            <!-- Job Name -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelName}" Classes="label" />
+                                <TextBlock Text="{Binding SelectedJobName}" 
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <!-- Source Directory -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelSourceFolder}" Classes="label" />
+                                <TextBlock Text="{Binding SelectedJobSource}" 
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="13" />
+                            </StackPanel>
+
+                            <!-- Target Directory -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelDestinationFolder}" Classes="label" />
+                                <TextBlock Text="{Binding SelectedJobTarget}" 
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="13" />
+                            </StackPanel>
+
+                            <!-- Backup Type -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelType}" Classes="label" />
+                                <Border Background="#1E3A8A"
+                                        CornerRadius="6"
+                                        Padding="8,4"
+                                        HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding SelectedJobType}" 
+                                               Foreground="#60A5FA"
+                                               FontSize="11"
+                                               FontWeight="SemiBold" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Execution Status Section -->
+                            <Border BorderThickness="0,1,0,0"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    Padding="0,20,0,0"
+                                    Margin="0,10,0,0"
+                                    IsVisible="{Binding ShowExecutionDetails}">
+                                <StackPanel Spacing="16">
+                                    
+                                    <!-- Status -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding JobDetailsStatus}" Classes="label" />
+                                        <TextBlock Text="{Binding JobStatusText}" 
+                                                   Foreground="{Binding JobStatusColor}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="14" />
+                                    </StackPanel>
+
+                                    <!-- Progress Bar -->
+                                    <StackPanel Spacing="6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" 
+                                                       Text="{Binding JobDetailsProgress}" 
+                                                       Classes="label" />
+                                            <TextBlock Grid.Column="1" 
+                                                       Text="{Binding JobProgress, StringFormat='{}{0:0.0}%'}"
+                                                       Foreground="{DynamicResource PrimaryBrush}"
+                                                       FontWeight="SemiBold" />
+                                        </Grid>
+                                        <ProgressBar Value="{Binding JobProgress}"
+                                                     Maximum="100"
+                                                     Height="8"
+                                                     CornerRadius="4"
+                                                     Foreground="{DynamicResource PrimaryBrush}" />
+                                    </StackPanel>
+
+                                    <!-- Total Files -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding JobDetailsTotalFiles}" 
+                                                   Classes="label" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding JobTotalFiles}"
+                                                   FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <!-- Files Remaining -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding JobDetailsFilesRemaining}" 
+                                                   Classes="label" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding JobFilesRemaining}"
+                                                   Foreground="{DynamicResource SecondaryBrush}"
+                                                   FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <!-- Total Size -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding JobDetailsTotalSize}" 
+                                                   Classes="label" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding JobTotalSize}"
+                                                   FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <!-- Size Remaining -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding JobDetailsSizeRemaining}" 
+                                                   Classes="label" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding JobSizeRemaining}"
+                                                   Foreground="{DynamicResource SecondaryBrush}"
+                                                   FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <!-- Current File -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding JobDetailsCurrentFile}" Classes="label" />
+                                        <TextBlock Text="{Binding JobCurrentFile}" 
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12"
+                                                   FontFamily="Consolas" />
+                                    </StackPanel>
+
+                                    <!-- Last Update -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding JobDetailsLastUpdate}" 
+                                                   Classes="label" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding JobLastUpdate}"
+                                                   FontFamily="Consolas"
+                                                   FontSize="12" />
+                                    </Grid>
+
+                                    <!-- Bouton Effacer (visible seulement quand terminé) -->
+                                    <Button Content="Effacer"
+                                            Click="ClearJobState_Click"
+                                            HorizontalAlignment="Right"
+                                            Padding="16,8"
+                                            IsVisible="{Binding IsJobCompleted}"
+                                            Background="{DynamicResource BorderBrush}"
+                                            Margin="0,10,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>

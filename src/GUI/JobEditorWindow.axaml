@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GUI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+        x:Class="GUI.JobEditorWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding EditorWindowTitle}"
+        Width="500" Height="600"
+        MinWidth="450" MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Grid RowDefinitions="*,Auto" Margin="0">
+        
+        <!-- Form Content -->
+        <Border Grid.Row="0" Classes="card" Margin="24,24,24,0">
+            <ScrollViewer>
+                <StackPanel Spacing="20">
+                    
+                    <!-- Name Field -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding LabelName}" Classes="label" />
+                        <TextBox Text="{Binding NewJobName, UpdateSourceTrigger=PropertyChanged}"
+                                 Watermark="Mon backup..." />
+                    </StackPanel>
+
+                    <!-- Source Folder Field -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding LabelSourceFolder}" Classes="label" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBox Grid.Column="0" 
+                                     Text="{Binding NewJobSourceDirectory, UpdateSourceTrigger=PropertyChanged}"
+                                     Watermark="C:\Source..." />
+                            <Button Grid.Column="1" 
+                                    Classes="outline"
+                                    Content="{Binding BrowseLabel}" 
+                                    Click="BrowseSource_Click"
+                                    MinWidth="100" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Destination Folder Field -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding LabelDestinationFolder}" Classes="label" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBox Grid.Column="0" 
+                                     Text="{Binding NewJobTargetDirectory, UpdateSourceTrigger=PropertyChanged}"
+                                     Watermark="C:\Backup..." />
+                            <Button Grid.Column="1" 
+                                    Classes="outline"
+                                    Content="{Binding BrowseLabel}" 
+                                    Click="BrowseTarget_Click"
+                                    MinWidth="100" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Type Field -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding LabelType}" Classes="label" />
+                        <ComboBox SelectedIndex="{Binding NewJobTypeIndex}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="{Binding JobTypeFullLabel}" />
+                            <ComboBoxItem Content="{Binding JobTypeDifferentialLabel}" />
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource CardBrush}"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource BorderBrush}"
+                Padding="24,20">
+            <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="12">
+                <Button Grid.Column="0" 
+                        Classes="secondary"
+                        Content="{Binding CancelLabel}" 
+                        Click="Cancel_Click"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" />
+                <Button Grid.Column="1" 
+                        Classes="primary"
+                        Content="{Binding SaveLabel}" 
+                        Click="Save_Click"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
