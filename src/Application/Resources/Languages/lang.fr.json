@@ -91,5 +91,21 @@
   "GuiStatusInactive": "Inactif",
   "GuiStatusActive": "En cours",
   "GuiStatusCompleted": "Terminé",
-  "GuiStatusError": "Erreur"
+  "GuiStatusError": "Erreur",
+  "GuiCatWidgetTitle": "Chat assistant",
+  "GuiCatMessageNoSelection": "Selectionnez un job et je vous montre son suivi.",
+  "GuiCatMessageSelected": "Le job \"{0}\" est pret. Miaou.",
+  "GuiCatMessageCreating": "Je prepare la creation du job.",
+  "GuiCatMessageCreated": "Job \"{0}\" cree avec succes.",
+  "GuiCatMessageUpdating": "Je mets le job a jour.",
+  "GuiCatMessageUpdated": "Job \"{0}\" mis a jour.",
+  "GuiCatMessageDeleting": "Je supprime les jobs selectionnes.",
+  "GuiCatMessageDeleted": "{0} job(s) supprime(s).",
+  "GuiCatMessageDeleteWithErrors": "Suppression terminee avec {0} erreur(s).",
+  "GuiCatMessageExecuting": "Execution des jobs en cours.",
+  "GuiCatMessageExecutedSuccess": "{0} job(s) execute(s) avec succes.",
+  "GuiCatMessageExecutedWithErrors": "Execution terminee avec {0} erreur(s).",
+  "GuiCatMessageActionFailed": "Oups, action echouee: {0}",
+  "GuiCatMessageNoJobToRun": "Aucun job a executer.",
+  "GuiCatMessageInvalidSelection": "Selection invalide, verifie les jobs choisis."
 }

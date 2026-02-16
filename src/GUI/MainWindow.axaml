@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:GUI.ViewModels"
+        xmlns:lottie="clr-namespace:Avalonia.Skia.Lottie;assembly=Lottie"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="GUI.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -336,5 +337,73 @@
                 </ScrollViewer>
             </Border>
         </Grid>
+
+        <!-- Animated Cat Widget -->
+        <Border Grid.Row="2"
+                HorizontalAlignment="Right"
+                Margin="24,0,24,20"
+                Width="520"
+                Height="210"
+                Background="#14253D"
+                BorderThickness="1"
+                BorderBrush="#2B4568"
+                CornerRadius="18"
+                Padding="18,14"
+                ClipToBounds="True"
+                BoxShadow="0 10 18 0 #00000050">
+            <Grid ColumnDefinitions="190,*" ColumnSpacing="16">
+                <Grid Width="190"
+                      Height="176"
+                      VerticalAlignment="Center"
+                      ClipToBounds="True">
+                    <lottie:Lottie Path="avares://GUI/Assets/Animations/cat%20default.json"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Width="175"
+                                   Height="175"
+                                   Margin="0,6,0,0"
+                                   RenderTransformOrigin="0.5,0.5"
+                                   RenderTransform="scale(0.92)"
+                                   Stretch="Uniform" />
+                </Grid>
+                <Grid Grid.Column="1"
+                      RowDefinitions="Auto,*"
+                      RowSpacing="10">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <TextBlock Text="{Binding CatWidgetTitle}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Foreground="#C9DBF5" />
+                        <Border Background="#2D8BFF33"
+                                BorderBrush="#2D8BFF66"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="8,2">
+                            <TextBlock Text="LIVE"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#8EC2FF" />
+                        </Border>
+                    </StackPanel>
+
+                    <Border Grid.Row="1"
+                            Background="#0B1628"
+                            BorderBrush="#2A3B53"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="12,10">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <TextBlock Text="{Binding CatSpeech}"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="280"
+                                       FontSize="13"
+                                       Foreground="#D6E5FA" />
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
