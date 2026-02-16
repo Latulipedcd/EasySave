@@ -91,5 +91,21 @@
   "GuiStatusInactive": "Inactive",
   "GuiStatusActive": "Active",
   "GuiStatusCompleted": "Completed",
-  "GuiStatusError": "Error"
+  "GuiStatusError": "Error",
+  "GuiCatWidgetTitle": "Assistant cat",
+  "GuiCatMessageNoSelection": "Select a job and I will show its live status.",
+  "GuiCatMessageSelected": "Job \"{0}\" is ready. Meow.",
+  "GuiCatMessageCreating": "Preparing job creation.",
+  "GuiCatMessageCreated": "Job \"{0}\" created successfully.",
+  "GuiCatMessageUpdating": "Updating the selected job.",
+  "GuiCatMessageUpdated": "Job \"{0}\" updated.",
+  "GuiCatMessageDeleting": "Deleting selected jobs.",
+  "GuiCatMessageDeleted": "{0} job(s) deleted.",
+  "GuiCatMessageDeleteWithErrors": "Delete completed with {0} error(s).",
+  "GuiCatMessageExecuting": "Running backup jobs now.",
+  "GuiCatMessageExecutedSuccess": "{0} job(s) executed successfully.",
+  "GuiCatMessageExecutedWithErrors": "Execution completed with {0} error(s).",
+  "GuiCatMessageActionFailed": "Action failed: {0}",
+  "GuiCatMessageNoJobToRun": "No job available to execute.",
+  "GuiCatMessageInvalidSelection": "Invalid selection, check chosen jobs."
 }

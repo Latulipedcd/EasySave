@@ -26,6 +26,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     // Timer pour rafraîchir périodiquement l'état du job en cours d'exécution
     private readonly DispatcherTimer _stateRefreshTimer;
+    private string _catSpeech = string.Empty;
 
     /// <summary>
     /// Récupère un texte localisé depuis les fichiers de ressources
@@ -86,6 +87,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string JobDetailsSizeRemaining => Text("GuiJobDetailsSizeRemaining");
     public string JobDetailsCurrentFile => Text("GuiJobDetailsCurrentFile");
     public string JobDetailsLastUpdate => Text("GuiJobDetailsLastUpdate");
+    public string CatWidgetTitle => Text("GuiCatWidgetTitle");
 
     /// <summary>
     /// Titre de la fenêtre d'édition (dynamique selon le mode création/modification)
@@ -227,6 +229,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             }
         };
         _stateRefreshTimer.Start();
+
+        SetDefaultCatMessage();
+
     }
 
     /// <summary>
@@ -272,6 +277,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(JobDetailsSizeRemaining));
         OnPropertyChanged(nameof(JobDetailsCurrentFile));
         OnPropertyChanged(nameof(JobDetailsLastUpdate));
+        OnPropertyChanged(nameof(CatWidgetTitle));
+        SetDefaultCatMessage();
         OnPropertyChanged(nameof(EditorWindowTitle));
         OnPropertyChanged(nameof(JobStatusText));
     }
@@ -377,6 +384,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(SelectedJobSource));
             OnPropertyChanged(nameof(SelectedJobTarget));
             OnPropertyChanged(nameof(SelectedJobType));
+            SetDefaultCatMessage();
             RefreshSelectedJobState();
         }
     }
@@ -467,6 +475,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string JobSizeRemaining => FormatBytes(SelectedJobState?.BytesRemaining ?? 0);
     public string JobCurrentFile => SelectedJobState?.CurrentFileSource ?? "-";
     public string JobLastUpdate => SelectedJobState?.TimeStamp.ToString("HH:mm:ss") ?? "-";
+    public string CatSpeech
+    {
+        get => _catSpeech;
+        private set
+        {
+            if (value == _catSpeech) return;
+            _catSpeech = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// Formate une taille en octets en format lisible (KB, MB, GB)
@@ -485,6 +503,19 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
         
         return $"{size:0.##} {suffixes[suffixIndex]}";
+    }
+
+    private void SetCatMessage(string key, params object[] args)
+    {
+        CatSpeech = args.Length > 0 ? TextFormat(key, args) : Text(key);
+    }
+
+    private void SetDefaultCatMessage()
+    {
+        if (HasSelection)
+            SetCatMessage("GuiCatMessageSelected", SelectedJobName);
+        else
+            SetCatMessage("GuiCatMessageNoSelection");
     }
 
     /// <summary>
@@ -558,6 +589,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         // Affichage du statut en cours sur le thread UI
         SetStatusOnUIThread(Text("GuiStatusCreatingJob"));
+        SetCatMessage("GuiCatMessageCreating");
 
         // Capture des valeurs du formulaire pour éviter les problèmes de thread
         var name = NewJobName;
@@ -576,10 +608,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetStatusOnUIThread(message);
 
         if (!success)
+        {
+            SetCatMessage("GuiCatMessageActionFailed", message);
             return;
+        }
 
         // Rafraîchissement de la liste des jobs
         await RefreshJobsAsync();
+        SetCatMessage("GuiCatMessageCreated", name);
 
         // Réinitialisation du formulaire après création réussie
         SetNewJobInputsOnUIThread(string.Empty, string.Empty, string.Empty, 0);
@@ -637,6 +673,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
 
         SetStatusOnUIThread(Text("GuiStatusUpdatingJob"));
+        SetCatMessage("GuiCatMessageUpdating");
 
         // Capture des valeurs pour le thread séparé
         var id = EditingJobId.Value;
@@ -654,10 +691,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetStatusOnUIThread(message);
 
         if (!success)
+        {
+            SetCatMessage("GuiCatMessageActionFailed", message);
             return;
+        }
 
         // Rafraîchissement et sortie du mode édition
         await RefreshJobsAsync();
+        SetCatMessage("GuiCatMessageUpdated", SelectedJobName);
         EditingJobId = null;
     }
 
@@ -671,10 +712,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (selectedJobs == null || selectedJobs.Count == 0)
         {
             SetStatusOnUIThread(Text("GuiErrorNoJobSelected"));
+            SetDefaultCatMessage();
             return;
         }
 
         SetStatusOnUIThread(Text("GuiStatusDeleting"));
+        SetCatMessage("GuiCatMessageDeleting");
 
         // Conversion des jobs en IDs, tri décroissant pour supprimer de la fin vers le début
         var ids = selectedJobs
@@ -709,10 +752,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (errors.Count == 0)
         {
             SetStatusOnUIThread(TextFormat("GuiStatusDeletedCount", deletedCount));
+            SetCatMessage("GuiCatMessageDeleted", deletedCount);
             return;
         }
 
         SetStatusOnUIThread(TextFormat("GuiStatusDeletedWithErrors", deletedCount, errors.Count, errors[0]));
+        SetCatMessage("GuiCatMessageDeleteWithErrors", errors.Count);
     }
 
    
@@ -725,6 +770,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (BackupJobs.Count == 0)
         {
             StatusMessage = Text("GuiErrorNoJobToExecute");
+            SetCatMessage("GuiCatMessageNoJobToRun");
             return Task.CompletedTask;
         }
 
@@ -741,6 +787,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (selectedJobs == null || selectedJobs.Count == 0)
         {
             StatusMessage = Text("GuiErrorNoJobSelected");
+            SetDefaultCatMessage();
             return Task.CompletedTask;
         }
 
@@ -755,6 +802,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (ids.Count == 0)
         {
             StatusMessage = Text("GuiErrorInvalidSelection");
+            SetCatMessage("GuiCatMessageInvalidSelection");
             return Task.CompletedTask;
         }
 
@@ -771,6 +819,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private async Task ExecuteByInputAsync(string input)
     {
         SetStatusOnUIThread(Text("GuiStatusExecuting"));
+        SetCatMessage("GuiCatMessageExecuting");
 
         // Exécution sur un thread séparé
         var (success, results, errorMessage) = await Task.Run(() =>
@@ -782,6 +831,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (!success)
         {
             SetStatusOnUIThread(errorMessage);
+            SetCatMessage("GuiCatMessageActionFailed", errorMessage);
             return;
         }
 
@@ -789,6 +839,15 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var completed = results.Count(r => r.Status == Core.Enums.BackupStatus.Completed);
         var errors = results.Count(r => r.Status == Core.Enums.BackupStatus.Error);
         SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
+
+        if (errors == 0)
+        {
+            SetCatMessage("GuiCatMessageExecutedSuccess", completed);
+        }
+        else
+        {
+            SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
+        }
     }
 
   

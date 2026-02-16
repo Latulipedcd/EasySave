@@ -1,23 +1,21 @@
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using GUI.ViewModels;
+using Avalonia.Interactivity;
 using Core.Models;
-using System;
+using GUI.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace GUI;
 
 /// <summary>
-/// Fenêtre principale de l'application EasySave
-/// Code-behind pour MainWindow.axaml - Gère les événements de l'UI et les délègue au ViewModel
+/// Fenetre principale de l'application EasySave.
+/// Code-behind pour MainWindow.axaml : gere les evenements UI et les delegue au ViewModel.
 /// </summary>
 public partial class MainWindow : Window
 {
     /// <summary>
-    /// Constructeur de la fenêtre principale
-    /// Initialise les composants XAML et configure le DataContext avec le ViewModel
+    /// Constructeur de la fenetre principale.
+    /// Initialise les composants XAML et configure le DataContext.
     /// </summary>
     public MainWindow()
     {
@@ -25,13 +23,11 @@ public partial class MainWindow : Window
         DataContext = new MainWindowViewModel();
     }
 
-   
-
     /// <summary>
-    /// Gère le clic sur le bouton "Exécuter Tous"
-    /// Délègue l'action au ViewModel pour exécuter tous les jobs
+    /// Gere le clic sur "Executer tout".
+    /// Delegue l'action au ViewModel.
     /// </summary>
-    private async void ExecuteAll_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void ExecuteAll_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
@@ -40,15 +36,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gère le clic sur le bouton "Exécuter Sélection"
-    /// Récupère les jobs sélectionnés et délègue l'action au ViewModel
+    /// Gere le clic sur "Executer la selection".
+    /// Recupere les jobs selectionnes puis delegue l'action au ViewModel.
     /// </summary>
-    private async void ExecuteSelected_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void ExecuteSelected_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        // Récupération des jobs sélectionnés dans la ListBox
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJob>()
             .ToList() ?? new List<BackupJob>();
@@ -56,86 +51,58 @@ public partial class MainWindow : Window
         await vm.ExecuteSelectedAsync(selected);
     }
 
-
     /// <summary>
-    /// Gère le clic sur le bouton "Nouveau job"
-    /// Ouvre une fenêtre popup pour créer un nouveau job
+    /// Gere le clic sur "Nouveau job".
+    /// Ouvre la fenetre d'edition en mode creation.
     /// </summary>
-    private async void NewJob_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void NewJob_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        // Réinitialise le formulaire pour un nouveau job
         vm.ClearSelectionForEdit();
 
-        // Ouvre la fenêtre popup en mode création
         var editorWindow = new JobEditorWindow(vm, isEditMode: false);
-
-        // Affiche la popup de manière modale et attend le résultat
-        var result = await editorWindow.ShowDialog<bool>(this);
-
-        // Si l'utilisateur a sauvegardé, rafraîchit la liste
-        if (result)
-        {
-            // La liste sera rafraîchie automatiquement par CreateJobAsync
-        }
+        await editorWindow.ShowDialog<bool>(this);
     }
 
     /// <summary>
-    /// Gère le clic sur le bouton "Modifier le job"
-    /// Ouvre une fenêtre popup pour modifier le job sélectionné
+    /// Gere le clic sur "Modifier le job".
+    /// Verifie qu'un seul job est selectionne puis ouvre l'editeur en mode modification.
     /// </summary>
-    private async void EditJob_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void EditJob_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        // Récupère le job sélectionné
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJob>()
             .ToList();
 
-        // Vérifie qu'un seul job est sélectionné
         if (selected == null || selected.Count != 1)
         {
             vm.SetStatus(vm.GetText("GuiErrorSelectSingleToEdit"));
             return;
         }
 
-        // Charge le job dans le formulaire pour édition
         vm.LoadSelectionForEdit(selected[0]);
 
-        // Ouvre la fenêtre popup en mode édition
         var editorWindow = new JobEditorWindow(vm, isEditMode: true);
-
-        // Affiche la popup de manière modale et attend le résultat
         var result = await editorWindow.ShowDialog<bool>(this);
 
-        // Si l'utilisateur a sauvegardé, rafraîchit la liste
-        if (result)
-        {
-            // La liste sera rafraîchie automatiquement par UpdateSelectedJobAsync
-        }
-        else
-        {
-            // Si annulé, réinitialise le mode édition
+        if (!result)
             vm.ClearSelectionForEdit();
-        }
     }
 
-   
-
     /// <summary>
-    /// Gère le changement de sélection dans la liste des jobs
-    /// Met à jour le panneau de détails avec les informations du job sélectionné
+    /// Gere le changement de selection dans la liste des jobs.
+    /// Met a jour le job selectionne dans le ViewModel.
     /// </summary>
     private void JobsList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        // Récupère le premier job sélectionné pour affichage des détails
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJob>()
             .FirstOrDefault();
@@ -144,15 +111,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gère le clic sur le bouton "Supprimer"
-    /// Récupère les jobs sélectionnés et délègue l'action au ViewModel
+    /// Gere le clic sur "Supprimer la selection".
+    /// Recupere les jobs selectionnes puis delegue la suppression au ViewModel.
     /// </summary>
-    private async void DeleteSelected_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void DeleteSelected_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        // Récupération des jobs sélectionnés
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJob>()
             .ToList() ?? new List<BackupJob>();
@@ -161,15 +127,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gère le clic sur le bouton "Effacer"
-    /// Efface l'état d'exécution affiché
+    /// Gere le clic sur "Effacer".
+    /// Efface l'etat d'execution affiche dans le panneau de details.
     /// </summary>
-    private void ClearJobState_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void ClearJobState_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
         vm.ClearJobState();
     }
-
 }
