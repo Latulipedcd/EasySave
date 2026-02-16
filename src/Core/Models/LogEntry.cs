@@ -7,11 +7,11 @@ namespace Core.Models
 {
     public class LogEntry
     {
-        public String BackupName { get; set; }
+        public required string BackupName { get; set; }
      
-        public string Source { get; set; }
+        public required string Source { get; set; }
         
-        public string Target { get; set; }
+        public required string Target { get; set; }
        
         public TimeSpan Duration { get; set; }  
 
@@ -20,10 +20,5 @@ namespace Core.Models
         public long FileSize { get; set; }
 
         public WorkType WorkType { get; set; }
-
-        public LogEntry()
-        {
-            }
-
     }
 }
