@@ -179,6 +179,85 @@ namespace EasySave.Application.Configuration
             }
         }
 
+        public List<string>? LoadCryptoSoftExtensions()
+        {
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                    return null;
+
+                string json = File.ReadAllText(_configFilePath);
+
+                var config = JsonSerializer.Deserialize<UserConfig>(
+                    json,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new JsonStringEnumConverter() }
+                    });
+
+                return config?.CryptoSoftExtensions;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public bool AddCryptoSoftExtension(string extension)
+        {
+
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+
+                var userConfig = LoadConfig(); // on charge l’existant
+                if (!userConfig.CryptoSoftExtensions.Contains(extension))
+                {
+                    userConfig.CryptoSoftExtensions.Add(extension);
+                }
+
+                string jsonContent = JsonSerializer.Serialize(
+                    userConfig,
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                File.WriteAllText(_configFilePath, jsonContent);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool RemoveCryptoSoftExtension(string extension)
+        {
+
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+
+                var userConfig = LoadConfig(); // on charge l’existant
+                if (userConfig.CryptoSoftExtensions.Contains(extension))
+                {
+                    userConfig.CryptoSoftExtensions.Remove(extension);
+                }
+
+                string jsonContent = JsonSerializer.Serialize(
+                    userConfig,
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                File.WriteAllText(_configFilePath, jsonContent);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private UserConfig LoadConfig()
         {
             try
@@ -200,6 +279,8 @@ namespace EasySave.Application.Configuration
             public string? Language { get; set; }
             public LogFormat? SavedLogFormat { get; set; }
             public string? BusinessSoftware { get; set; }
+
+            public List<string> CryptoSoftExtensions { get; set; } = new();
         }
     }
 }
