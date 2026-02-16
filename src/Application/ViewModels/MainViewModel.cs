@@ -147,7 +147,12 @@ namespace EasySave.Application.ViewModels
 
             foreach (var job in jobsToExecute)
             {
-                var state = _backupService.ExecuteBackup(job, GetSavedLogFormat(), GetSavedBusinessSoftware());
+                var state = _backupService.ExecuteBackup(
+                    job, 
+                    GetSavedLogFormat(), 
+                    GetSavedBusinessSoftware(), 
+                    GetCryptoSoftExtensions(),
+                    GetCryptoSoftPath());
                 results.Add(state);
             }
 
@@ -276,6 +281,20 @@ namespace EasySave.Application.ViewModels
         public string? GetSavedBusinessSoftware()
         {
             return _userConfigManager.LoadBusinessSoftware(); // Get the saved BusinessSoftware
+        }
+
+        public List<string> GetCryptoSoftExtensions()
+        {
+            return _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>(); // Get the saved CryptoSoft extensions or empty list
+        }
+
+        public string? GetCryptoSoftPath()
+        {
+            string workDir = AppDomain.CurrentDomain.BaseDirectory;
+            string cryptoPath = Path.Combine(workDir, "Resources", "CryptoSoft.exe");
+
+            // Return the path if it exists, otherwise return null
+            return File.Exists(cryptoPath) ? cryptoPath : null;
         }
 
         public IReadOnlyList<string> GetSupportedLanguages()

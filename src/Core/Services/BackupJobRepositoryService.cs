@@ -10,7 +10,6 @@ namespace Core.Services
     public class BackupJobRepository : IBackupJobRepository
     {
         //Service for Backup job storage
-        private const int MaxJobs = 5;
         private readonly IJobStorage _storage;
 
         public BackupJobRepository(IJobStorage storage)
@@ -27,10 +26,6 @@ namespace Core.Services
         public void Add(BackupJob job)
         {
             var jobs = LoadJobs();
-
-            if (jobs.Count >= MaxJobs)
-                throw new InvalidOperationException(
-                    "Maximum number of backup jobs reached (5).");
 
             if (jobs.Any(j => j.Name == job.Name))
                 throw new InvalidOperationException(

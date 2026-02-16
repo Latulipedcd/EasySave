@@ -22,11 +22,12 @@ namespace Core.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public long FileSize { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public WorkType WorkType { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? ErrorMessage { get; set; }
-      
+
+        public long EncryptionTimeMs { get; set; }
+
     }
 }

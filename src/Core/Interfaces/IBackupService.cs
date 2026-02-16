@@ -7,7 +7,7 @@ namespace Core.Interfaces
 {
     public interface IBackupService
     {
-        BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware);
+        BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware, List<string> CryptoSoftExtensions, string? cryptoSoftPath);
     }
 }
 
