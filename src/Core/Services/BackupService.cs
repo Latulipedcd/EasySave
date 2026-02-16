@@ -35,161 +35,223 @@ namespace Core.Services
             _businessSoftwareMonitor = businessSoftwareMonitor;
         }
 
-        public BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware)
+        public BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware, List<string> CryptoSoftExtensions, string? cryptoSoftPath)
         {
-            var state = new BackupState(job)
-            {
-                Status = BackupStatus.Active
-            };
+            var state = InitializeBackupState(job, format, out var files);
 
-
-            var files = _fileService.GetFiles(job.SourceDirectory);
-            state.TotalFiles = files.Length;
-            state.FilesRemaining = files.Length;
-
-            long totalBytes = files.Sum(f => new FileInfo(f).Length);
-            state.TotalBytes = totalBytes;
-            state.BytesRemaining = totalBytes;
-
-            _logService.Configure(format); // Configure log format based on user preference
-
-            // Check if business software is running before starting the backup
-            if (businessSoftware != null) 
-            {
-                if (_businessSoftwareMonitor.IsBusinessSoftwareRunning("CalculatorApp"))
-                {
-                    state.Status = BackupStatus.Error;
-                    
-                    // Log the error
-                    var logError = new LogEntry
-                    {
-                        BackupName = job.Name,
-                        Source = PathHelper.ToUncPath(job.SourceDirectory),
-                        Target = PathHelper.ToUncPath(job.TargetDirectory),
-                        Duration = TimeSpan.Zero,
-                        Timestamp = DateTime.Now,
-                        FileSize = 0,
-                        WorkType = WorkType.file_transfer,
-                        ErrorMessage = "Backup stopped due to running business software."
-                    };
-                    _logService.LogBackup(logError); // Log the error in the log service
-
-                    // Update progress with error state
-                    var errorState = new BackupState(job)
-                    {
-                        Status = state.Status,
-                        TimeStamp = DateTime.Now,
-                        TotalFiles = 0,
-                        FilesRemaining = 0,
-                        TotalBytes = 0,
-                        BytesRemaining = 0,
-                        CurrentFileSource = null,
-                        CurrentFileTarget = null,
-                        ErrorMessage = "Backup stopped due to running business software."
-                    };
-                    _progressWriter.Write(errorState);
-
-                    return state; // Exit early if business software is running
-                }
-            }
+            // Early exit if business software is blocking
+            if (CheckBusinessSoftwareBlocking(job, businessSoftware, state))
+                return state;
 
             foreach (var file in files)
             {
                 var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
                 var targetPath = Path.Combine(job.TargetDirectory, relativePath);
 
-                var folderPath = Path.GetDirectoryName(targetPath)!;
-                if (!Directory.Exists(folderPath))
+                // Create target directory if needed
+                CreateTargetDirectory(job, file, targetPath);
+
+                // Check if file should be processed (differential backup logic)
+                if (!ShouldProcessFile(job, targetPath, file))
                 {
-                    var stopwatchFolder = Stopwatch.StartNew();// Start timing the folder creation
-
-                    Directory.CreateDirectory(folderPath);
-
-                    stopwatchFolder.Stop();// Stop timing the folder creation
-
-                    // Log the folder creation
-                    var logEntryFolder = new
-                    {
-                        BackupName = job.Name,
-                        Source = PathHelper.ToUncPath(file),
-                        Target = PathHelper.ToUncPath(folderPath),
-                        Duration = stopwatchFolder.Elapsed,
-                        Timestamp = DateTime.Now,
-                        FileSize = 0,
-                        WorkType = WorkType.folder_creation
-                    };
-                    _logService.LogBackup(logEntryFolder);
-                }
-
-                var stopwatch = Stopwatch.StartNew(); // Start timing the file transfer
-
-                bool shouldCopy = true; //In use when backup type is Differencial
-
-                if (job.Type == BackupType.Differencial && File.Exists(targetPath))
-                {
-                    var sourceInfo = new FileInfo(file);
-                    var targetInfo = new FileInfo(targetPath);
-
-                    shouldCopy = sourceInfo.LastWriteTime > targetInfo.LastWriteTime; //Verify if the file in the save directory is newer than the one in the original directory
-                }
-
-                if (!shouldCopy)
-                {
-                    state.FilesRemaining--; //Reduction of number of file to copy if the file shouldn't be copied
+                    state.FilesRemaining--;
                     continue;
                 }
 
-                state.CurrentFileSource = file;
-                state.CurrentFileTarget = targetPath;
-
-                bool success = _copyService.CopyFiles(file, targetPath);
+                // Process the file (copy or encrypt)
+                var stopwatch = Stopwatch.StartNew();
+                bool success = ProcessFile(file, targetPath, CryptoSoftExtensions, cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs);
+                stopwatch.Stop();
 
                 if (!success)
                     state.Status = BackupStatus.Error;
 
+                // Log and update progress
+                var fileInfo = new FileInfo(file);
+                LogFileOperation(job, file, targetPath, stopwatch.Elapsed, fileInfo.Length, wasEncrypted, encryptionTimeMs);
+
                 state.FilesRemaining--;
+                state.BytesRemaining -= fileInfo.Length;
+                state.CurrentFileSource = file;
+                state.CurrentFileTarget = targetPath;
 
-                stopwatch.Stop();// Stop timing the file transfer
-
-                FileInfo fileInfo = new FileInfo(state.CurrentFileSource);
-                long sizeInBytes = fileInfo.Length;
-
-                // Log the file transfer
-                var logEntry = new LogEntry
-                {
-                    BackupName = job.Name,
-                    Source = PathHelper.ToUncPath(file),
-                    Target = PathHelper.ToUncPath(targetPath),
-                    Duration = stopwatch.Elapsed, //Calculate copy time by the time between the two spotwatch
-                    Timestamp = DateTime.Now,
-                    FileSize = sizeInBytes,
-                    WorkType = WorkType.file_transfer
-                };
-                _logService.LogBackup(logEntry);
-
-                state.BytesRemaining -= sizeInBytes;
-
-                // Update progress after each file
-                var backupState = new BackupState(job)
-                {
-                    Status = state.Status,
-                    TimeStamp = DateTime.Now,
-                    TotalFiles = state.TotalFiles,
-                    FilesRemaining = state.FilesRemaining,
-                    TotalBytes = state.TotalBytes,
-                    BytesRemaining = state.BytesRemaining,
-                    CurrentFileSource = state.CurrentFileSource,
-                    CurrentFileTarget = state.CurrentFileTarget
-                };
-
-                _progressWriter.Write(backupState); //Current job progress and informations
-
+                UpdateProgress(job, state);
             }
 
+            FinalizeBackup(job, state);
+            return state;
+        }
+
+        /// <summary>
+        /// Initializes the backup state with file discovery and totals.
+        /// </summary>
+        private BackupState InitializeBackupState(BackupJob job, LogFormat format, out string[] files)
+        {
+            files = _fileService.GetFiles(job.SourceDirectory);
+            long totalBytes = files.Sum(f => new FileInfo(f).Length);
+
+            _logService.Configure(format);
+
+            return new BackupState(job)
+            {
+                Status = BackupStatus.Active,
+                TotalFiles = files.Length,
+                FilesRemaining = files.Length,
+                TotalBytes = totalBytes,
+                BytesRemaining = totalBytes
+            };
+        }
+
+        /// <summary>
+        /// Checks if business software is blocking the backup.
+        /// </summary>
+        /// <returns>True if backup should be blocked, false otherwise.</returns>
+        private bool CheckBusinessSoftwareBlocking(BackupJob job, string? businessSoftware, BackupState state)
+        {
+            if (businessSoftware == null)
+                return false;
+
+            if (!_businessSoftwareMonitor.IsBusinessSoftwareRunning(businessSoftware))
+                return false;
+
+            // Business software is running - block backup
+            state.Status = BackupStatus.Error;
+
+            var logError = new LogEntry
+            {
+                BackupName = job.Name,
+                Source = PathHelper.ToUncPath(job.SourceDirectory),
+                Target = PathHelper.ToUncPath(job.TargetDirectory),
+                Duration = TimeSpan.Zero,
+                Timestamp = DateTime.Now,
+                FileSize = 0,
+                WorkType = WorkType.file_transfer,
+                ErrorMessage = "Backup stopped due to running business software."
+            };
+            _logService.LogBackup(logError);
+
+            var errorState = new BackupState(job)
+            {
+                Status = BackupStatus.Error,
+                TimeStamp = DateTime.Now,
+                ErrorMessage = "Backup stopped due to running business software."
+            };
+            _progressWriter.Write(errorState);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Creates the target directory if it doesn't exist and logs the operation.
+        /// </summary>
+        private void CreateTargetDirectory(BackupJob job, string sourceFile, string targetPath)
+        {
+            var folderPath = Path.GetDirectoryName(targetPath)!;
+            if (Directory.Exists(folderPath))
+                return;
+
+            var stopwatch = Stopwatch.StartNew();
+            Directory.CreateDirectory(folderPath);
+            stopwatch.Stop();
+
+            var logEntryFolder = new LogEntry
+            {
+                BackupName = job.Name,
+                Source = PathHelper.ToUncPath(sourceFile),
+                Target = PathHelper.ToUncPath(folderPath),
+                Duration = stopwatch.Elapsed,
+                Timestamp = DateTime.Now,
+                FileSize = 0,
+                WorkType = WorkType.folder_creation
+            };
+            _logService.LogBackup(logEntryFolder);
+        }
+
+        /// <summary>
+        /// Determines if a file should be processed based on backup type (differential logic).
+        /// </summary>
+        private static bool ShouldProcessFile(BackupJob job, string targetPath, string sourceFile)
+        {
+            if (job.Type != BackupType.Differencial)
+                return true;
+
+            if (!File.Exists(targetPath))
+                return true;
+
+            var sourceInfo = new FileInfo(sourceFile);
+            var targetInfo = new FileInfo(targetPath);
+
+            return sourceInfo.LastWriteTime > targetInfo.LastWriteTime;
+        }
+
+        /// <summary>
+        /// Processes a single file - either encrypts or copies it.
+        /// </summary>
+        /// <param name="wasEncrypted">Output parameter indicating if the file was encrypted.</param>
+        /// <param name="encryptionTimeMs">Output parameter with encryption time: 0=no encryption, >0=time in ms, <0=error code.</param>
+        /// <returns>True if operation succeeded, false otherwise.</returns>
+        private bool ProcessFile(string sourceFile, string targetPath, List<string> cryptoExtensions, string? cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs)
+        {
+            wasEncrypted = RequiresEncryption(sourceFile, cryptoExtensions);
+
+            if (wasEncrypted)
+            {
+                return EncryptFile(sourceFile, targetPath, cryptoSoftPath, out encryptionTimeMs);
+            }
+            else
+            {
+                encryptionTimeMs = 0; // No encryption
+                return _copyService.CopyFiles(sourceFile, targetPath);
+            }
+        }
+
+        /// <summary>
+        /// Logs a file operation (copy or encryption).
+        /// </summary>
+        private void LogFileOperation(BackupJob job, string sourceFile, string targetPath, TimeSpan duration, long fileSize, bool wasEncrypted, long encryptionTimeMs)
+        {
+            var logEntry = new LogEntry
+            {
+                BackupName = job.Name,
+                Source = PathHelper.ToUncPath(sourceFile),
+                Target = PathHelper.ToUncPath(targetPath),
+                Duration = duration,
+                Timestamp = DateTime.Now,
+                FileSize = fileSize,
+                WorkType = wasEncrypted ? WorkType.encryption : WorkType.file_transfer,
+                EncryptionTimeMs = encryptionTimeMs
+            };
+            _logService.LogBackup(logEntry);
+        }
+
+        /// <summary>
+        /// Updates progress information after processing a file.
+        /// </summary>
+        private void UpdateProgress(BackupJob job, BackupState state)
+        {
+            var progressState = new BackupState(job)
+            {
+                Status = state.Status,
+                TimeStamp = DateTime.Now,
+                TotalFiles = state.TotalFiles,
+                FilesRemaining = state.FilesRemaining,
+                TotalBytes = state.TotalBytes,
+                BytesRemaining = state.BytesRemaining,
+                CurrentFileSource = state.CurrentFileSource,
+                CurrentFileTarget = state.CurrentFileTarget
+            };
+
+            _progressWriter.Write(progressState);
+        }
+
+        /// <summary>
+        /// Finalizes the backup by setting completion status and writing final progress.
+        /// </summary>
+        private void FinalizeBackup(BackupJob job, BackupState state)
+        {
             if (state.Status != BackupStatus.Error)
                 state.Status = BackupStatus.Completed;
 
-            // Final progress update to ensure 100% completion is reflected
             var resetInfo = new BackupState(job)
             {
                 Status = state.Status,
@@ -202,11 +264,93 @@ namespace Core.Services
                 CurrentFileTarget = null
             };
 
-            _progressWriter.Write(resetInfo); //Remove some informations that need to disapear once job is done
-
-            return state;
+            _progressWriter.Write(resetInfo);
         }
 
-        
+        /// <summary>
+        /// Checks if a file requires encryption based on its extension.
+        /// </summary>
+        private static bool RequiresEncryption(string filePath, List<string> cryptoExtensions)
+        {
+            if (cryptoExtensions == null || cryptoExtensions.Count == 0)
+                return false;
+
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+
+            // Normalize extensions in the list to lowercase and ensure they start with a dot
+            return cryptoExtensions.Any(ext => 
+            {
+                string normalizedExt = ext.ToLowerInvariant();
+                if (!normalizedExt.StartsWith('.'))
+                    normalizedExt = '.' + normalizedExt;
+
+                return normalizedExt == extension;
+            });
+        }
+
+        /// <summary>
+        /// Encrypts a file using CryptoSoft.exe and saves it to the target path.
+        /// </summary>
+        /// <param name="encryptionTimeMs">Output: 0=no encryption, >0=time in ms, <0=error code (-1=path error, -2=process error, -3=exit code error, -99=exception)</param>
+        private bool EncryptFile(string sourceFilePath, string targetFilePath, string? cryptoSoftPath, out long encryptionTimeMs)
+        {
+            // Validate CryptoSoft.exe path
+            if (string.IsNullOrEmpty(cryptoSoftPath) || !File.Exists(cryptoSoftPath))
+            {
+                Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft.exe not found at: {cryptoSoftPath ?? "(null)"}");
+                encryptionTimeMs = -1; // Error code: CryptoSoft.exe not found
+                // Fallback to normal copy if CryptoSoft is not available
+                return _copyService.CopyFiles(sourceFilePath, targetFilePath);
+            }
+
+            var encryptionStopwatch = Stopwatch.StartNew();
+            try
+            {
+                // TODO: Replace "default-key" with actual encryption key from configuration
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = cryptoSoftPath,
+                    Arguments = $"\"{sourceFilePath}\" \"{targetFilePath}\" \"default-key\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using var process = Process.Start(startInfo);
+                if (process == null)
+                {
+                    encryptionStopwatch.Stop();
+                    encryptionTimeMs = -2; // Error code: Failed to start process
+                    Console.WriteLine($"[ENCRYPTION ERROR] Failed to start CryptoSoft process");
+                    return false;
+                }
+
+                process.WaitForExit();
+                encryptionStopwatch.Stop();
+
+                if (process.ExitCode == 0)
+                {
+                    encryptionTimeMs = encryptionStopwatch.ElapsedMilliseconds;
+                    Console.WriteLine($"[ENCRYPTION SUCCESS] Encrypted: {sourceFilePath} -> {targetFilePath} (Time: {encryptionTimeMs}ms)");
+                    return true;
+                }
+                else
+                {
+                    encryptionTimeMs = -3; // Error code: CryptoSoft exited with non-zero code
+                    Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft exited with code: {process.ExitCode}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                encryptionStopwatch.Stop();
+                encryptionTimeMs = -99; // Error code: Exception occurred
+                Console.WriteLine($"[ENCRYPTION ERROR] {ex.Message}");
+                return false;
+            }
+        }
+
+
     }
 }

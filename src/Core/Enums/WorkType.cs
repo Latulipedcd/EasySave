@@ -7,6 +7,7 @@ namespace Core.Enums
     public enum WorkType
     {
         file_transfer,
-        folder_creation
+        folder_creation,
+        encryption
     }
 }
