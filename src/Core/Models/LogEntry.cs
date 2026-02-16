@@ -8,11 +8,11 @@ namespace Core.Models
 {
     public class LogEntry
     {
-        public String BackupName { get; set; }
+        public required string BackupName { get; set; }
      
-        public string Source { get; set; }
+        public required string Source { get; set; }
         
-        public string Target { get; set; }
+        public required string Target { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public TimeSpan Duration { get; set; }  
@@ -27,10 +27,6 @@ namespace Core.Models
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? ErrorMessage { get; set; }
-
-        public LogEntry()
-        {
-            }
-
+      
     }
 }
