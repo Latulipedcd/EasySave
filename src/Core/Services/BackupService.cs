@@ -294,10 +294,12 @@ namespace Core.Services
         /// <param name="encryptionTimeMs">Output: 0=no encryption, >0=time in ms, <0=error code (-1=path error, -2=process error, -3=exit code error, -99=exception)</param>
         private bool EncryptFile(string sourceFilePath, string targetFilePath, string? cryptoSoftPath, out long encryptionTimeMs)
         {
+            // DEBUG: Log the actual path being used
+            Console.WriteLine($"[DEBUG] EncryptFile called with cryptoSoftPath: '{cryptoSoftPath}'");
+
             // Validate CryptoSoft.exe path
             if (string.IsNullOrEmpty(cryptoSoftPath) || !File.Exists(cryptoSoftPath))
             {
-                Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft.exe not found at: {cryptoSoftPath ?? "(null)"}");
                 encryptionTimeMs = -1; // Error code: CryptoSoft.exe not found
                 // Fallback to normal copy if CryptoSoft is not available
                 return _copyService.CopyFiles(sourceFilePath, targetFilePath);
@@ -322,23 +324,33 @@ namespace Core.Services
                 {
                     encryptionStopwatch.Stop();
                     encryptionTimeMs = -2; // Error code: Failed to start process
-                    Console.WriteLine($"[ENCRYPTION ERROR] Failed to start CryptoSoft process");
                     return false;
                 }
 
                 process.WaitForExit();
                 encryptionStopwatch.Stop();
 
+                // Read output for debugging
+                string stdout = process.StandardOutput.ReadToEnd();
+                string stderr = process.StandardError.ReadToEnd();
+
                 if (process.ExitCode == 0)
                 {
                     encryptionTimeMs = encryptionStopwatch.ElapsedMilliseconds;
-                    Console.WriteLine($"[ENCRYPTION SUCCESS] Encrypted: {sourceFilePath} -> {targetFilePath} (Time: {encryptionTimeMs}ms)");
                     return true;
                 }
                 else
                 {
-                    encryptionTimeMs = -3; // Error code: CryptoSoft exited with non-zero code
-                    Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft exited with code: {process.ExitCode}");
+                    // Log the actual exit code as negative value to distinguish from success
+                    // This preserves the real error information from CryptoSoft.exe
+                    encryptionTimeMs = process.ExitCode < 0 ? process.ExitCode : -process.ExitCode;
+
+                    // Log detailed error information
+                    if (!string.IsNullOrEmpty(stderr))
+                        Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft stderr: {stderr}");
+                    if (!string.IsNullOrEmpty(stdout))
+                        Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft stdout: {stdout}");
+
                     return false;
                 }
             }
@@ -346,7 +358,6 @@ namespace Core.Services
             {
                 encryptionStopwatch.Stop();
                 encryptionTimeMs = -99; // Error code: Exception occurred
-                Console.WriteLine($"[ENCRYPTION ERROR] {ex.Message}");
                 return false;
             }
         }

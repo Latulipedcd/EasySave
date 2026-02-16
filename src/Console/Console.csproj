@@ -12,4 +12,14 @@
     <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
 
+  <!-- Copy CryptoSoft.exe to Resources folder after build -->
+  <Target Name="CopyCryptoSoft" AfterTargets="Build">
+    <ItemGroup>
+      <CryptoSoftFiles Include="..\CryptoSoft\publish\CryptoSoft.exe" />
+    </ItemGroup>
+    <MakeDir Directories="$(OutputPath)Resources" />
+    <Copy SourceFiles="@(CryptoSoftFiles)" DestinationFolder="$(OutputPath)Resources" SkipUnchangedFiles="true" />
+    <Message Text="? CryptoSoft.exe (single-file) copied to $(OutputPath)Resources" Importance="high" />
+  </Target>
+
 </Project>
