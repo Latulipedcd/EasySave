@@ -18,26 +18,30 @@ namespace Core.Services
         private readonly IFileService _fileService;
         private readonly ICopyService _copyService;
         private readonly IProgressWriter _progressWriter;
+        private readonly IBusinessSoftwareMonitor _businessSoftwareMonitor;
 
         public BackupService(
             ILog logService,
             IFileService fileService,
             ICopyService copyService,
-            IProgressWriter progressWriter
+            IProgressWriter progressWriter,
+            IBusinessSoftwareMonitor businessSoftwareMonitor
             )
         {
             _logService = logService;
             _fileService = fileService;
             _copyService = copyService;
             _progressWriter = progressWriter;
+            _businessSoftwareMonitor = businessSoftwareMonitor;
         }
 
-        public BackupState ExecuteBackup(BackupJob job, LogFormat format)
+        public BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware)
         {
             var state = new BackupState(job)
             {
                 Status = BackupStatus.Active
             };
+
 
             var files = _fileService.GetFiles(job.SourceDirectory);
             state.TotalFiles = files.Length;
@@ -48,6 +52,46 @@ namespace Core.Services
             state.BytesRemaining = totalBytes;
 
             _logService.Configure(format); // Configure log format based on user preference
+
+            // Check if business software is running before starting the backup
+            if (businessSoftware != null) 
+            {
+                if (_businessSoftwareMonitor.IsBusinessSoftwareRunning("CalculatorApp"))
+                {
+                    state.Status = BackupStatus.Error;
+                    
+                    // Log the error
+                    var logError = new LogEntry
+                    {
+                        BackupName = job.Name,
+                        Source = PathHelper.ToUncPath(job.SourceDirectory),
+                        Target = PathHelper.ToUncPath(job.TargetDirectory),
+                        Duration = TimeSpan.Zero,
+                        Timestamp = DateTime.Now,
+                        FileSize = 0,
+                        WorkType = WorkType.file_transfer,
+                        ErrorMessage = "Backup stopped due to running business software."
+                    };
+                    _logService.LogBackup(logError); // Log the error in the log service
+
+                    // Update progress with error state
+                    var errorState = new BackupState(job)
+                    {
+                        Status = state.Status,
+                        TimeStamp = DateTime.Now,
+                        TotalFiles = 0,
+                        FilesRemaining = 0,
+                        TotalBytes = 0,
+                        BytesRemaining = 0,
+                        CurrentFileSource = null,
+                        CurrentFileTarget = null,
+                        ErrorMessage = "Backup stopped due to running business software."
+                    };
+                    _progressWriter.Write(errorState);
+
+                    return state; // Exit early if business software is running
+                }
+            }
 
             foreach (var file in files)
             {
