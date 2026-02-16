@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="FileManager.cs" />
-    <Compile Remove="Program.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="FileManager.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
