@@ -23,7 +23,7 @@ namespace EasySave.Application.ViewModels
             _langManager = LanguageManager.GetInstance();
             _userConfigManager = new UserConfigManager();
             _backupJobRepository= new BackupJobRepository(new JobStorage());
-            _backupService= new BackupService(LogService.Instance, new FileService(), new CopyService(), new ProgressJsonWriter());
+            _backupService= new BackupService(LogService.Instance, new FileService(), new CopyService(), new ProgressJsonWriter(), new BusinessSoftwareMonitor());
         }
 
 
@@ -147,7 +147,12 @@ namespace EasySave.Application.ViewModels
 
             foreach (var job in jobsToExecute)
             {
-                var state = _backupService.ExecuteBackup(job, GetSavedLogFormat());
+                var state = _backupService.ExecuteBackup(
+                    job, 
+                    GetSavedLogFormat(), 
+                    GetSavedBusinessSoftware(), 
+                    GetCryptoSoftExtensions(),
+                    GetCryptoSoftPath());
                 results.Add(state);
             }
 
@@ -261,11 +266,35 @@ namespace EasySave.Application.ViewModels
                 return false;
             }
         }
-            
+
+
+        public bool ChangeBusinessSoftware(string software)
+        {
+            return _userConfigManager.SaveBusinessSoftware(software);
+        }
 
         public LogFormat GetSavedLogFormat() 
         {
             return _userConfigManager.LoadLogFormat() ?? LogFormat.Json; // Get the saved log format or by default json
+        }
+
+        public string? GetSavedBusinessSoftware()
+        {
+            return _userConfigManager.LoadBusinessSoftware(); // Get the saved BusinessSoftware
+        }
+
+        public List<string> GetCryptoSoftExtensions()
+        {
+            return _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>(); // Get the saved CryptoSoft extensions or empty list
+        }
+
+        public string? GetCryptoSoftPath()
+        {
+            string workDir = AppDomain.CurrentDomain.BaseDirectory;
+            string cryptoPath = Path.Combine(workDir, "Resources", "CryptoSoft.exe");
+
+            // Return the path if it exists, otherwise return null
+            return File.Exists(cryptoPath) ? cryptoPath : null;
         }
 
         public IReadOnlyList<string> GetSupportedLanguages()

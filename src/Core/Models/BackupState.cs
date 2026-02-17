@@ -31,7 +31,10 @@ namespace Core.Models
         public double ProgressPercentage =>
             TotalBytes == 0 ? 0 :
             (1.0 - (double)BytesRemaining / TotalBytes) * 100;
-        
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? ErrorMessage { get; set; }
+
 
         [JsonConstructor]
         public BackupState(BackupJob job)

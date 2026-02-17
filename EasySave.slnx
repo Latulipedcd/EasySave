@@ -2,6 +2,7 @@
   <Project Path="src/Application/Application.csproj" />
   <Project Path="src/Console/Console.csproj" />
   <Project Path="src/Core/Core.csproj" />
+  <Project Path="src/CryptoSoft/CryptoSoft.csproj" Id="98c28195-0eb8-435b-b596-2465c96f37fd" />
   <Project Path="src/GUI/GUI.csproj" Id="18b1db3a-9607-4458-9977-a5c50e2239ab" />
   <Project Path="src/Log/Log.csproj" />
 </Solution>
