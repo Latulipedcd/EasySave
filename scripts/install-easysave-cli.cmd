@@ -41,12 +41,6 @@ if not exist "%GUI_DIR%\GUI.exe" (
 
 (
     echo @echo off
-    echo if "%%~1"=="" ^(
-    echo     if exist "%%~dp0gui\GUI.exe" ^(
-    echo         start "" "%%~dp0gui\GUI.exe"
-    echo         exit /b 0
-    echo     ^)
-    echo ^)
     echo "%%~dp0EasySave.exe" %%*
 ) > "%INSTALL_DIR%\EasySave.cmd"
 if errorlevel 1 goto :error
