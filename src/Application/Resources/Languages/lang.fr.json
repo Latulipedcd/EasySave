@@ -35,6 +35,8 @@
   "GuiLogFormatLabel": "Format des logs",
   "GuiLogFormatJson": "Json",
   "GuiLogFormatXml": "Xml",
+  "GuiSettingsButton": "Parametres",
+  "GuiSettingsMenuTitle": "Parametres du logiciel",
 
   "GuiHeaderName": "Nom",
   "GuiHeaderSource": "Source",
