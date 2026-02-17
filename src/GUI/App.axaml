@@ -6,93 +6,111 @@
     <Application.Styles>
         <FluentTheme />
 
+        <!-- Design tokens: centralize colors/gradients here for future theme iterations. -->
         <Style>
             <Style.Resources>
-                <SolidColorBrush x:Key="PrimaryBrush">#4F8CFF</SolidColorBrush>
-                <SolidColorBrush x:Key="PrimaryHoverBrush">#70A5FF</SolidColorBrush>
-                <SolidColorBrush x:Key="SuccessBrush">#1DBA8A</SolidColorBrush>
-                <SolidColorBrush x:Key="SuccessHoverBrush">#31CEA0</SolidColorBrush>
-                <SolidColorBrush x:Key="DangerBrush">#EB5757</SolidColorBrush>
-                <SolidColorBrush x:Key="DangerHoverBrush">#F67B7B</SolidColorBrush>
+                <!-- Accent colors -->
+                <SolidColorBrush x:Key="PrimaryBrush">#58B5FF</SolidColorBrush>
+                <SolidColorBrush x:Key="PrimaryHoverBrush">#82CBFF</SolidColorBrush>
+                <SolidColorBrush x:Key="SuccessBrush">#6BC0FF</SolidColorBrush>
+                <SolidColorBrush x:Key="SuccessHoverBrush">#8FD0FF</SolidColorBrush>
+                <SolidColorBrush x:Key="DangerBrush">#7F93A8</SolidColorBrush>
+                <SolidColorBrush x:Key="DangerHoverBrush">#95A7BA</SolidColorBrush>
 
-                <SolidColorBrush x:Key="SurfaceBrush">#132845</SolidColorBrush>
-                <SolidColorBrush x:Key="SurfaceDarkBrush">#0F223A</SolidColorBrush>
-                <SolidColorBrush x:Key="SurfaceMutedBrush">#0B1A2E</SolidColorBrush>
-                <SolidColorBrush x:Key="CardBrush">#132845</SolidColorBrush>
-                <SolidColorBrush x:Key="CardDarkBrush">#0F223A</SolidColorBrush>
-                <SolidColorBrush x:Key="BorderBrush">#355476</SolidColorBrush>
-                <SolidColorBrush x:Key="BorderStrongBrush">#4D6F95</SolidColorBrush>
+                <!-- Neutral surfaces and borders -->
+                <SolidColorBrush x:Key="SurfaceBrush">#161B22</SolidColorBrush>
+                <SolidColorBrush x:Key="SurfaceDarkBrush">#10151D</SolidColorBrush>
+                <SolidColorBrush x:Key="SurfaceMutedBrush">#1B232E</SolidColorBrush>
+                <SolidColorBrush x:Key="CardBrush">#161B22</SolidColorBrush>
+                <SolidColorBrush x:Key="CardDarkBrush">#10151D</SolidColorBrush>
+                <SolidColorBrush x:Key="BorderBrush">#2C3745</SolidColorBrush>
+                <SolidColorBrush x:Key="BorderStrongBrush">#4A5D73</SolidColorBrush>
 
-                <SolidColorBrush x:Key="TextPrimaryBrush">#F2F7FF</SolidColorBrush>
-                <SolidColorBrush x:Key="TextSecondaryBrush">#A5BCD8</SolidColorBrush>
+                <!-- Typography colors -->
+                <SolidColorBrush x:Key="TextPrimaryBrush">#F3F6FA</SolidColorBrush>
+                <SolidColorBrush x:Key="TextSecondaryBrush">#A7B2C2</SolidColorBrush>
 
+                <!-- Global backgrounds -->
                 <LinearGradientBrush x:Key="WindowBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#0A1428" Offset="0" />
-                    <GradientStop Color="#102747" Offset="0.55" />
-                    <GradientStop Color="#0A1D36" Offset="1" />
+                    <GradientStop Color="#07090D" Offset="0" />
+                    <GradientStop Color="#0F131C" Offset="0.45" />
+                    <GradientStop Color="#13233D" Offset="0.78" />
+                    <GradientStop Color="#090D14" Offset="1" />
                 </LinearGradientBrush>
 
+                <!-- Component gradients -->
                 <LinearGradientBrush x:Key="PrimaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#3E7EFF" Offset="0" />
-                    <GradientStop Color="#5D9BFF" Offset="1" />
+                    <GradientStop Color="#2E8EFF" Offset="0" />
+                    <GradientStop Color="#58B5FF" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="PrimaryGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#4D8AFF" Offset="0" />
-                    <GradientStop Color="#73ABFF" Offset="1" />
+                    <GradientStop Color="#43A0FF" Offset="0" />
+                    <GradientStop Color="#74C7FF" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SecondaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#2F4867" Offset="0" />
-                    <GradientStop Color="#42618A" Offset="1" />
+                    <GradientStop Color="#1F2732" Offset="0" />
+                    <GradientStop Color="#2D3745" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SecondaryGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#3A5780" Offset="0" />
-                    <GradientStop Color="#4B6F9F" Offset="1" />
+                    <GradientStop Color="#293241" Offset="0" />
+                    <GradientStop Color="#3A4A60" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SuccessGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#17AA7C" Offset="0" />
-                    <GradientStop Color="#27C894" Offset="1" />
+                    <GradientStop Color="#2A6FB3" Offset="0" />
+                    <GradientStop Color="#4590DC" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SuccessGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#23BB8B" Offset="0" />
-                    <GradientStop Color="#38D9A8" Offset="1" />
+                    <GradientStop Color="#357FC7" Offset="0" />
+                    <GradientStop Color="#5AA4EC" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="DangerGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#D84A4A" Offset="0" />
-                    <GradientStop Color="#F06D6D" Offset="1" />
+                    <GradientStop Color="#3E4C5E" Offset="0" />
+                    <GradientStop Color="#566980" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="DangerGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#E45B5B" Offset="0" />
-                    <GradientStop Color="#F58686" Offset="1" />
+                    <GradientStop Color="#4C5D73" Offset="0" />
+                    <GradientStop Color="#657A94" Offset="1" />
+                </LinearGradientBrush>
+
+                <LinearGradientBrush x:Key="ChatCardBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#0F141C" Offset="0" />
+                    <GradientStop Color="#111A27" Offset="0.55" />
+                    <GradientStop Color="#142B47" Offset="1" />
                 </LinearGradientBrush>
             </Style.Resources>
         </Style>
 
+        <!-- Base shell -->
         <Style Selector="Window">
             <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
             <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
 
+        <!-- Layout cards -->
         <Style Selector="Border.card">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="CornerRadius" Value="16" />
             <Setter Property="Padding" Value="20" />
-            <Setter Property="BoxShadow" Value="0 14 28 0 #00000036" />
+            <Setter Property="BoxShadow" Value="0 16 30 0 #00000052" />
         </Style>
 
         <Style Selector="Border.chat-card">
-            <Setter Property="Background" Value="{DynamicResource SurfaceDarkBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ChatCardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="#4A6685" />
+            <Setter Property="BoxShadow" Value="0 22 36 0 #03112272" />
         </Style>
 
+        <!-- Reusable card fragments -->
         <Style Selector="Border.card-header">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
@@ -104,17 +122,20 @@
         <Style Selector="Border.brand-badge">
             <Setter Property="Background" Value="{DynamicResource PrimaryGradientBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="#8DB8FF" />
+            <Setter Property="BorderBrush" Value="#95C7FF" />
             <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="BoxShadow" Value="0 10 16 0 #163A703D" />
+            <Setter Property="BoxShadow" Value="0 12 22 0 #1239655F" />
         </Style>
 
+        <!-- Branding text -->
         <Style Selector="TextBlock.brand-text">
             <Setter Property="FontSize" Value="20" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="#F8FBFF" />
         </Style>
 
+        <!-- Base button style:
+             Hover uses color/border only (no scale) to avoid sticky visual states. -->
         <Style Selector="Button">
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Padding" Value="16,10" />
@@ -123,11 +144,11 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.15" />
                     <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
                 </Transitions>
             </Setter>
         </Style>
@@ -137,68 +158,54 @@
             <Setter Property="Cursor" Value="Arrow" />
         </Style>
 
+        <!-- Toolbar-specific button spacing (shared by jobs actions). -->
         <Style Selector="Button.toolbar-action">
-            <Setter Property="Margin" Value="0,0,10,10" />
+            <Setter Property="Margin" Value="0" />
         </Style>
 
+        <!-- Button variants -->
         <Style Selector="Button.primary">
             <Setter Property="Background" Value="{DynamicResource PrimaryGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#7EAEFF" />
+            <Setter Property="BorderBrush" Value="#A6D8FF" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
         <Style Selector="Button.primary:pointerover">
             <Setter Property="Background" Value="{DynamicResource PrimaryGradientHoverBrush}" />
-            <Setter Property="RenderTransform" Value="scale(1.02)" />
-        </Style>
-
-        <Style Selector="Button.primary:pressed">
-            <Setter Property="RenderTransform" Value="scale(0.98)" />
+            <Setter Property="BorderBrush" Value="#C2E5FF" />
         </Style>
 
         <Style Selector="Button.secondary">
             <Setter Property="Background" Value="{DynamicResource SecondaryGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#5B7DA7" />
-            <Setter Property="Foreground" Value="#E6F0FF" />
+            <Setter Property="BorderBrush" Value="#637A95" />
+            <Setter Property="Foreground" Value="#EBF1F9" />
         </Style>
 
         <Style Selector="Button.secondary:pointerover">
             <Setter Property="Background" Value="{DynamicResource SecondaryGradientHoverBrush}" />
-            <Setter Property="RenderTransform" Value="scale(1.02)" />
-        </Style>
-
-        <Style Selector="Button.secondary:pressed">
-            <Setter Property="RenderTransform" Value="scale(0.98)" />
+            <Setter Property="BorderBrush" Value="#7E96B1" />
         </Style>
 
         <Style Selector="Button.success">
             <Setter Property="Background" Value="{DynamicResource SuccessGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#5BDAB1" />
+            <Setter Property="BorderBrush" Value="#87BAEF" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
         <Style Selector="Button.success:pointerover">
             <Setter Property="Background" Value="{DynamicResource SuccessGradientHoverBrush}" />
-            <Setter Property="RenderTransform" Value="scale(1.02)" />
-        </Style>
-
-        <Style Selector="Button.success:pressed">
-            <Setter Property="RenderTransform" Value="scale(0.98)" />
+            <Setter Property="BorderBrush" Value="#9BC9F8" />
         </Style>
 
         <Style Selector="Button.danger">
             <Setter Property="Background" Value="{DynamicResource DangerGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#F69D9D" />
+            <Setter Property="BorderBrush" Value="#7F94AF" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
         <Style Selector="Button.danger:pointerover">
             <Setter Property="Background" Value="{DynamicResource DangerGradientHoverBrush}" />
-            <Setter Property="RenderTransform" Value="scale(1.02)" />
-        </Style>
-
-        <Style Selector="Button.danger:pressed">
-            <Setter Property="RenderTransform" Value="scale(0.98)" />
+            <Setter Property="BorderBrush" Value="#96AAC3" />
         </Style>
 
         <Style Selector="Button.outline">
@@ -208,15 +215,11 @@
         </Style>
 
         <Style Selector="Button.outline:pointerover">
-            <Setter Property="Background" Value="#22395D" />
-            <Setter Property="BorderBrush" Value="#74A4E4" />
-            <Setter Property="RenderTransform" Value="scale(1.02)" />
+            <Setter Property="Background" Value="#1E2734" />
+            <Setter Property="BorderBrush" Value="#6A89AC" />
         </Style>
 
-        <Style Selector="Button.outline:pressed">
-            <Setter Property="RenderTransform" Value="scale(0.98)" />
-        </Style>
-
+        <!-- Form controls -->
         <Style Selector="TextBox">
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="12,10" />
@@ -242,12 +245,14 @@
             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
         </Style>
 
+        <!-- Feedback and progress -->
         <Style Selector="ProgressBar">
-            <Setter Property="Background" Value="#294466" />
+            <Setter Property="Background" Value="#243142" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
             <Setter Property="CornerRadius" Value="5" />
         </Style>
 
+        <!-- Data list styling -->
         <Style Selector="ListBox">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -268,62 +273,65 @@
         </Style>
 
         <Style Selector="ListBoxItem:pointerover">
-            <Setter Property="Background" Value="#1E3A5D" />
-            <Setter Property="BorderBrush" Value="#41658D" />
+            <Setter Property="Background" Value="#1C2531" />
+            <Setter Property="BorderBrush" Value="#3A4A5E" />
         </Style>
 
         <Style Selector="ListBoxItem:selected">
-            <Setter Property="Background" Value="#254873" />
-            <Setter Property="BorderBrush" Value="#6996C9" />
+            <Setter Property="Background" Value="#203248" />
+            <Setter Property="BorderBrush" Value="#5A9DE3" />
         </Style>
 
         <Style Selector="ListBoxItem:selected:pointerover">
-            <Setter Property="Background" Value="#2A5487" />
-            <Setter Property="BorderBrush" Value="#7DAAE0" />
+            <Setter Property="Background" Value="#24405C" />
+            <Setter Property="BorderBrush" Value="#6DACF0" />
         </Style>
 
+        <!-- Status and semantic badges -->
         <Style Selector="Border.type-pill">
-            <Setter Property="Background" Value="#1B3D65" />
-            <Setter Property="BorderBrush" Value="#456D98" />
+            <Setter Property="Background" Value="#1F334C" />
+            <Setter Property="BorderBrush" Value="#50739A" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="999" />
             <Setter Property="Padding" Value="10,4" />
         </Style>
 
         <Style Selector="TextBlock.type-pill-text">
-            <Setter Property="Foreground" Value="#9CC8FF" />
+            <Setter Property="Foreground" Value="#B8DCFF" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style Selector="Border.live-pill">
-            <Setter Property="Background" Value="#2B8BFF2E" />
-            <Setter Property="BorderBrush" Value="#5AA5FF80" />
+            <Setter Property="Background" Value="#3B8EFF22" />
+            <Setter Property="BorderBrush" Value="#6FB1FF70" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="999" />
             <Setter Property="Padding" Value="8,2" />
         </Style>
 
         <Style Selector="TextBlock.live-pill-text">
-            <Setter Property="Foreground" Value="#A8CEFF" />
+            <Setter Property="Foreground" Value="#B8D9FF" />
             <Setter Property="FontSize" Value="10" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
 
+        <!-- Assistant widget visuals -->
         <Style Selector="Border.assistant-media-card">
-            <Setter Property="Background" Value="{DynamicResource SurfaceMutedBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Background" Value="#182331" />
+            <Setter Property="BorderBrush" Value="#34506F" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="14" />
         </Style>
 
         <Style Selector="Border.assistant-message-card">
-            <Setter Property="Background" Value="#0B1A2E" />
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Background" Value="#131A24" />
+            <Setter Property="BorderBrush" Value="#314154" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="12" />
         </Style>
 
+        <!-- Typography scale -->
         <Style Selector="TextBlock.title">
             <Setter Property="FontSize" Value="28" />
             <Setter Property="FontWeight" Value="Bold" />

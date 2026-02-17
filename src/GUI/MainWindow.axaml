@@ -11,18 +11,28 @@
         MinWidth="1200" MinHeight="760"
         Width="1400" Height="860">
 
-    <Grid RowDefinitions="Auto,*" Margin="0">
+    <!-- Main shell: top header + content workspace -->
+    <Grid Name="MainShellGrid" RowDefinitions="Auto,*" Margin="0">
 
-        <!-- Header -->
-        <Border Grid.Row="0"
+        <!-- Top bar: branding, status, and quick preferences -->
+        <Border Name="TopHeaderBar"
+                Grid.Row="0"
                 Background="{DynamicResource SurfaceDarkBrush}"
                 BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BoxShadow="0 8 16 0 #00000035"
                 Padding="24,16">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16">
+                <!-- Left block: app identity + global status -->
+                <Grid Grid.Column="0"
+                      Name="HeaderIdentityBlock"
+                      ColumnDefinitions="Auto,*"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="16"
+                      RowSpacing="2">
                     <Border Classes="brand-badge"
+                            Grid.Column="0"
+                            Grid.Row="0"
                             Width="48" Height="48"
                             VerticalAlignment="Center">
                         <TextBlock Text="ES"
@@ -30,15 +40,23 @@
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                     </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="{Binding JobsHeaderTitle}" Classes="title" />
-                        <TextBlock Text="{Binding StatusMessage, FallbackValue='Ready'}"
-                                   FontSize="13"
-                                   Foreground="{DynamicResource TextSecondaryBrush}" />
-                    </StackPanel>
-                </StackPanel>
+                    <TextBlock Grid.Column="1"
+                               Grid.Row="0"
+                               Text="{Binding JobsHeaderTitle}"
+                               Classes="title"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Grid.Row="1"
+                               Text="{Binding StatusMessage, FallbackValue='Ready'}"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" />
+                </Grid>
 
-                <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                <!-- Right block: language and log format controls -->
+                <WrapPanel Grid.Column="1"
+                           Name="HeaderPreferencesBlock"
+                           VerticalAlignment="Center">
                     <StackPanel Spacing="4" Margin="0,0,12,0">
                         <TextBlock Text="{Binding LanguageLabel}" Classes="label" Margin="0,0,0,4" />
                         <ComboBox Width="120"
@@ -58,41 +76,55 @@
             </Grid>
         </Border>
 
-        <!-- Main Content (large screen only) -->
-        <Grid Grid.Row="1"
+        <!-- Main workspace: jobs list, details panel, assistant widget -->
+        <Grid Name="ContentWorkspaceGrid"
+              Grid.Row="1"
               Margin="24,20,24,24"
               ColumnDefinitions="2.3*,1.2*"
               RowDefinitions="*,Auto"
               ColumnSpacing="20"
               RowSpacing="20">
 
-            <!-- Jobs board -->
-            <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Classes="card">
+            <!-- Jobs module: actions + list -->
+            <Border Name="JobsBoardCard"
+                    Grid.Column="0"
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Classes="card">
                 <Grid RowDefinitions="Auto,Auto,*">
 
-                    <WrapPanel Grid.Row="0" Margin="0,0,0,18">
-                        <Button Classes="primary toolbar-action"
-                                Content="{Binding NewJobButtonLabel}"
-                                Click="NewJob_Click"
-                                MinWidth="132" />
-                        <Button Classes="secondary toolbar-action"
-                                Content="{Binding EditJobButtonLabel}"
-                                Click="EditJob_Click"
-                                MinWidth="132" />
-                        <Button Classes="primary toolbar-action"
-                                Content="{Binding ExecuteSelectedLabel}"
-                                Click="ExecuteSelected_Click"
-                                MinWidth="170" />
-                        <Button Classes="success toolbar-action"
-                                Content="{Binding ExecuteAllLabel}"
-                                Click="ExecuteAll_Click"
-                                MinWidth="132" />
-                        <Button Classes="danger toolbar-action"
-                                Content="{Binding DeleteSelectedLabel}"
-                                Click="DeleteSelected_Click"
-                                MinWidth="152" />
-                    </WrapPanel>
+                    <!-- Action toolbar:
+                         Keep buttons in a single row and auto-scale down on smaller widths. -->
+                    <Viewbox Name="JobsActionsViewbox"
+                             Grid.Row="0"
+                             Margin="0,0,0,18"
+                             Stretch="Uniform"
+                             StretchDirection="DownOnly"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Top">
+                        <StackPanel Name="JobsActionsPanel"
+                                    Orientation="Horizontal"
+                                    Spacing="10">
+                            <!-- Add new action buttons here to keep command layout consistent. -->
+                            <Button Classes="primary toolbar-action"
+                                    Content="{Binding NewJobButtonLabel}"
+                                    Click="NewJob_Click" />
+                            <Button Classes="secondary toolbar-action"
+                                    Content="{Binding EditJobButtonLabel}"
+                                    Click="EditJob_Click" />
+                            <Button Classes="primary toolbar-action"
+                                    Content="{Binding ExecuteSelectedLabel}"
+                                    Click="ExecuteSelected_Click" />
+                            <Button Classes="success toolbar-action"
+                                    Content="{Binding ExecuteAllLabel}"
+                                    Click="ExecuteAll_Click" />
+                            <Button Classes="danger toolbar-action"
+                                    Content="{Binding DeleteSelectedLabel}"
+                                    Click="DeleteSelected_Click" />
+                        </StackPanel>
+                    </Viewbox>
 
+                    <!-- Jobs list header -->
                     <Border Grid.Row="1" Classes="card-header">
                         <Grid ColumnDefinitions="1.5*,3*,3*,1.2*" ColumnSpacing="12">
                             <TextBlock Grid.Column="0" Text="{Binding HeaderName}" Classes="header-cell" />
@@ -102,6 +134,7 @@
                         </Grid>
                     </Border>
 
+                    <!-- Jobs list content -->
                     <ScrollViewer Grid.Row="2"
                                   VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Auto">
@@ -140,8 +173,12 @@
                 </Grid>
             </Border>
 
-            <!-- Job details -->
-            <Border Grid.Column="1" Grid.Row="0" Classes="card" MinHeight="520">
+            <!-- Details module: selected job summary + runtime status -->
+            <Border Name="JobDetailsCard"
+                    Grid.Column="1"
+                    Grid.Row="0"
+                    Classes="card"
+                    MinHeight="520">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="20">
@@ -154,6 +191,7 @@
                                    Margin="0,40,0,0" />
 
                         <StackPanel Spacing="20" IsVisible="{Binding HasSelection}">
+                            <!-- Selected job metadata -->
                             <StackPanel Spacing="6">
                                 <TextBlock Text="{Binding LabelName}" Classes="label" />
                                 <TextBlock Text="{Binding SelectedJobName}" FontWeight="SemiBold" TextWrapping="Wrap" />
@@ -182,6 +220,7 @@
                                 </Border>
                             </StackPanel>
 
+                            <!-- Runtime execution metrics for the selected job -->
                             <Border BorderThickness="0,1,0,0"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     Padding="0,20,0,0"
@@ -268,19 +307,20 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Chat notification -->
-            <Border Grid.Column="1"
+            <!-- Assistant module: animated widget + live message -->
+            <Border Name="AssistantWidgetCard"
+                    Grid.Column="1"
                     Grid.Row="1"
                     Classes="card chat-card"
-                    Padding="12,10"
+                    Padding="18,16"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Bottom"
-                    MinHeight="74"
-                    MaxHeight="180">
-                <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    MinHeight="156"
+                    MaxHeight="320">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <TextBlock Text="{Binding CatWidgetTitle}"
-                                   FontSize="13"
+                                   FontSize="15"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                         <Border Classes="live-pill">
@@ -288,29 +328,29 @@
                         </Border>
                     </StackPanel>
 
-                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="14">
                         <Border Classes="assistant-media-card"
-                                Width="52"
-                                Height="52"
-                                Padding="4"
+                                Width="108"
+                                Height="108"
+                                Padding="8"
                                 ClipToBounds="True">
                             <lottie:Lottie Path="avares://GUI/Assets/Animations/cat%20default.json"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
-                                           Width="44"
-                                           Height="44"
+                                           Width="92"
+                                           Height="92"
                                            RenderTransformOrigin="0.5,0.5"
-                                           RenderTransform="scale(0.95)"
+                                           RenderTransform="scale(0.98)"
                                            Stretch="Uniform" />
                         </Border>
 
-                        <Border Grid.Column="1" Classes="assistant-message-card" Padding="10,8" MinHeight="44">
+                        <Border Grid.Column="1" Classes="assistant-message-card" Padding="14,12" MinHeight="108">
                             <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled"
-                                          MaxHeight="120">
+                                          MaxHeight="200">
                                 <TextBlock Text="{Binding CatSpeech}"
                                            TextWrapping="Wrap"
-                                           FontSize="12"
+                                           FontSize="13"
                                            Foreground="{DynamicResource TextPrimaryBrush}" />
                             </ScrollViewer>
                         </Border>
