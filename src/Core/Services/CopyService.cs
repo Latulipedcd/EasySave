@@ -5,11 +5,20 @@ using System.Text;
 
 namespace Core.Services
 {
+    /// <summary>
+    /// Service responsible for copying files from source to destination.
+    /// </summary>
     public class CopyService : ICopyService
     {
         public CopyService() { }
 
-        public bool CopyFiles(string file, string target) //Return boolean to know if any errors happened
+        /// <summary>
+        /// Copies a file from source to target location, overwriting if it already exists.
+        /// </summary>
+        /// <param name="file">The source file path to copy from.</param>
+        /// <param name="target">The target file path to copy to.</param>
+        /// <returns>True if the copy operation succeeded, false if an error occurred.</returns>
+        public bool CopyFiles(string file, string target)
         {
             try
             {

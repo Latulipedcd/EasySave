@@ -12,12 +12,19 @@ namespace Core.Services
     using System.Text.Json;
     using System.Text.Json.Serialization;
 
+    /// <summary>
+    /// Writes backup progress state to a JSON file for monitoring and tracking.
+    /// </summary>
     public class ProgressJsonWriter :  IProgressWriter
     {
         private readonly string _appData;
         private readonly string _folder;
         private readonly string _path;
 
+        /// <summary>
+        /// Initializes a new instance of the ProgressJsonWriter class.
+        /// Creates the progress directory if it doesn't exist.
+        /// </summary>
         public ProgressJsonWriter()
         {
             _appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -26,6 +33,11 @@ namespace Core.Services
             _path = Path.Combine(_folder, "state.json");
         }
 
+        /// <summary>
+        /// Writes the backup state to a JSON file with indented formatting.
+        /// The file is located at AppData\Roaming\EasyLog\Progress\state.json.
+        /// </summary>
+        /// <param name="backupState">The backup state to serialize and write.</param>
         public void Write(BackupState backupState)
         {
             
