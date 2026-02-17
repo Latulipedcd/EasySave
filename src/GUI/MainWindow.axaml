@@ -73,7 +73,17 @@
                                                     <Border Classes="settings-item-card" Margin="0,0,0,10">
                                                         <StackPanel Spacing="6">
                                                             <TextBlock Text="{Binding Label, Mode=OneWay}" Classes="settings-section-label" Margin="0" />
-                                                            <ComboBox Classes="settings-combo"
+                                                            
+                                                            <!-- Text input for business software and crypto extensions -->
+                                                            <TextBox IsVisible="{Binding IsTextInput, Mode=OneWay}"
+                                                                     Text="{Binding TextValue, Mode=TwoWay}"
+                                                                     MinWidth="260"
+                                                                     Watermark=""
+                                                                     Classes="settings-textbox" />
+                                                            
+                                                            <!-- Dropdown for language and log format -->
+                                                            <ComboBox IsVisible="{Binding !IsTextInput, Mode=OneWay}"
+                                                                      Classes="settings-combo"
                                                                       MinWidth="260"
                                                                       ItemsSource="{Binding Options, Mode=OneWay}"
                                                                       SelectedItem="{Binding SelectedOption, Mode=TwoWay}">

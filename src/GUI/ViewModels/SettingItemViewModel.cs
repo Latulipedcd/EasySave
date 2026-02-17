@@ -15,6 +15,8 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
     private readonly Action<string> _onSelectionChanged;
     private string _label;
     private SettingOptionViewModel? _selectedOption;
+    private string _textValue = string.Empty;
+    private bool _isTextInput;
 
     public SettingItemViewModel(
         string label,
@@ -24,11 +26,52 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
     {
         _label = label;
         _onSelectionChanged = onSelectionChanged;
+        _isTextInput = false;
         Options = new ObservableCollection<SettingOptionViewModel>(options);
         SetSelectedValue(selectedValue);
     }
 
+    // Constructor for text input mode
+    public SettingItemViewModel(
+        string label,
+        string initialValue,
+        Action<string> onValueChanged)
+    {
+        _label = label;
+        _onSelectionChanged = onValueChanged;
+        _isTextInput = true;
+        _textValue = initialValue ?? string.Empty;
+        Options = new ObservableCollection<SettingOptionViewModel>();
+    }
+
     public ObservableCollection<SettingOptionViewModel> Options { get; }
+
+    public bool IsTextInput
+    {
+        get => _isTextInput;
+        private set
+        {
+            if (value == _isTextInput)
+                return;
+
+            _isTextInput = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string TextValue
+    {
+        get => _textValue;
+        set
+        {
+            if (value == _textValue)
+                return;
+
+            _textValue = value;
+            OnPropertyChanged();
+            _onSelectionChanged(value);
+        }
+    }
 
     public string Label
     {
@@ -61,6 +104,15 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
     }
 
     public void UpdateLabel(string label) => Label = label;
+
+    public void SetTextValue(string textValue)
+    {
+        if (_textValue == textValue)
+            return;
+
+        _textValue = textValue;
+        OnPropertyChanged(nameof(TextValue));
+    }
 
     public void ReplaceOptions(IEnumerable<SettingOptionViewModel> options, string selectedValue)
     {

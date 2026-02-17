@@ -258,6 +258,29 @@ namespace EasySave.Application.Configuration
             }
         }
 
+        public bool SaveCryptoSoftExtensions(List<string> extensions)
+        {
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+
+                var userConfig = LoadConfig(); // on charge l'existant
+                userConfig.CryptoSoftExtensions = extensions ?? new List<string>();
+
+                string jsonContent = JsonSerializer.Serialize(
+                    userConfig,
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                File.WriteAllText(_configFilePath, jsonContent);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private UserConfig LoadConfig()
         {
             try

@@ -273,6 +273,11 @@ namespace EasySave.Application.ViewModels
             return _userConfigManager.SaveBusinessSoftware(software);
         }
 
+        public bool ChangeCryptoSoftExtensions(List<string> extensions)
+        {
+            return _userConfigManager.SaveCryptoSoftExtensions(extensions);
+        }
+
         public LogFormat GetSavedLogFormat() 
         {
             return _userConfigManager.LoadLogFormat() ?? LogFormat.Json; // Get the saved log format or by default json
