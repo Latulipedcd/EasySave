@@ -35,6 +35,8 @@
   "GuiLogFormatLabel": "Log format",
   "GuiLogFormatJson": "Json",
   "GuiLogFormatXml": "Xml",
+  "GuiBusinessSoftwareLabel": "Business software to block",
+  "GuiCryptoExtensionsLabel": "File extensions to encrypt (comma-separated)",
   "GuiSettingsButton": "Settings",
   "GuiSettingsMenuTitle": "Application settings",
 

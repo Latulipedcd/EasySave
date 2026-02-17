@@ -25,6 +25,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private readonly MainViewModel _appViewModel;
     private SettingItemViewModel? _languageSetting;
     private SettingItemViewModel? _logFormatSetting;
+    private SettingItemViewModel? _businessSoftwareSetting;
+    private SettingItemViewModel? _cryptoExtensionsSetting;
 
     // Timer pour rafraîchir périodiquement l'état du job en cours d'exécution
     private readonly DispatcherTimer _stateRefreshTimer;
@@ -53,6 +55,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string LogFormatLabel => Text("GuiLogFormatLabel");
     public string LogFormatJsonLabel => Text("GuiLogFormatJson");
     public string LogFormatXmlLabel => Text("GuiLogFormatXml");
+    public string BusinessSoftwareLabel => Text("GuiBusinessSoftwareLabel");
+    public string CryptoExtensionsLabel => Text("GuiCryptoExtensionsLabel");
     public string SettingsButtonLabel => Text("GuiSettingsButton");
     public string SettingsMenuTitle => Text("GuiSettingsMenuTitle");
 
@@ -182,6 +186,54 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Nom du logiciel métier à bloquer pendant les sauvegardes
+    /// Sauvegardé dans userconfig.json
+    /// </summary>
+    private string _businessSoftware = string.Empty;
+    public string BusinessSoftware
+    {
+        get => _businessSoftware;
+        set
+        {
+            if (value == _businessSoftware) return;
+
+            _businessSoftware = value ?? string.Empty;
+            OnPropertyChanged();
+
+            // Sauvegarde dans le fichier de configuration
+            _appViewModel.ChangeBusinessSoftware(_businessSoftware);
+            _businessSoftwareSetting?.SetTextValue(_businessSoftware);
+        }
+    }
+
+    /// <summary>
+    /// Extensions de fichiers à chiffrer (séparées par des virgules)
+    /// Sauvegardé dans userconfig.json
+    /// </summary>
+    private string _cryptoExtensions = string.Empty;
+    public string CryptoExtensions
+    {
+        get => _cryptoExtensions;
+        set
+        {
+            if (value == _cryptoExtensions) return;
+
+            _cryptoExtensions = value ?? string.Empty;
+            OnPropertyChanged();
+
+            // Parse comma-separated extensions and save to config
+            var extensionsList = _cryptoExtensions
+                .Split(',')
+                .Select(ext => ext.Trim())
+                .Where(ext => !string.IsNullOrWhiteSpace(ext))
+                .ToList();
+
+            _appViewModel.ChangeCryptoSoftExtensions(extensionsList);
+            _cryptoExtensionsSetting?.SetTextValue(_cryptoExtensions);
+        }
+    }
+
   
 
     /// <summary>
@@ -218,6 +270,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         // Chargement du format de logs sauvegardé
         _selectedLogFormatIndex = _appViewModel.GetSavedLogFormat() == LogFormat.Xml ? 1 : 0;
+        
+        // Chargement des valeurs sauvegardées pour le logiciel métier et les extensions
+        _businessSoftware = _appViewModel.GetSavedBusinessSoftware() ?? string.Empty;
+        _cryptoExtensions = string.Join(", ", _appViewModel.GetCryptoSoftExtensions());
         
         // Construction des options du menu settings de manière modulaire
         SettingsItems = new ObservableCollection<SettingItemViewModel>();
@@ -320,8 +376,20 @@ public class MainWindowViewModel : INotifyPropertyChanged
             value => SelectedLogFormatIndex =
                 string.Equals(value, "Xml", StringComparison.OrdinalIgnoreCase) ? 1 : 0);
 
+        _businessSoftwareSetting = new SettingItemViewModel(
+            BusinessSoftwareLabel,
+            _businessSoftware,
+            value => BusinessSoftware = value);
+
+        _cryptoExtensionsSetting = new SettingItemViewModel(
+            CryptoExtensionsLabel,
+            _cryptoExtensions,
+            value => CryptoExtensions = value);
+
         SettingsItems.Add(_languageSetting);
         SettingsItems.Add(_logFormatSetting);
+        SettingsItems.Add(_businessSoftwareSetting);
+        SettingsItems.Add(_cryptoExtensionsSetting);
     }
 
     private IEnumerable<SettingOptionViewModel> GetLogFormatOptions()
@@ -344,6 +412,18 @@ public class MainWindowViewModel : INotifyPropertyChanged
             _logFormatSetting.ReplaceOptions(
                 GetLogFormatOptions(),
                 SelectedLogFormatIndex == 1 ? "Xml" : "Json");
+        }
+
+        if (_businessSoftwareSetting != null)
+        {
+            _businessSoftwareSetting.UpdateLabel(BusinessSoftwareLabel);
+            _businessSoftwareSetting.SetTextValue(_businessSoftware);
+        }
+
+        if (_cryptoExtensionsSetting != null)
+        {
+            _cryptoExtensionsSetting.UpdateLabel(CryptoExtensionsLabel);
+            _cryptoExtensionsSetting.SetTextValue(_cryptoExtensions);
         }
 
         // Force le refresh du contenu si le flyout est déjà ouvert.

@@ -35,6 +35,8 @@
   "GuiLogFormatLabel": "Format des logs",
   "GuiLogFormatJson": "Json",
   "GuiLogFormatXml": "Xml",
+  "GuiBusinessSoftwareLabel": "Logiciel métier à bloquer",
+  "GuiCryptoExtensionsLabel": "Extensions de fichiers à chiffrer (séparées par des virgules)",
   "GuiSettingsButton": "Parametres",
   "GuiSettingsMenuTitle": "Parametres du logiciel",
 
