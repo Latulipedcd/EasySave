@@ -10,12 +10,12 @@
         <Style>
             <Style.Resources>
                 <!-- Accent colors -->
-                <SolidColorBrush x:Key="PrimaryBrush">#58B5FF</SolidColorBrush>
-                <SolidColorBrush x:Key="PrimaryHoverBrush">#82CBFF</SolidColorBrush>
-                <SolidColorBrush x:Key="SuccessBrush">#6BC0FF</SolidColorBrush>
-                <SolidColorBrush x:Key="SuccessHoverBrush">#8FD0FF</SolidColorBrush>
-                <SolidColorBrush x:Key="DangerBrush">#7F93A8</SolidColorBrush>
-                <SolidColorBrush x:Key="DangerHoverBrush">#95A7BA</SolidColorBrush>
+                <SolidColorBrush x:Key="PrimaryBrush">#F18A3A</SolidColorBrush>
+                <SolidColorBrush x:Key="PrimaryHoverBrush">#FFAA62</SolidColorBrush>
+                <SolidColorBrush x:Key="SuccessBrush">#36B48F</SolidColorBrush>
+                <SolidColorBrush x:Key="SuccessHoverBrush">#53CDAA</SolidColorBrush>
+                <SolidColorBrush x:Key="DangerBrush">#D45B65</SolidColorBrush>
+                <SolidColorBrush x:Key="DangerHoverBrush">#E57A82</SolidColorBrush>
 
                 <!-- Neutral surfaces and borders -->
                 <SolidColorBrush x:Key="SurfaceBrush">#161B22</SolidColorBrush>
@@ -40,43 +40,43 @@
 
                 <!-- Component gradients -->
                 <LinearGradientBrush x:Key="PrimaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#2E8EFF" Offset="0" />
-                    <GradientStop Color="#58B5FF" Offset="1" />
+                    <GradientStop Color="#1D2735" Offset="0" />
+                    <GradientStop Color="#263649" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="PrimaryGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#43A0FF" Offset="0" />
-                    <GradientStop Color="#74C7FF" Offset="1" />
+                    <GradientStop Color="#253348" Offset="0" />
+                    <GradientStop Color="#2D415A" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SecondaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#1F2732" Offset="0" />
-                    <GradientStop Color="#2D3745" Offset="1" />
+                    <GradientStop Color="#1A2431" Offset="0" />
+                    <GradientStop Color="#233142" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SecondaryGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#293241" Offset="0" />
-                    <GradientStop Color="#3A4A60" Offset="1" />
+                    <GradientStop Color="#223042" Offset="0" />
+                    <GradientStop Color="#2A3D55" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SuccessGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#2A6FB3" Offset="0" />
-                    <GradientStop Color="#4590DC" Offset="1" />
+                    <GradientStop Color="#19262A" Offset="0" />
+                    <GradientStop Color="#23343A" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="SuccessGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#357FC7" Offset="0" />
-                    <GradientStop Color="#5AA4EC" Offset="1" />
+                    <GradientStop Color="#1E2D32" Offset="0" />
+                    <GradientStop Color="#294047" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="DangerGradientBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#3E4C5E" Offset="0" />
-                    <GradientStop Color="#566980" Offset="1" />
+                    <GradientStop Color="#241F27" Offset="0" />
+                    <GradientStop Color="#332A36" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="DangerGradientHoverBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#4C5D73" Offset="0" />
-                    <GradientStop Color="#657A94" Offset="1" />
+                    <GradientStop Color="#2A232D" Offset="0" />
+                    <GradientStop Color="#3A3040" Offset="1" />
                 </LinearGradientBrush>
 
                 <LinearGradientBrush x:Key="ChatCardBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
@@ -137,12 +137,15 @@
         <!-- Base button style:
              Hover uses color/border only (no scale) to avoid sticky visual states. -->
         <Style Selector="Button">
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Padding" Value="16,10" />
-            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="MinHeight" Value="42" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource SecondaryGradientBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="RenderTransform" Value="scale(1)" />
             <Setter Property="Transitions">
@@ -161,51 +164,73 @@
         <!-- Toolbar-specific button spacing (shared by jobs actions). -->
         <Style Selector="Button.toolbar-action">
             <Setter Property="Margin" Value="0" />
+            <Setter Property="MinWidth" Value="170" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
 
         <!-- Button variants -->
         <Style Selector="Button.primary">
             <Setter Property="Background" Value="{DynamicResource PrimaryGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#A6D8FF" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#7AAEE8" />
+            <Setter Property="Foreground" Value="#F2F8FF" />
         </Style>
 
         <Style Selector="Button.primary:pointerover">
             <Setter Property="Background" Value="{DynamicResource PrimaryGradientHoverBrush}" />
-            <Setter Property="BorderBrush" Value="#C2E5FF" />
+            <Setter Property="BorderBrush" Value="#9ECAF8" />
+        </Style>
+
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#1B2634" />
+            <Setter Property="BorderBrush" Value="#6B9AD0" />
         </Style>
 
         <Style Selector="Button.secondary">
             <Setter Property="Background" Value="{DynamicResource SecondaryGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#637A95" />
+            <Setter Property="BorderBrush" Value="#6B7C93" />
             <Setter Property="Foreground" Value="#EBF1F9" />
         </Style>
 
         <Style Selector="Button.secondary:pointerover">
             <Setter Property="Background" Value="{DynamicResource SecondaryGradientHoverBrush}" />
-            <Setter Property="BorderBrush" Value="#7E96B1" />
+            <Setter Property="BorderBrush" Value="#869BB9" />
+        </Style>
+
+        <Style Selector="Button.secondary:pressed">
+            <Setter Property="Background" Value="#1A2633" />
+            <Setter Property="BorderBrush" Value="#5E6F84" />
         </Style>
 
         <Style Selector="Button.success">
             <Setter Property="Background" Value="{DynamicResource SuccessGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#87BAEF" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#5ED5B5" />
+            <Setter Property="Foreground" Value="#F4FFFC" />
         </Style>
 
         <Style Selector="Button.success:pointerover">
             <Setter Property="Background" Value="{DynamicResource SuccessGradientHoverBrush}" />
-            <Setter Property="BorderBrush" Value="#9BC9F8" />
+            <Setter Property="BorderBrush" Value="#8EF0D7" />
+        </Style>
+
+        <Style Selector="Button.success:pressed">
+            <Setter Property="Background" Value="#18252A" />
+            <Setter Property="BorderBrush" Value="#4BBC9E" />
         </Style>
 
         <Style Selector="Button.danger">
             <Setter Property="Background" Value="{DynamicResource DangerGradientBrush}" />
-            <Setter Property="BorderBrush" Value="#7F94AF" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#E47E88" />
+            <Setter Property="Foreground" Value="#FFF6F7" />
         </Style>
 
         <Style Selector="Button.danger:pointerover">
             <Setter Property="Background" Value="{DynamicResource DangerGradientHoverBrush}" />
-            <Setter Property="BorderBrush" Value="#96AAC3" />
+            <Setter Property="BorderBrush" Value="#F4A0A8" />
+        </Style>
+
+        <Style Selector="Button.danger:pressed">
+            <Setter Property="Background" Value="#221C24" />
+            <Setter Property="BorderBrush" Value="#CC6A73" />
         </Style>
 
         <Style Selector="Button.outline">

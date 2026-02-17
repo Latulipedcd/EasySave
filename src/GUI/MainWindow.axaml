@@ -100,11 +100,12 @@
                              Margin="0,0,0,18"
                              Stretch="Uniform"
                              StretchDirection="DownOnly"
-                             HorizontalAlignment="Stretch"
+                             HorizontalAlignment="Left"
                              VerticalAlignment="Top">
                         <StackPanel Name="JobsActionsPanel"
                                     Orientation="Horizontal"
-                                    Spacing="10">
+                                    Spacing="10"
+                                    HorizontalAlignment="Left">
                             <!-- Add new action buttons here to keep command layout consistent. -->
                             <Button Classes="primary toolbar-action"
                                     Content="{Binding NewJobButtonLabel}"
@@ -112,7 +113,7 @@
                             <Button Classes="secondary toolbar-action"
                                     Content="{Binding EditJobButtonLabel}"
                                     Click="EditJob_Click" />
-                            <Button Classes="primary toolbar-action"
+                            <Button Classes="success toolbar-action"
                                     Content="{Binding ExecuteSelectedLabel}"
                                     Click="ExecuteSelected_Click" />
                             <Button Classes="success toolbar-action"
@@ -177,8 +178,7 @@
             <Border Name="JobDetailsCard"
                     Grid.Column="1"
                     Grid.Row="0"
-                    Classes="card"
-                    MinHeight="520">
+                    Classes="card">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="20">
@@ -295,7 +295,7 @@
 
                                     <Button Content="Effacer"
                                             Click="ClearJobState_Click"
-                                            HorizontalAlignment="Right"
+                                            HorizontalAlignment="Left"
                                             Padding="16,8"
                                             IsVisible="{Binding IsJobCompleted}"
                                             Classes="secondary"
