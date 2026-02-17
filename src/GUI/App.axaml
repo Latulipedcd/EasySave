@@ -120,18 +120,12 @@
         </Style>
 
         <Style Selector="Border.brand-badge">
-            <Setter Property="Background" Value="{DynamicResource PrimaryGradientBrush}" />
+            <Setter Property="Background" Value="#0F1722" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="#95C7FF" />
+            <Setter Property="BorderBrush" Value="#4D739D" />
             <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="4" />
             <Setter Property="BoxShadow" Value="0 12 22 0 #1239655F" />
-        </Style>
-
-        <!-- Branding text -->
-        <Style Selector="TextBlock.brand-text">
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#F8FBFF" />
         </Style>
 
         <!-- Base button style:

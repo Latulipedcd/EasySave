@@ -8,6 +8,7 @@
         x:Class="GUI.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
+        Icon="avares://GUI/Assets/Brand/easysave-logo.png"
         MinWidth="1200" MinHeight="760"
         Width="1400" Height="860">
 
@@ -15,7 +16,7 @@
     <Grid Name="MainShellGrid" RowDefinitions="Auto,*" Margin="0">
 
         <!-- Top bar: branding, status, and quick preferences -->
-        <Border Name="TopHeaderBar"
+                <Border Name="TopHeaderBar"
                 Grid.Row="0"
                 Background="{DynamicResource SurfaceDarkBrush}"
                 BorderThickness="0,0,0,1"
@@ -28,27 +29,32 @@
                       Name="HeaderIdentityBlock"
                       ColumnDefinitions="Auto,*"
                       RowDefinitions="Auto,Auto"
-                      ColumnSpacing="16"
-                      RowSpacing="2">
+                      ColumnSpacing="14"
+                      RowSpacing="4">
                     <Border Classes="brand-badge"
                             Grid.Column="0"
                             Grid.Row="0"
-                            Width="48" Height="48"
+                            Width="60" Height="60"
                             VerticalAlignment="Center">
-                        <TextBlock Text="ES"
-                                   Classes="brand-text"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Grid.Column="1"
-                               Grid.Row="0"
-                               Text="{Binding JobsHeaderTitle}"
-                               Classes="title"
+                        <Image Source="avares://GUI/Assets/Brand/easysave-logo.png"
+                               Stretch="Uniform"
+                               Width="50"
+                               Height="50"
+                               HorizontalAlignment="Center"
                                VerticalAlignment="Center" />
+                    </Border>
+                    <Image Grid.Column="1"
+                           Grid.Row="0"
+                           Source="avares://GUI/Assets/Brand/easysave-full-logo.png"
+                           Height="60"
+                           Stretch="Uniform"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Grid.Row="1"
                                Text="{Binding StatusMessage, FallbackValue='Ready'}"
                                FontSize="13"
+                               Margin="0,0,0,0"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" />
                 </Grid>
@@ -292,14 +298,6 @@
                                                    FontFamily="Consolas"
                                                    FontSize="12" />
                                     </Grid>
-
-                                    <Button Content="Effacer"
-                                            Click="ClearJobState_Click"
-                                            HorizontalAlignment="Left"
-                                            Padding="16,8"
-                                            IsVisible="{Binding IsJobCompleted}"
-                                            Classes="secondary"
-                                            Margin="0,10,0,0" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
