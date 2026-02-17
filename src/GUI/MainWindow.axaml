@@ -31,22 +31,10 @@
                       RowDefinitions="Auto,Auto"
                       ColumnSpacing="14"
                       RowSpacing="4">
-                    <Border Classes="brand-badge"
-                            Grid.Column="0"
-                            Grid.Row="0"
-                            Width="60" Height="60"
-                            VerticalAlignment="Center">
-                        <Image Source="avares://GUI/Assets/Brand/easysave-logo.png"
-                               Stretch="Uniform"
-                               Width="50"
-                               Height="50"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                    </Border>
                     <Image Grid.Column="1"
                            Grid.Row="0"
                            Source="avares://GUI/Assets/Brand/easysave-full-logo.png"
-                           Height="60"
+                           Height="80"
                            Stretch="Uniform"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center" />
