@@ -1,4 +1,5 @@
 using EasySave.Application.ViewModels;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace EasySave.ConsoleApp
@@ -12,8 +13,7 @@ namespace EasySave.ConsoleApp
 
             if (args.Length == 0)
             {
-                var view = new ConsoleView();
-                view.Start();
+                LaunchGui();
                 return 0;
             }
 
@@ -112,7 +112,16 @@ namespace EasySave.ConsoleApp
         private static void WriteCommandShim(string installDir)
         {
             string shimPath = Path.Combine(installDir, "EasySave.cmd");
-            string shimContent = $"@echo off{Environment.NewLine}{BuildCommandTarget()} %*{Environment.NewLine}";
+            string cliTarget = BuildCommandTarget();
+            string guiTarget = BuildGuiCommandTarget();
+            string shimContent =
+                $"@echo off{Environment.NewLine}" +
+                $"if \"%~1\"==\"\" ({Environment.NewLine}" +
+                $"    start \"\" {guiTarget}{Environment.NewLine}" +
+                $"    exit /b 0{Environment.NewLine}" +
+                $"){Environment.NewLine}" +
+                $"{cliTarget} %*{Environment.NewLine}";
+
             File.WriteAllText(shimPath, shimContent);
         }
 
@@ -133,6 +142,22 @@ namespace EasySave.ConsoleApp
 
             string dllPath = Path.Combine(AppContext.BaseDirectory, "EasySave.dll");
             return $"dotnet \"{dllPath}\"";
+        }
+
+        private static string BuildGuiCommandTarget()
+        {
+            string guiExePath = Path.Combine(AppContext.BaseDirectory, "gui", "GUI.exe");
+            return $"\"{guiExePath}\"";
+        }
+
+        private static void LaunchGui()
+        {
+            string guiExePath = Path.Combine(AppContext.BaseDirectory, "gui", "GUI.exe");
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = guiExePath,
+                UseShellExecute = true
+            });
         }
 
         private static void AddInstallDirToUserPathIfMissing(string installDir)

@@ -302,6 +302,8 @@ namespace EasySave.Application.ViewModels
             return _langManager.GetSupportedLanguages();
         }
 
+        public string CurrentLanguageCode => _langManager.CurrentCultureCode;
+
         public string GetText(string key)
         {
             return _langManager.GetString(key);

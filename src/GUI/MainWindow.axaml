@@ -2,8 +2,393 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="clr-namespace:GUI.ViewModels"
+        xmlns:lottie="clr-namespace:Avalonia.Skia.Lottie;assembly=Lottie"
+        mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="860"
         x:Class="GUI.MainWindow"
-        Title="GUI">
-    Welcome to Avalonia!
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding WindowTitle}"
+        Icon="avares://GUI/Assets/Brand/easysave-logo.png"
+        MinWidth="1200" MinHeight="760"
+        Width="1400" Height="860">
+
+    <!-- Main shell: top header + content workspace -->
+    <Grid Name="MainShellGrid" RowDefinitions="Auto,*" Margin="0">
+
+        <!-- Top bar: branding, status, and quick preferences -->
+                <Border Name="TopHeaderBar"
+                Grid.Row="0"
+                Background="{DynamicResource SurfaceDarkBrush}"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BoxShadow="0 8 16 0 #00000035"
+                Padding="24,16">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <!-- Left block: app identity + global status -->
+                <Grid Grid.Column="0"
+                      Name="HeaderIdentityBlock"
+                      ColumnDefinitions="Auto,*"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="14"
+                      RowSpacing="4">
+                    <Image Grid.Column="1"
+                           Grid.Row="0"
+                           Source="avares://GUI/Assets/Brand/easysave-full-logo.png"
+                           Height="80"
+                           Stretch="Uniform"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Grid.Row="1"
+                               Text="{Binding StatusMessage, FallbackValue='Ready'}"
+                               FontSize="13"
+                               Margin="0,0,0,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- Right block: settings menu -->
+                <Button Grid.Column="1"
+                        Name="SettingsMenuButton"
+                        Classes="secondary settings-trigger"
+                        Content="{Binding SettingsButtonLabel}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Padding="16,8">
+                <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedRight"
+                                FlyoutPresenterClasses="settings-flyout">
+                            <Border Classes="settings-flyout-shell"
+                                    MinWidth="360">
+                                <Border x:DataType="vm:MainWindowViewModel"
+                                        DataContext="{Binding #SettingsMenuButton.DataContext}"
+                                        Classes="settings-flyout-card"
+                                        Padding="18">
+                                    <StackPanel Spacing="12">
+                                        <TextBlock Text="{Binding SettingsMenuTitle, Mode=OneWay}" Classes="settings-menu-title" />
+
+                                        <ItemsControl ItemsSource="{Binding SettingsItems, Mode=OneWay}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:SettingItemViewModel">
+                                                    <Border Classes="settings-item-card" Margin="0,0,0,10">
+                                                        <StackPanel Spacing="6">
+                                                            <TextBlock Text="{Binding Label, Mode=OneWay}" Classes="settings-section-label" Margin="0" />
+                                                            <ComboBox Classes="settings-combo"
+                                                                      MinWidth="260"
+                                                                      ItemsSource="{Binding Options, Mode=OneWay}"
+                                                                      SelectedItem="{Binding SelectedOption, Mode=TwoWay}">
+                                                                <ComboBox.ItemTemplate>
+                                                                    <DataTemplate x:DataType="vm:SettingOptionViewModel">
+                                                                        <TextBlock Text="{Binding Label, Mode=OneWay}"
+                                                                                   FontWeight="SemiBold" />
+                                                                    </DataTemplate>
+                                                                </ComboBox.ItemTemplate>
+                                                                <ComboBox.Styles>
+                                                                    <Style Selector="ComboBoxItem">
+                                                                        <Setter Property="Padding" Value="12,8" />
+                                                                        <Setter Property="Background" Value="#132033" />
+                                                                        <Setter Property="BorderBrush" Value="Transparent" />
+                                                                        <Setter Property="BorderThickness" Value="1" />
+                                                                        <Setter Property="CornerRadius" Value="8" />
+                                                                        <Setter Property="Margin" Value="4,2" />
+                                                                    </Style>
+                                                                    <Style Selector="ComboBoxItem:pointerover">
+                                                                        <Setter Property="Background" Value="#1C3048" />
+                                                                        <Setter Property="BorderBrush" Value="#3F648A" />
+                                                                    </Style>
+                                                                    <Style Selector="ComboBoxItem:selected">
+                                                                        <Setter Property="Background" Value="#23415F" />
+                                                                        <Setter Property="BorderBrush" Value="#6E9ECB" />
+                                                                    </Style>
+                                                                </ComboBox.Styles>
+                                                            </ComboBox>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </Border>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Main workspace: jobs list, details panel, assistant widget -->
+        <Grid Name="ContentWorkspaceGrid"
+              Grid.Row="1"
+              Margin="24,20,24,24"
+              ColumnDefinitions="2.3*,1.2*"
+              RowDefinitions="*,Auto"
+              ColumnSpacing="20"
+              RowSpacing="20">
+
+            <!-- Jobs module: actions + list -->
+            <Border Name="JobsBoardCard"
+                    Grid.Column="0"
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*">
+
+                    <!-- Action toolbar:
+                         Keep buttons in a single row and auto-scale down on smaller widths. -->
+                    <Viewbox Name="JobsActionsViewbox"
+                             Grid.Row="0"
+                             Margin="0,0,0,18"
+                             Stretch="Uniform"
+                             StretchDirection="DownOnly"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top">
+                        <StackPanel Name="JobsActionsPanel"
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    HorizontalAlignment="Left">
+                            <!-- Add new action buttons here to keep command layout consistent. -->
+                            <Button Classes="primary toolbar-action"
+                                    Content="{Binding NewJobButtonLabel}"
+                                    Click="NewJob_Click" />
+                            <Button Classes="secondary toolbar-action"
+                                    Content="{Binding EditJobButtonLabel}"
+                                    Click="EditJob_Click" />
+                            <Button Classes="success toolbar-action"
+                                    Content="{Binding ExecuteSelectedLabel}"
+                                    Click="ExecuteSelected_Click" />
+                            <Button Classes="success toolbar-action"
+                                    Content="{Binding ExecuteAllLabel}"
+                                    Click="ExecuteAll_Click" />
+                            <Button Classes="danger toolbar-action"
+                                    Content="{Binding DeleteSelectedLabel}"
+                                    Click="DeleteSelected_Click" />
+                        </StackPanel>
+                    </Viewbox>
+
+                    <!-- Jobs list header -->
+                    <Border Grid.Row="1" Classes="card-header">
+                        <Grid ColumnDefinitions="1.5*,3*,3*,1.2*" ColumnSpacing="12">
+                            <TextBlock Grid.Column="0" Text="{Binding HeaderName}" Classes="header-cell" />
+                            <TextBlock Grid.Column="1" Text="{Binding HeaderSource}" Classes="header-cell" />
+                            <TextBlock Grid.Column="2" Text="{Binding HeaderDestination}" Classes="header-cell" />
+                            <TextBlock Grid.Column="3" Text="{Binding HeaderType}" Classes="header-cell" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Jobs list content -->
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Auto">
+                        <ListBox Name="JobsList"
+                                 ItemsSource="{Binding BackupJobs}"
+                                 SelectionMode="Multiple"
+                                 SelectionChanged="JobsList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="1.5*,3*,3*,1.2*" ColumnSpacing="12">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Name}"
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding SourceDirectory}"
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="13" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding TargetDirectory}"
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="13" />
+                                        <Border Grid.Column="3" Classes="type-pill" HorizontalAlignment="Left">
+                                            <TextBlock Text="{Binding Type}" Classes="type-pill-text" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Details module: selected job summary + runtime status -->
+            <Border Name="JobDetailsCard"
+                    Grid.Column="1"
+                    Grid.Row="0"
+                    Classes="card">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="{Binding JobDetailsTitle}" Classes="subtitle" Margin="0,0,0,8" />
+
+                        <TextBlock Text="{Binding JobDetailsNoSelection}"
+                                   IsVisible="{Binding !HasSelection}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextAlignment="Center"
+                                   Margin="0,40,0,0" />
+
+                        <StackPanel Spacing="20" IsVisible="{Binding HasSelection}">
+                            <!-- Selected job metadata -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelName}" Classes="label" />
+                                <TextBlock Text="{Binding SelectedJobName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelSourceFolder}" Classes="label" />
+                                <TextBlock Text="{Binding SelectedJobSource}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="13" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelDestinationFolder}" Classes="label" />
+                                <TextBlock Text="{Binding SelectedJobTarget}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="13" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding LabelType}" Classes="label" />
+                                <Border Classes="type-pill" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding SelectedJobType}" Classes="type-pill-text" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Runtime execution metrics for the selected job -->
+                            <Border BorderThickness="0,1,0,0"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    Padding="0,20,0,0"
+                                    Margin="0,10,0,0"
+                                    IsVisible="{Binding ShowExecutionDetails}">
+                                <StackPanel Spacing="16">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding JobDetailsStatus}" Classes="label" />
+                                        <TextBlock Text="{Binding JobStatusText}"
+                                                   Foreground="{Binding JobStatusColor}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="14" />
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding JobDetailsProgress}" Classes="label" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding JobProgress, StringFormat='{}{0:0.0}%'}"
+                                                       Foreground="{DynamicResource PrimaryBrush}"
+                                                       FontWeight="SemiBold" />
+                                        </Grid>
+                                        <ProgressBar Value="{Binding JobProgress}"
+                                                     Maximum="100"
+                                                     Height="8"
+                                                     CornerRadius="4"
+                                                     Foreground="{DynamicResource PrimaryBrush}" />
+                                    </StackPanel>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding JobDetailsTotalFiles}" Classes="label" />
+                                        <TextBlock Grid.Column="1" Text="{Binding JobTotalFiles}" FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding JobDetailsFilesRemaining}" Classes="label" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding JobFilesRemaining}"
+                                                   Foreground="{DynamicResource SuccessBrush}"
+                                                   FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding JobDetailsTotalSize}" Classes="label" />
+                                        <TextBlock Grid.Column="1" Text="{Binding JobTotalSize}" FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding JobDetailsSizeRemaining}" Classes="label" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding JobSizeRemaining}"
+                                                   Foreground="{DynamicResource SuccessBrush}"
+                                                   FontWeight="SemiBold" />
+                                    </Grid>
+
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding JobDetailsCurrentFile}" Classes="label" />
+                                        <TextBlock Text="{Binding JobCurrentFile}"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12"
+                                                   FontFamily="Consolas" />
+                                    </StackPanel>
+
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding JobDetailsLastUpdate}" Classes="label" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding JobLastUpdate}"
+                                                   FontFamily="Consolas"
+                                                   FontSize="12" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Assistant module: animated widget + live message -->
+            <Border Name="AssistantWidgetCard"
+                    Grid.Column="1"
+                    Grid.Row="1"
+                    Classes="card chat-card"
+                    Padding="18,16"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom"
+                    MinHeight="156"
+                    MaxHeight="320">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CatWidgetTitle}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <Border Classes="live-pill">
+                            <TextBlock Text="LIVE" Classes="live-pill-text" />
+                        </Border>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Border Classes="assistant-media-card"
+                                Width="108"
+                                Height="108"
+                                Padding="8"
+                                ClipToBounds="True">
+                            <lottie:Lottie Path="avares://GUI/Assets/Animations/cat%20default.json"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Width="92"
+                                           Height="92"
+                                           RenderTransformOrigin="0.5,0.5"
+                                           RenderTransform="scale(0.98)"
+                                           Stretch="Uniform" />
+                        </Border>
+
+                        <Border Grid.Column="1" Classes="assistant-message-card" Padding="14,12" MinHeight="108">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          MaxHeight="200">
+                                <TextBlock Text="{Binding CatSpeech}"
+                                           TextWrapping="Wrap"
+                                           FontSize="13"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
 </Window>

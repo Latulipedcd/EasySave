@@ -7,11 +7,12 @@ namespace Core.Models
 {
     public class BackupJob
     {
-        public string Name { get; }
-        public string SourceDirectory { get; }
-        public string TargetDirectory { get; }
-        public BackupType Type { get; }
+        public string Name { get; set; }
+        public string SourceDirectory { get; set; }
+        public string TargetDirectory { get; set; }
+        public BackupType Type { get; set; }
 
+        [System.Text.Json.Serialization.JsonConstructor]
         public BackupJob(
             string name,
             string sourceDirectory,

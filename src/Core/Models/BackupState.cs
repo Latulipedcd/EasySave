@@ -8,7 +8,7 @@ namespace Core.Models
 {
     public class BackupState
     {
-        public BackupJob Job { get; }
+        public BackupJob Job { get; set; }
 
 
         public BackupStatus Status { get; set; }
@@ -27,7 +27,7 @@ namespace Core.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? CurrentFileTarget { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [JsonIgnore]
         public double ProgressPercentage =>
             TotalBytes == 0 ? 0 :
             (1.0 - (double)BytesRemaining / TotalBytes) * 100;
@@ -36,6 +36,7 @@ namespace Core.Models
         public string? ErrorMessage { get; set; }
 
 
+        [JsonConstructor]
         public BackupState(BackupJob job)
         {
             Job = job ?? throw new ArgumentNullException(nameof(job));
