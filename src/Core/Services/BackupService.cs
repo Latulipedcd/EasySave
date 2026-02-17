@@ -37,6 +37,15 @@ namespace Core.Services
 
         public BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware, List<string> CryptoSoftExtensions, string? cryptoSoftPath)
         {
+            // Configure log format early
+            _logService.Configure(format);
+
+            // Early exit if source directory doesn't exist
+            if (!Directory.Exists(job.SourceDirectory))
+            {
+                return HandleSourceDirectoryNotFound(job);
+            }
+
             var state = InitializeBackupState(job, format, out var files);
 
             // Early exit if business software is blocking
@@ -100,6 +109,36 @@ namespace Core.Services
                 TotalBytes = totalBytes,
                 BytesRemaining = totalBytes
             };
+        }
+
+        /// <summary>
+        /// Handles the case where the source directory doesn't exist.
+        /// </summary>
+        /// <returns>BackupState with error status.</returns>
+        private BackupState HandleSourceDirectoryNotFound(BackupJob job)
+        {
+            var errorState = new BackupState(job)
+            {
+                Status = BackupStatus.Error,
+                TimeStamp = DateTime.Now,
+                ErrorMessage = $"Source directory does not exist: {job.SourceDirectory}"
+            };
+
+            var logError = new LogEntry
+            {
+                BackupName = job.Name,
+                Source = PathHelper.ToUncPath(job.SourceDirectory),
+                Target = PathHelper.ToUncPath(job.TargetDirectory),
+                Duration = TimeSpan.Zero,
+                Timestamp = DateTime.Now,
+                FileSize = 0,
+                WorkType = WorkType.file_transfer,
+                ErrorMessage = $"Source directory does not exist: {job.SourceDirectory}"
+            };
+            _logService.LogBackup(logError);
+            _progressWriter.Write(errorState);
+
+            return errorState;
         }
 
         /// <summary>
