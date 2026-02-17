@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Assets\Animations\**\*" />
+    <AvaloniaResource Include="Assets\**\*" />
   </ItemGroup>
 
   <ItemGroup>
