@@ -35,6 +35,8 @@
   "GuiLogFormatLabel": "Log format",
   "GuiLogFormatJson": "Json",
   "GuiLogFormatXml": "Xml",
+  "GuiSettingsButton": "Settings",
+  "GuiSettingsMenuTitle": "Application settings",
 
   "GuiHeaderName": "Name",
   "GuiHeaderSource": "Source",

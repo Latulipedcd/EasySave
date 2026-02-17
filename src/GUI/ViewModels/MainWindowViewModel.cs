@@ -23,6 +23,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
 {
     // ViewModel de la couche Application pour accéder aux services métier
     private readonly MainViewModel _appViewModel;
+    private SettingItemViewModel? _languageSetting;
+    private SettingItemViewModel? _logFormatSetting;
 
     // Timer pour rafraîchir périodiquement l'état du job en cours d'exécution
     private readonly DispatcherTimer _stateRefreshTimer;
@@ -51,6 +53,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string LogFormatLabel => Text("GuiLogFormatLabel");
     public string LogFormatJsonLabel => Text("GuiLogFormatJson");
     public string LogFormatXmlLabel => Text("GuiLogFormatXml");
+    public string SettingsButtonLabel => Text("GuiSettingsButton");
+    public string SettingsMenuTitle => Text("GuiSettingsMenuTitle");
 
     // Textes des en-têtes de colonnes
     public string HeaderName => Text("GuiHeaderName");
@@ -112,6 +116,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public ObservableCollection<string> SupportedLanguages { get; }
 
+    /// <summary>
+    /// Liste modulaire des options affichées dans le menu Settings.
+    /// Chaque entrée contient son libellé, ses options et sa logique de persistance.
+    /// </summary>
+    public ObservableCollection<SettingItemViewModel> SettingsItems { get; }
+
    
 
     /// <summary>
@@ -132,6 +142,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
             // Sauvegarde du format dans le fichier de configuration
             _appViewModel.ChangeLogFormat(value == 1 ? "Xml" : "Json");
+            _logFormatSetting?.SetSelectedValue(value == 1 ? "Xml" : "Json");
         }
     }
 
@@ -161,9 +172,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
                 // Rollback si échec
                 _selectedLanguageCode = previous;
                 OnPropertyChanged(nameof(SelectedLanguageCode));
+                _languageSetting?.SetSelectedValue(_selectedLanguageCode);
                 return;
             }
 
+            _languageSetting?.SetSelectedValue(_selectedLanguageCode);
             // Rafraîchissement de tous les textes de l'interface
             RefreshLocalizedTexts();
         }
@@ -205,6 +218,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         // Chargement du format de logs sauvegardé
         _selectedLogFormatIndex = _appViewModel.GetSavedLogFormat() == LogFormat.Xml ? 1 : 0;
+        
+        // Construction des options du menu settings de manière modulaire
+        SettingsItems = new ObservableCollection<SettingItemViewModel>();
+        BuildSettingsMenuItems();
 
         // Chargement de la liste des jobs depuis le stockage
         BackupJobs = new ObservableCollection<BackupJob>(_appViewModel.GetBackupJobs());
@@ -249,6 +266,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(LogFormatLabel));
         OnPropertyChanged(nameof(LogFormatJsonLabel));
         OnPropertyChanged(nameof(LogFormatXmlLabel));
+        OnPropertyChanged(nameof(SettingsButtonLabel));
+        OnPropertyChanged(nameof(SettingsMenuTitle));
         OnPropertyChanged(nameof(HeaderName));
         OnPropertyChanged(nameof(HeaderSource));
         OnPropertyChanged(nameof(HeaderDestination));
@@ -281,6 +300,54 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetDefaultCatMessage();
         OnPropertyChanged(nameof(EditorWindowTitle));
         OnPropertyChanged(nameof(JobStatusText));
+        RefreshSettingsMenuItems();
+    }
+
+    private void BuildSettingsMenuItems()
+    {
+        SettingsItems.Clear();
+
+        _languageSetting = new SettingItemViewModel(
+            LanguageLabel,
+            SupportedLanguages.Select(code => new SettingOptionViewModel(code, code.ToUpperInvariant())),
+            SelectedLanguageCode,
+            value => SelectedLanguageCode = value);
+
+        _logFormatSetting = new SettingItemViewModel(
+            LogFormatLabel,
+            GetLogFormatOptions(),
+            SelectedLogFormatIndex == 1 ? "Xml" : "Json",
+            value => SelectedLogFormatIndex =
+                string.Equals(value, "Xml", StringComparison.OrdinalIgnoreCase) ? 1 : 0);
+
+        SettingsItems.Add(_languageSetting);
+        SettingsItems.Add(_logFormatSetting);
+    }
+
+    private IEnumerable<SettingOptionViewModel> GetLogFormatOptions()
+    {
+        yield return new SettingOptionViewModel("Json", LogFormatJsonLabel);
+        yield return new SettingOptionViewModel("Xml", LogFormatXmlLabel);
+    }
+
+    private void RefreshSettingsMenuItems()
+    {
+        if (_languageSetting != null)
+        {
+            _languageSetting.UpdateLabel(LanguageLabel);
+            _languageSetting.SetSelectedValue(SelectedLanguageCode);
+        }
+
+        if (_logFormatSetting != null)
+        {
+            _logFormatSetting.UpdateLabel(LogFormatLabel);
+            _logFormatSetting.ReplaceOptions(
+                GetLogFormatOptions(),
+                SelectedLogFormatIndex == 1 ? "Xml" : "Json");
+        }
+
+        // Force le refresh du contenu si le flyout est déjà ouvert.
+        OnPropertyChanged(nameof(SettingsItems));
     }
 
 

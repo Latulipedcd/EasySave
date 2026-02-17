@@ -238,6 +238,83 @@
             <Setter Property="BorderBrush" Value="#6A89AC" />
         </Style>
 
+        <!-- Settings flyout -->
+        <Style Selector="Button.settings-trigger">
+            <Setter Property="BorderBrush" Value="#6A8EB5" />
+            <Setter Property="Background" Value="#1F3045" />
+            <Setter Property="MinHeight" Value="44" />
+        </Style>
+
+        <Style Selector="Button.settings-trigger:pointerover">
+            <Setter Property="BorderBrush" Value="#8FB8E4" />
+            <Setter Property="Background" Value="#29405D" />
+        </Style>
+
+        <Style Selector="FlyoutPresenter.settings-flyout">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0,8,0,0" />
+        </Style>
+
+        <Style Selector="Border.settings-flyout-shell">
+            <Setter Property="Background" Value="#2D4968" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="BoxShadow" Value="0 22 40 0 #00000085" />
+        </Style>
+
+        <Style Selector="Border.settings-flyout-card">
+            <Setter Property="Background" Value="#0C1828" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#1E3650" />
+            <Setter Property="CornerRadius" Value="17" />
+        </Style>
+
+        <Style Selector="Border.settings-item-card">
+            <Setter Property="Background" Value="#102136" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#2D4C6D" />
+            <Setter Property="CornerRadius" Value="13" />
+            <Setter Property="Padding" Value="12" />
+        </Style>
+
+        <Style Selector="ComboBox.settings-combo">
+            <Setter Property="Background" Value="#1A2B41" />
+            <Setter Property="BorderBrush" Value="#446485" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+
+        <Style Selector="ComboBox.settings-combo:pointerover">
+            <Setter Property="BorderBrush" Value="#5F8DBA" />
+        </Style>
+
+        <Style Selector="ComboBox.settings-combo:focus">
+            <Setter Property="BorderBrush" Value="#7AAEE8" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <Style Selector="TextBlock.settings-menu-title">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style Selector="TextBlock.settings-section-label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#BFD1E6" />
+        </Style>
+
+        <Style Selector="TextBlock.settings-menu-hint">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="2,4,0,0" />
+        </Style>
+
         <!-- Form controls -->
         <Style Selector="TextBox">
             <Setter Property="CornerRadius" Value="8" />
