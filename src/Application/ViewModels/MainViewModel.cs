@@ -7,10 +7,14 @@ using Log.Enums;
 using Log.Services;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EasySave.Application.ViewModels
 {
+    /// <summary>
+    /// Main ViewModel that orchestrates specialized ViewModels and provides backward compatibility
+    /// </summary>
     public class MainViewModel
     {
         private readonly LanguageManager _langManager;
@@ -18,237 +22,117 @@ namespace EasySave.Application.ViewModels
         private readonly IBackupJobRepository _backupJobRepository;
         private readonly IBackupService _backupService;
 
+        // Specialized ViewModels
+        public SettingsViewModel Settings { get; }
+        public JobEditorViewModel JobEditor { get; }
+        public JobListViewModel JobList { get; }
+        public JobExecutionViewModel JobExecution { get; }
+
         public MainViewModel()
         {
             _langManager = LanguageManager.GetInstance();
             _userConfigManager = new UserConfigManager();
-            _backupJobRepository= new BackupJobRepository(new JobStorage());
-            _backupService= new BackupService(LogService.Instance, new FileService(), new CopyService(), new ProgressJsonWriter(), new BusinessSoftwareMonitor());
+            _backupJobRepository = new BackupJobRepository(new JobStorage());
+            _backupService = new BackupService(
+                LogService.Instance, 
+                new FileService(), 
+                new CopyService(), 
+                new ProgressJsonWriter(), 
+                new BusinessSoftwareMonitor());
+
+            // Initialize specialized ViewModels
+            Settings = new SettingsViewModel(_langManager, _userConfigManager);
+            JobEditor = new JobEditorViewModel();
+            JobList = new JobListViewModel(_backupJobRepository, _langManager);
+            JobExecution = new JobExecutionViewModel(_backupService, _backupJobRepository, _userConfigManager, _langManager);
         }
 
+        // Backward compatibility methods - delegate to specialized ViewModels
 
-        public IReadOnlyList<BackupJob> GetBackupJobs()
+        public IReadOnlyList<BackupJob> GetBackupJobs() => JobList.BackupJobs;
+
+        public bool CreateBackupJob(string jobTitle, string jobSrcPath, string jobTargetPath, int jobType, out string message)
         {
-            return _backupJobRepository.GetAll();
+            var task = JobList.CreateJobAsync(jobTitle, jobSrcPath, jobTargetPath, jobType);
+            task.Wait();
+            var result = task.Result;
+            message = result.message;
+            return result.success;
         }
 
-        public bool CreateBackupJob(
-         string jobTitle,
-         string jobSrcPath,
-         string jobTargetPath,
-         int jobType,
-         out string message)
+        public bool DeleteBackupJob(int jobId, out string message)
         {
-            try
+            var jobs = JobList.BackupJobs;
+            if (jobId < 1 || jobId > jobs.Count)
             {
-                //Change UI job type to a real value of the enum
-                BackupType trueJobType = jobType == 0
-                    ? BackupType.Full
-                    : BackupType.Differencial;
-
-                var job = new BackupJob(
-                    jobTitle,
-                    jobSrcPath,
-                    jobTargetPath,
-                    trueJobType);
-
-                _backupJobRepository.Add(job); //Add job to repository
-
-                message = GetText("JobCreatedSuccess");
-                return true;
-            }
-            catch (InvalidOperationException ex)
-            {
-                message = ex.Message;
+                message = GetText("ErrorJobNotFound");
                 return false;
             }
+
+            var jobToDelete = jobs[jobId - 1];
+            var task = JobList.DeleteJobsAsync(new[] { jobToDelete });
+            task.Wait();
+            var result = task.Result;
+            
+            message = result.errors.Count > 0 ? result.errors[0] : GetText("JobDeletedSuccess");
+            return result.deletedCount > 0;
         }
 
-
-        public bool DeleteBackupJob(int jobId, out string message) //Jobid is the display job id when job are display
+        public bool UpdateBackupJob(int jobId, string newSrcPath, string newTargetPath, int jobType, out string message)
         {
-            try
-            {
-                var jobs = _backupJobRepository.GetAll();
-                if (jobId < 1 || jobId > jobs.Count)
-                {
-                    message = GetText("ErrorJobNotFound");
-                    return false;
-                }
-
-                var job = jobs[jobId - 1];
-                _backupJobRepository.Delete(job.Name);
-
-                message = GetText("JobDeletedSuccess");
-                return true;
-            }
-            catch (InvalidOperationException ex)
-            {
-                message = ex.Message;
-                return false;
-            }
+            var task = JobList.UpdateJobAsync(jobId, newSrcPath, newTargetPath, jobType);
+            task.Wait();
+            var result = task.Result;
+            message = result.message;
+            return result.success;
         }
 
-        public bool UpdateBackupJob(
-    int jobId,
-    string newSrcPath,
-    string newTargetPath,
-    int jobType,
-    out string message)
+        public bool ExecuteBackupJobs(string userInput, out List<BackupState> results, out string errorMessage)
         {
-            try
+            // Parse input to determine if it's "all" or specific jobs
+            var jobs = JobList.BackupJobs;
+            
+            if (userInput.Contains('-'))
             {
-                var jobs = _backupJobRepository.GetAll();
-                if (jobId < 1 || jobId > jobs.Count)
-                {
-                    message = GetText("ErrorJobNotFound");
-                    return false;
-                }
-
-                var existingJob = jobs[jobId - 1];
-                BackupType trueJobType = jobType == 0
-                    ? BackupType.Full
-                    : BackupType.Differencial;
-
-                var updatedJob = new BackupJob(
-                    existingJob.Name,
-                    newSrcPath,
-                    newTargetPath,
-                    trueJobType
-                );
-
-                _backupJobRepository.Update(updatedJob);
-
-                message = GetText("JobUpdatedSuccess");
-                return true;
+                // Range or all jobs
+                var task = JobExecution.ExecuteJobsByInputAsync(userInput);
+                task.Wait();
+                var result = task.Result;
+                results = result.results;
+                errorMessage = result.errorMessage;
+                return result.success;
             }
-            catch (InvalidOperationException ex)
+            else
             {
-                message = ex.Message;
-                return false;
+                // Specific jobs by semicolon
+                var task = JobExecution.ExecuteJobsByInputAsync(userInput);
+                task.Wait();
+                var result = task.Result;
+                results = result.results;
+                errorMessage = result.errorMessage;
+                return result.success;
             }
         }
-
-
-
-        public bool ExecuteBackupJobs(
-    string userInput,
-    out List<BackupState> results,
-    out string errorMessage)
-        {
-            results = new List<BackupState>();
-            errorMessage = string.Empty;
-
-            var jobs = _backupJobRepository.GetAll().ToList();
-
-            var jobsToExecute = ResolveJobsFromInput(userInput, jobs, out errorMessage);
-            if (jobsToExecute == null)
-                return false;
-
-            foreach (var job in jobsToExecute)
-            {
-                var state = _backupService.ExecuteBackup(
-                    job, 
-                    GetSavedLogFormat(), 
-                    GetSavedBusinessSoftware(), 
-                    GetCryptoSoftExtensions(),
-                    GetCryptoSoftPath());
-                results.Add(state);
-            }
-
-            return true;
-        }
-
-        // Parses user input and resolves the corresponding backup jobs, differentiate - and ;
-        private List<BackupJob>? ResolveJobsFromInput(
-    string input,
-    List<BackupJob> allJobs,
-    out string errorMessage)
-        {
-            errorMessage = string.Empty;
-            var result = new List<BackupJob>();
-
-            var indexedJobs = allJobs;
-            // Split input by ';' to support multiple selections
-            var parts = input.Split(
-                ';',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            foreach (var part in parts)
-            {
-                // Handle range syntax (e.g. 1-3)
-                if (part.Contains('-'))
-                {
-                    var range = part.Split(
-                        '-',
-                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (range.Length != 2)
-                    {
-                        errorMessage = GetText("ErrorInvalidRange");
-                        return null;
-                    }
-
-                    if (!int.TryParse(range[0], out int startId)
-                        || !int.TryParse(range[1], out int endId)
-                        || startId < 1
-                        || endId < 1
-                        || startId > indexedJobs.Count
-                        || endId > indexedJobs.Count
-                        || startId > endId)
-                    {
-                        errorMessage = GetText("ErrorInvalidRange");
-                        return null;
-                    }
-
-                    result.AddRange(
-                        indexedJobs.Skip(startId - 1).Take(endId - startId + 1));
-                }
-                else
-                {
-                    // Handle single job ID
-
-                    bool isIdValid = int.TryParse(part, out int jobId);
-                    if (!isIdValid || jobId < 1 || jobId > indexedJobs.Count)
-                    {
-                        errorMessage = GetText("ErrorJobNotFound");
-                        return null;
-                    }
-
-                    result.Add(indexedJobs[jobId - 1]);
-                }
-            }
-            // Remove duplicates and return final list
-            return result.Distinct().ToList();
-        }
-
-        // Attempts to load the saved language from user configuration
 
         public bool TryLoadSavedLanguage()
         {
             string? savedLanguage = _userConfigManager.LoadLanguage();
-
             if (string.IsNullOrWhiteSpace(savedLanguage))
-            {
                 return false;
-            }
 
             return _langManager.LoadLanguage(savedLanguage);
         }
 
-        // Changes the current language and persists it to user configuration
         public bool ChangeLanguage(string cultureCode)
         {
             bool isLanguageLoaded = _langManager.LoadLanguage(cultureCode);
             if (!isLanguageLoaded)
-            {
                 return false;
-            }
 
             _userConfigManager.SaveLanguage(_langManager.CurrentCultureCode);
             return true;
         }
 
-        // Changes the current Log format in the user configuration
         public bool ChangeLogFormat(string format)
         {
             if (format == "Json")
@@ -261,57 +145,191 @@ namespace EasySave.Application.ViewModels
                 _userConfigManager.SaveLogFormat(LogFormat.Xml);
                 return true;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
+        public bool ChangeBusinessSoftware(string software) 
+            => _userConfigManager.SaveBusinessSoftware(software);
 
-        public bool ChangeBusinessSoftware(string software)
-        {
-            return _userConfigManager.SaveBusinessSoftware(software);
-        }
-
-        public bool ChangeCryptoSoftExtensions(List<string> extensions)
-        {
-            return _userConfigManager.SaveCryptoSoftExtensions(extensions);
-        }
+        public bool ChangeCryptoSoftExtensions(List<string> extensions) 
+            => _userConfigManager.SaveCryptoSoftExtensions(extensions);
 
         public LogFormat GetSavedLogFormat() 
-        {
-            return _userConfigManager.LoadLogFormat() ?? LogFormat.Json; // Get the saved log format or by default json
-        }
+            => _userConfigManager.LoadLogFormat() ?? LogFormat.Json;
 
-        public string? GetSavedBusinessSoftware()
-        {
-            return _userConfigManager.LoadBusinessSoftware(); // Get the saved BusinessSoftware
-        }
+        public string? GetSavedBusinessSoftware() 
+            => _userConfigManager.LoadBusinessSoftware();
 
-        public List<string> GetCryptoSoftExtensions()
-        {
-            return _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>(); // Get the saved CryptoSoft extensions or empty list
-        }
+        public List<string> GetCryptoSoftExtensions() 
+            => _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>();
 
         public string? GetCryptoSoftPath()
         {
             string workDir = AppDomain.CurrentDomain.BaseDirectory;
-            string cryptoPath = Path.Combine(workDir, "Resources", "CryptoSoft.exe");
-
-            // Return the path if it exists, otherwise return null
-            return File.Exists(cryptoPath) ? cryptoPath : null;
+            string cryptoPath = System.IO.Path.Combine(workDir, "Resources", "CryptoSoft.exe");
+            return System.IO.File.Exists(cryptoPath) ? cryptoPath : null;
         }
 
-        public IReadOnlyList<string> GetSupportedLanguages()
-        {
-            return _langManager.GetSupportedLanguages();
-        }
+        public IReadOnlyList<string> GetSupportedLanguages() 
+            => _langManager.GetSupportedLanguages();
 
         public string CurrentLanguageCode => _langManager.CurrentCultureCode;
 
-        public string GetText(string key)
+        public string GetText(string key) => _langManager.GetString(key);
+
+        // Async methods for UI operations
+
+        /// <summary>
+        /// Creates a new backup job asynchronously
+        /// </summary>
+        public async Task<(bool success, string message)> CreateJobAsync()
         {
-            return _langManager.GetString(key);
+            if (string.IsNullOrWhiteSpace(JobEditor.JobName))
+            {
+                return (false, GetText("GuiErrorJobNameEmpty"));
+            }
+
+            var result = await JobList.CreateJobAsync(
+                JobEditor.JobName,
+                JobEditor.SourceDirectory,
+                JobEditor.TargetDirectory,
+                JobEditor.BackupTypeIndex);
+
+            if (result.success)
+            {
+                JobEditor.ClearForm();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Loads a job into the editor for modification
+        /// </summary>
+        public void LoadJobForEdit(BackupJob job)
+        {
+            if (job == null)
+            {
+                JobEditor.ClearForm();
+                return;
+            }
+
+            var id = JobList.GetJobId(job);
+            if (id <= 0)
+            {
+                JobEditor.ClearForm();
+                return;
+            }
+
+            JobEditor.LoadJobForEdit(job, id);
+        }
+
+        /// <summary>
+        /// Clears the editor and exits edit mode
+        /// </summary>
+        public void ClearJobEditor()
+        {
+            JobEditor.ExitEditMode();
+        }
+
+        /// <summary>
+        /// Updates the currently edited job with new values
+        /// </summary>
+        public async Task<(bool success, string message, bool canContinue)> UpdateJobAsync()
+        {
+            if (JobEditor.EditingJobId is null)
+            {
+                return (false, GetText("GuiErrorSelectSingleToEdit"), false);
+            }
+
+            if (string.IsNullOrWhiteSpace(JobEditor.JobName))
+            {
+                return (false, GetText("GuiErrorJobNameEmpty"), false);
+            }
+
+            var result = await JobList.UpdateJobAsync(
+                JobEditor.EditingJobId.Value,
+                JobEditor.JobName,
+                JobEditor.SourceDirectory,
+                JobEditor.TargetDirectory,
+                JobEditor.BackupTypeIndex);
+
+            if (result.success)
+            {
+                JobEditor.ExitEditMode();
+            }
+
+            return (result.success, result.message, true);
+        }
+
+        /// <summary>
+        /// Deletes the specified jobs
+        /// </summary>
+        public async Task<(int deletedCount, List<string> errors)> DeleteJobsAsync(IReadOnlyList<BackupJob> selectedJobs)
+        {
+            var result = await JobList.DeleteJobsAsync(selectedJobs);
+            JobEditor.ExitEditMode();
+            return result;
+        }
+
+        /// <summary>
+        /// Executes all backup jobs
+        /// </summary>
+        public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteAllJobsAsync()
+        {
+            var jobCount = JobList.BackupJobs.Count;
+            if (jobCount == 0)
+            {
+                return (false, new List<BackupState>(), GetText("GuiErrorNoJobToExecute"));
+            }
+
+            return await JobExecution.ExecuteAllJobsAsync(jobCount);
+        }
+
+        /// <summary>
+        /// Executes only the selected backup jobs
+        /// </summary>
+        public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteSelectedJobsAsync(
+            IReadOnlyList<BackupJob> selectedJobs)
+        {
+            if (selectedJobs == null || selectedJobs.Count == 0)
+            {
+                return (false, new List<BackupState>(), GetText("GuiErrorNoJobSelected"));
+            }
+
+            return await JobExecution.ExecuteSelectedJobsAsync(selectedJobs, JobList.GetJobId);
+        }
+
+        /// <summary>
+        /// Refreshes the job list and returns the updated list
+        /// </summary>
+        public async Task<IReadOnlyList<BackupJob>> RefreshJobsAsync()
+        {
+            return await JobList.RefreshJobsAsync();
+        }
+
+        /// <summary>
+        /// Replaces the jobs collection with new data (to be called on UI thread)
+        /// </summary>
+        public void ReplaceJobs(IReadOnlyList<BackupJob> jobs)
+        {
+            JobList.ReplaceJobs(jobs);
+        }
+
+        /// <summary>
+        /// Refreshes the current job state from state.json
+        /// </summary>
+        public void RefreshJobState()
+        {
+            JobExecution.RefreshJobState();
+        }
+
+        /// <summary>
+        /// Clears the current job execution state
+        /// </summary>
+        public void ClearJobState()
+        {
+            JobExecution.ClearJobState();
         }
     }
 }

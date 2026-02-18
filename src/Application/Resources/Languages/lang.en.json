@@ -77,6 +77,7 @@
   "GuiErrorNoJobSelected": "No job selected.",
   "GuiErrorNoJobToExecute": "No job to execute.",
   "GuiErrorInvalidSelection": "Invalid selection.",
+  "GuiErrorJobNameEmpty": "Job name cannot be empty.",
 
   "GuiStatusDeletedCount": "{0} job(s) deleted.",
   "GuiStatusDeletedWithErrors": "{0} deleted, {1} error(s): {2}",
