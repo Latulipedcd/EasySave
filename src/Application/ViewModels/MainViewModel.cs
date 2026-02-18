@@ -184,6 +184,11 @@ namespace EasySave.Application.ViewModels
         /// </summary>
         public async Task<(bool success, string message)> CreateJobAsync()
         {
+            if (string.IsNullOrWhiteSpace(JobEditor.JobName))
+            {
+                return (false, GetText("GuiErrorJobNameEmpty"));
+            }
+
             var result = await JobList.CreateJobAsync(
                 JobEditor.JobName,
                 JobEditor.SourceDirectory,
@@ -237,8 +242,14 @@ namespace EasySave.Application.ViewModels
                 return (false, GetText("GuiErrorSelectSingleToEdit"), false);
             }
 
+            if (string.IsNullOrWhiteSpace(JobEditor.JobName))
+            {
+                return (false, GetText("GuiErrorJobNameEmpty"), false);
+            }
+
             var result = await JobList.UpdateJobAsync(
                 JobEditor.EditingJobId.Value,
+                JobEditor.JobName,
                 JobEditor.SourceDirectory,
                 JobEditor.TargetDirectory,
                 JobEditor.BackupTypeIndex);

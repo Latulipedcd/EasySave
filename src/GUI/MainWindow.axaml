@@ -39,13 +39,7 @@
                            Stretch="Uniform"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1"
-                               Grid.Row="1"
-                               Text="{Binding StatusMessage, FallbackValue='Ready'}"
-                               FontSize="13"
-                               Margin="0,0,0,0"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               VerticalAlignment="Center" />
+                    <!-- StatusMessage supprimé, tout passe dans le chat -->
                 </Grid>
 
                 <!-- Right block: settings menu -->

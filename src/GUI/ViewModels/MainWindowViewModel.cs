@@ -407,17 +407,28 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task CreateJobAsync()
     {
-        SetStatusOnUIThread(Text("GuiStatusCreatingJob"));
+        SetCatMessage("GuiStatusCreatingJob");
         SetCatMessage("GuiCatMessageCreating");
 
         var name = JobEditor.JobName;
         var (success, message) = await _appViewModel.CreateJobAsync();
 
-        SetStatusOnUIThread(message);
+        SetCatMessage(message);
 
         if (!success)
         {
-            SetCatMessage("GuiCatMessageActionFailed", message);
+            // Si le message correspond à l'erreur de nom vide, affiche en rouge dans le chat
+            if (message == Text("GuiErrorJobNameEmpty"))
+            {
+                CatSpeech = message;
+                OnPropertyChanged(nameof(CatSpeech));
+                // Optionnel: déclencher une animation spécifique (ex: cat error)
+                // AnimationCat = "cat error.json";
+            }
+            else
+            {
+                SetCatMessage("GuiCatMessageActionFailed", message);
+            }
             return;
         }
 
@@ -434,9 +445,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public void LoadSelectionForEdit(BackupJob job)
     {
         _appViewModel.LoadJobForEdit(job);
+        // Message d'édition relocalisé dans le chat
         if (job != null && JobList.GetJobId(job) > 0)
         {
-            StatusMessage = Text("GuiStatusEditModeHint");
+            SetCatMessage("GuiStatusEditModeHint");
         }
     }
 
@@ -453,18 +465,28 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task UpdateSelectedJobAsync()
     {
-        SetStatusOnUIThread(Text("GuiStatusUpdatingJob"));
         SetCatMessage("GuiCatMessageUpdating");
 
         var (success, message, canContinue) = await _appViewModel.UpdateJobAsync();
 
         if (!canContinue)
         {
-            SetStatusOnUIThread(message);
+            // Si le message correspond à l'erreur de nom vide, affiche en rouge dans le chat
+            if (message == Text("GuiErrorJobNameEmpty"))
+            {
+                CatSpeech = message;
+                OnPropertyChanged(nameof(CatSpeech));
+                // Optionnel: déclencher une animation spécifique (ex: cat error)
+                // AnimationCat = "cat error.json";
+            }
+            else
+            {
+                SetStatusOnUIThread(message);
+            }
             return;
         }
 
-        SetStatusOnUIThread(message);
+        SetCatMessage(message);
 
         if (!success)
         {
@@ -605,7 +627,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// <param name="message">Message à afficher</param>
     public void SetStatus(string message)
     {
-        SetStatusOnUIThread(message);
+            SetCatMessage(message);
     }
 
     /// <summary>

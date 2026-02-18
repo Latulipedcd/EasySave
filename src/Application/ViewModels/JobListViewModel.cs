@@ -95,6 +95,13 @@ public class JobListViewModel : ViewModelBase
     /// </summary>
     public async Task<(bool success, string message)> UpdateJobAsync(int jobId, string source, string target, int typeIndex)
     {
+        return await UpdateJobAsync(jobId, null, source, target, typeIndex);
+
+    }
+
+    // Surcharge avec nom
+    public async Task<(bool success, string message)> UpdateJobAsync(int jobId, string? newName, string source, string target, int typeIndex)
+    {
         var (success, message) = await Task.Run(() =>
         {
             try
@@ -107,9 +114,20 @@ public class JobListViewModel : ViewModelBase
 
                 var existingJob = jobs[jobId - 1];
                 BackupType trueJobType = typeIndex == 0 ? BackupType.Full : BackupType.Differencial;
-                var updatedJob = new BackupJob(existingJob.Name, source, target, trueJobType);
+                string finalName = newName ?? existingJob.Name;
 
-                _backupJobRepository.Update(updatedJob);
+                // Si le nom a changé, supprimer l'ancien et ajouter le nouveau
+                if (!string.Equals(existingJob.Name, finalName, StringComparison.Ordinal))
+                {
+                    _backupJobRepository.Delete(existingJob.Name);
+                    var renamedJob = new BackupJob(finalName, source, target, trueJobType);
+                    _backupJobRepository.Add(renamedJob);
+                }
+                else
+                {
+                    var updatedJob = new BackupJob(existingJob.Name, source, target, trueJobType);
+                    _backupJobRepository.Update(updatedJob);
+                }
                 return (true, _langManager.GetString("JobUpdatedSuccess"));
             }
             catch (InvalidOperationException ex)
