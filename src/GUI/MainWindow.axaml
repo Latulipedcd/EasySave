@@ -185,14 +185,14 @@
                                   VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Auto">
                         <ListBox Name="JobsList"
-                                 ItemsSource="{Binding BackupJobs}"
+                                 ItemsSource="{Binding DisplayJobs}"
                                  SelectionMode="Multiple"
                                  SelectionChanged="JobsList_SelectionChanged">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid ColumnDefinitions="1.5*,3*,3*,1.2*" ColumnSpacing="12">
                                         <TextBlock Grid.Column="0"
-                                                   Text="{Binding Name}"
+                                                   Text="{Binding DisplayName}"
                                                    TextWrapping="NoWrap"
                                                    TextTrimming="CharacterEllipsis"
                                                    FontWeight="SemiBold" />
