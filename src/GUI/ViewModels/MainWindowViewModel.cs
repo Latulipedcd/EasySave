@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -10,25 +9,25 @@ using Avalonia.Threading;
 using Core.Enums;
 using Core.Models;
 using EasySave.Application.ViewModels;
-using Log.Enums;
 
 namespace GUI.ViewModels;
 
 /// <summary>
 /// ViewModel principal de la fenêtre MainWindow
-/// Gère toute la logique métier et les données de l'interface graphique
+/// Orchestre les différents ViewModels spécialisés et gère les textes localisés
 /// Implémente INotifyPropertyChanged pour le binding bidirectionnel avec l'UI
 /// </summary>
 public class MainWindowViewModel : INotifyPropertyChanged
 {
     // ViewModel de la couche Application pour accéder aux services métier
     private readonly MainViewModel _appViewModel;
-    private SettingItemViewModel? _languageSetting;
-    private SettingItemViewModel? _logFormatSetting;
-    private SettingItemViewModel? _businessSoftwareSetting;
-    private SettingItemViewModel? _cryptoExtensionsSetting;
 
-    // Timer pour rafraîchir périodiquement l'état du job en cours d'exécution
+    // ViewModels spécialisés (depuis Application layer)
+    public SettingsViewModel Settings => _appViewModel.Settings;
+    public JobEditorViewModel JobEditor => _appViewModel.JobEditor;
+    public JobListViewModel JobList => _appViewModel.JobList;
+    public JobExecutionViewModel JobExecution => _appViewModel.JobExecution;
+
     private readonly DispatcherTimer _stateRefreshTimer;
     private string _catSpeech = string.Empty;
 
@@ -107,134 +106,36 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public string GetText(string key) => Text(key);
 
-   
-
-    /// <summary>
-    /// Collection observable des jobs de sauvegarde
-    /// Liée à la ListBox dans l'interface
-    /// </summary>
-    public ObservableCollection<BackupJob> BackupJobs { get; }
     
-    /// <summary>
-    /// Collection des langues supportées (en, fr, etc.)
-    /// </summary>
-    public ObservableCollection<string> SupportedLanguages { get; }
-
-    /// <summary>
-    /// Liste modulaire des options affichées dans le menu Settings.
-    /// Chaque entrée contient son libellé, ses options et sa logique de persistance.
-    /// </summary>
-    public ObservableCollection<SettingItemViewModel> SettingsItems { get; }
-
-   
-
-    /// <summary>
-    /// Index du format de logs sélectionné (0=Json, 1=Xml)
-    /// Sauvegardé dans userconfig.json
-    /// </summary>
-    private int _selectedLogFormatIndex;
+    // Délégation aux ViewModels spécialisés
+    public ObservableCollection<BackupJob> BackupJobs => JobList.BackupJobs;
+    public ObservableCollection<string> SupportedLanguages => Settings.SupportedLanguages;
+    public ObservableCollection<SettingItemViewModel> SettingsItems => Settings.SettingsItems;
+    
     public int SelectedLogFormatIndex
     {
-        get => _selectedLogFormatIndex;
-        set
-        {
-            if (value == _selectedLogFormatIndex) return;
-            if (value != 0 && value != 1) return; // Validation : uniquement 0 ou 1
-
-            _selectedLogFormatIndex = value;
-            OnPropertyChanged();
-
-            // Sauvegarde du format dans le fichier de configuration
-            _appViewModel.ChangeLogFormat(value == 1 ? "Xml" : "Json");
-            _logFormatSetting?.SetSelectedValue(value == 1 ? "Xml" : "Json");
-        }
+        get => Settings.SelectedLogFormatIndex;
+        set => Settings.SelectedLogFormatIndex = value;
     }
 
-    /// <summary>
-    /// Code de la langue sélectionnée (en, fr, etc.)
-    /// Sauvegardé dans userconfig.json et charge les ressources correspondantes
-    /// </summary>
-    private string _selectedLanguageCode = "en";
     public string SelectedLanguageCode
     {
-        get => _selectedLanguageCode;
-        set
-        {
-            if (value == _selectedLanguageCode) return;
-
-            var previous = _selectedLanguageCode;
-            _selectedLanguageCode = value;
-            OnPropertyChanged();
-
-            if (string.IsNullOrWhiteSpace(value))
-                return;
-
-            // Tentative de changement de langue
-            var ok = _appViewModel.ChangeLanguage(value);
-            if (!ok)
-            {
-                // Rollback si échec
-                _selectedLanguageCode = previous;
-                OnPropertyChanged(nameof(SelectedLanguageCode));
-                _languageSetting?.SetSelectedValue(_selectedLanguageCode);
-                return;
-            }
-
-            _languageSetting?.SetSelectedValue(_selectedLanguageCode);
-            // Rafraîchissement de tous les textes de l'interface
-            RefreshLocalizedTexts();
-        }
+        get => Settings.SelectedLanguageCode;
+        set => Settings.SelectedLanguageCode = value;
     }
 
-    /// <summary>
-    /// Nom du logiciel métier à bloquer pendant les sauvegardes
-    /// Sauvegardé dans userconfig.json
-    /// </summary>
-    private string _businessSoftware = string.Empty;
     public string BusinessSoftware
     {
-        get => _businessSoftware;
-        set
-        {
-            if (value == _businessSoftware) return;
-
-            _businessSoftware = value ?? string.Empty;
-            OnPropertyChanged();
-
-            // Sauvegarde dans le fichier de configuration
-            _appViewModel.ChangeBusinessSoftware(_businessSoftware);
-            _businessSoftwareSetting?.SetTextValue(_businessSoftware);
-        }
+        get => Settings.BusinessSoftware;
+        set => Settings.BusinessSoftware = value;
     }
 
-    /// <summary>
-    /// Extensions de fichiers à chiffrer (séparées par des virgules)
-    /// Sauvegardé dans userconfig.json
-    /// </summary>
-    private string _cryptoExtensions = string.Empty;
     public string CryptoExtensions
     {
-        get => _cryptoExtensions;
-        set
-        {
-            if (value == _cryptoExtensions) return;
-
-            _cryptoExtensions = value ?? string.Empty;
-            OnPropertyChanged();
-
-            // Parse comma-separated extensions and save to config
-            var extensionsList = _cryptoExtensions
-                .Split(',')
-                .Select(ext => ext.Trim())
-                .Where(ext => !string.IsNullOrWhiteSpace(ext))
-                .ToList();
-
-            _appViewModel.ChangeCryptoSoftExtensions(extensionsList);
-            _cryptoExtensionsSetting?.SetTextValue(_cryptoExtensions);
-        }
+        get => Settings.CryptoExtensions;
+        set => Settings.CryptoExtensions = value;
     }
 
-  
 
     /// <summary>
     /// Message de statut affiché dans la barre de status
@@ -254,57 +155,82 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     /// <summary>
     /// Constructeur du ViewModel
-    /// Initialise toutes les propriétés et charge les données sauvegardées
+    /// Initialise les ViewModels spécialisés et charge les données sauvegardées
     /// </summary>
     public MainWindowViewModel()
     {
         // Initialisation du ViewModel de la couche Application
         _appViewModel = new MainViewModel();
-        
-        // Chargement de la langue sauvegardée dans userconfig.json
-        _appViewModel.TryLoadSavedLanguage();
 
-        // Initialisation de la liste des langues supportées
-        SupportedLanguages = new ObservableCollection<string>(_appViewModel.GetSupportedLanguages());
-        _selectedLanguageCode = _appViewModel.CurrentLanguageCode;
+        // Événements inter-ViewModels
+        Settings.LanguageChanged += (s, e) => RefreshLocalizedTexts();
+        JobList.SelectionChanged += (s, job) =>
+        {
+            JobExecution.MonitoredJob = job;
+            SetDefaultCatMessage();
+            OnPropertyChanged(nameof(SelectedJob));
+            OnPropertyChanged(nameof(HasSelection));
+            OnPropertyChanged(nameof(SelectedJobName));
+            OnPropertyChanged(nameof(SelectedJobSource));
+            OnPropertyChanged(nameof(SelectedJobTarget));
+            OnPropertyChanged(nameof(SelectedJobType));
+        };
+        JobExecution.StateChanged += (s, state) =>
+        {
+            OnPropertyChanged(nameof(SelectedJobState));
+            OnPropertyChanged(nameof(IsJobRunning));
+            OnPropertyChanged(nameof(ShowExecutionDetails));
+            OnPropertyChanged(nameof(IsJobCompleted));
+            OnPropertyChanged(nameof(JobStatusText));
+            OnPropertyChanged(nameof(JobStatusColor));
+            OnPropertyChanged(nameof(JobProgress));
+            OnPropertyChanged(nameof(JobTotalFiles));
+            OnPropertyChanged(nameof(JobFilesRemaining));
+            OnPropertyChanged(nameof(JobTotalSize));
+            OnPropertyChanged(nameof(JobSizeRemaining));
+            OnPropertyChanged(nameof(JobCurrentFile));
+            OnPropertyChanged(nameof(JobLastUpdate));
+        };
+        JobEditor.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(JobEditor.EditingJobId) || e.PropertyName == nameof(JobEditor.IsEditing))
+            {
+                OnPropertyChanged(nameof(EditingJobId));
+                OnPropertyChanged(nameof(IsEditing));
+                OnPropertyChanged(nameof(EditorWindowTitle));
+            }
+            else if (e.PropertyName == nameof(JobEditor.JobName))
+                OnPropertyChanged(nameof(NewJobName));
+            else if (e.PropertyName == nameof(JobEditor.SourceDirectory))
+                OnPropertyChanged(nameof(NewJobSourceDirectory));
+            else if (e.PropertyName == nameof(JobEditor.TargetDirectory))
+                OnPropertyChanged(nameof(NewJobTargetDirectory));
+            else if (e.PropertyName == nameof(JobEditor.BackupTypeIndex))
+                OnPropertyChanged(nameof(NewJobTypeIndex));
+        };
 
-        // Chargement du format de logs sauvegardé
-        _selectedLogFormatIndex = _appViewModel.GetSavedLogFormat() == LogFormat.Xml ? 1 : 0;
-        
-        // Chargement des valeurs sauvegardées pour le logiciel métier et les extensions
-        _businessSoftware = _appViewModel.GetSavedBusinessSoftware() ?? string.Empty;
-        _cryptoExtensions = string.Join(", ", _appViewModel.GetCryptoSoftExtensions());
-        
-        // Construction des options du menu settings de manière modulaire
-        SettingsItems = new ObservableCollection<SettingItemViewModel>();
-        BuildSettingsMenuItems();
-
-        // Chargement de la liste des jobs depuis le stockage
-        BackupJobs = new ObservableCollection<BackupJob>(_appViewModel.GetBackupJobs());
-        _newJobTypeIndex = 0;
-
-        // Initialisation des textes localisés
+        // Initialisation des textes localisés et construction du menu settings
         RefreshLocalizedTexts();
         OnPropertyChanged(nameof(SelectedLanguageCode));
         OnPropertyChanged(nameof(SelectedLogFormatIndex));
 
-        // Initialisation du timer pour rafraîchir l'état du job sélectionné toutes les 500ms
+        SetDefaultCatMessage();
+
+        // Initialisation du timer pour rafraîchir l'état des jobs
         _stateRefreshTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(500)
         };
-        _stateRefreshTimer.Tick += (sender, e) =>
-        {
-            // Rafraîchir l'état si un job est sélectionné
-            if (SelectedJob != null)
-            {
-                RefreshSelectedJobState();
-            }
-        };
+        _stateRefreshTimer.Tick += OnRefreshTimerTick;
         _stateRefreshTimer.Start();
+    }
 
-        SetDefaultCatMessage();
-
+    /// <summary>
+    /// Handler appelé périodiquement pour rafraîchir l'état du job en cours d'exécution
+    /// </summary>
+    private void OnRefreshTimerTick(object? sender, EventArgs e)
+    {
+        _appViewModel.RefreshJobState();
     }
 
     /// <summary>
@@ -356,245 +282,69 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetDefaultCatMessage();
         OnPropertyChanged(nameof(EditorWindowTitle));
         OnPropertyChanged(nameof(JobStatusText));
-        RefreshSettingsMenuItems();
+        
+        // Build or refresh settings menu items
+        if (Settings.SettingsItems.Count == 0)
+        {
+            Settings.BuildSettingsMenuItems(
+                LanguageLabel, LogFormatLabel, LogFormatJsonLabel, LogFormatXmlLabel,
+                BusinessSoftwareLabel, CryptoExtensionsLabel);
+        }
+        else
+        {
+            Settings.RefreshSettingsMenuItems(
+                LanguageLabel, LogFormatLabel, LogFormatJsonLabel, LogFormatXmlLabel,
+                BusinessSoftwareLabel, CryptoExtensionsLabel);
+        }
     }
 
-    private void BuildSettingsMenuItems()
-    {
-        SettingsItems.Clear();
-
-        _languageSetting = new SettingItemViewModel(
-            LanguageLabel,
-            SupportedLanguages.Select(code => new SettingOptionViewModel(code, code.ToUpperInvariant())),
-            SelectedLanguageCode,
-            value => SelectedLanguageCode = value);
-
-        _logFormatSetting = new SettingItemViewModel(
-            LogFormatLabel,
-            GetLogFormatOptions(),
-            SelectedLogFormatIndex == 1 ? "Xml" : "Json",
-            value => SelectedLogFormatIndex =
-                string.Equals(value, "Xml", StringComparison.OrdinalIgnoreCase) ? 1 : 0);
-
-        _businessSoftwareSetting = new SettingItemViewModel(
-            BusinessSoftwareLabel,
-            _businessSoftware,
-            value => BusinessSoftware = value);
-
-        _cryptoExtensionsSetting = new SettingItemViewModel(
-            CryptoExtensionsLabel,
-            _cryptoExtensions,
-            value => CryptoExtensions = value);
-
-        SettingsItems.Add(_languageSetting);
-        SettingsItems.Add(_logFormatSetting);
-        SettingsItems.Add(_businessSoftwareSetting);
-        SettingsItems.Add(_cryptoExtensionsSetting);
-    }
-
-    private IEnumerable<SettingOptionViewModel> GetLogFormatOptions()
-    {
-        yield return new SettingOptionViewModel("Json", LogFormatJsonLabel);
-        yield return new SettingOptionViewModel("Xml", LogFormatXmlLabel);
-    }
-
-    private void RefreshSettingsMenuItems()
-    {
-        if (_languageSetting != null)
-        {
-            _languageSetting.UpdateLabel(LanguageLabel);
-            _languageSetting.SetSelectedValue(SelectedLanguageCode);
-        }
-
-        if (_logFormatSetting != null)
-        {
-            _logFormatSetting.UpdateLabel(LogFormatLabel);
-            _logFormatSetting.ReplaceOptions(
-                GetLogFormatOptions(),
-                SelectedLogFormatIndex == 1 ? "Xml" : "Json");
-        }
-
-        if (_businessSoftwareSetting != null)
-        {
-            _businessSoftwareSetting.UpdateLabel(BusinessSoftwareLabel);
-            _businessSoftwareSetting.SetTextValue(_businessSoftware);
-        }
-
-        if (_cryptoExtensionsSetting != null)
-        {
-            _cryptoExtensionsSetting.UpdateLabel(CryptoExtensionsLabel);
-            _cryptoExtensionsSetting.SetTextValue(_cryptoExtensions);
-        }
-
-        // Force le refresh du contenu si le flyout est déjà ouvert.
-        OnPropertyChanged(nameof(SettingsItems));
-    }
-
-
-    /// <summary>
-    /// Nom du nouveau job ou du job en cours de modification
-    /// </summary>
-    private string _newJobName = string.Empty;
+    // Délégation pour JobEditor
     public string NewJobName
     {
-        get => _newJobName;
-        set
-        {
-            if (value == _newJobName) return;
-            _newJobName = value;
-            OnPropertyChanged();
-        }
+        get => JobEditor.JobName;
+        set => JobEditor.JobName = value;
     }
 
-    /// <summary>
-    /// Chemin du dossier source pour le nouveau job
-    /// </summary>
-    private string _newJobSourceDirectory = string.Empty;
     public string NewJobSourceDirectory
     {
-        get => _newJobSourceDirectory;
-        set
-        {
-            if (value == _newJobSourceDirectory) return;
-            _newJobSourceDirectory = value;
-            OnPropertyChanged();
-        }
+        get => JobEditor.SourceDirectory;
+        set => JobEditor.SourceDirectory = value;
     }
 
-    /// <summary>
-    /// Chemin du dossier destination pour le nouveau job
-    /// </summary>
-    private string _newJobTargetDirectory = string.Empty;
     public string NewJobTargetDirectory
     {
-        get => _newJobTargetDirectory;
-        set
-        {
-            if (value == _newJobTargetDirectory) return;
-            _newJobTargetDirectory = value;
-            OnPropertyChanged();
-        }
+        get => JobEditor.TargetDirectory;
+        set => JobEditor.TargetDirectory = value;
     }
 
-    /// <summary>
-    /// Index du type de backup sélectionné (0=Full, 1=Differential)
-    /// </summary>
-    private int _newJobTypeIndex;
     public int NewJobTypeIndex
     {
-        get => _newJobTypeIndex;
-        set
-        {
-            if (value == _newJobTypeIndex) return;
-            _newJobTypeIndex = value;
-            OnPropertyChanged();
-        }
+        get => JobEditor.BackupTypeIndex;
+        set => JobEditor.BackupTypeIndex = value;
     }
 
-    /// <summary>
-    /// ID du job en cours de modification (null si création)
-    /// </summary>
-    private int? _editingJobId;
-    public int? EditingJobId
-    {
-        get => _editingJobId;
-        private set
-        {
-            if (value == _editingJobId) return;
-            _editingJobId = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsEditing));
-        }
-    }
+    public int? EditingJobId => JobEditor.EditingJobId;
+    public bool IsEditing => JobEditor.IsEditing;
 
-    /// <summary>
-    /// Indique si un job est en cours de modification
-    /// </summary>
-    public bool IsEditing => EditingJobId.HasValue;
-
-   
-
-    /// <summary>
-    /// Job actuellement sélectionné dans la liste
-    /// </summary>
-    private BackupJob? _selectedJob;
+    // Délégation pour JobList
     public BackupJob? SelectedJob
     {
-        get => _selectedJob;
-        set
-        {
-            if (value == _selectedJob) return;
-            _selectedJob = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasSelection));
-            OnPropertyChanged(nameof(SelectedJobName));
-            OnPropertyChanged(nameof(SelectedJobSource));
-            OnPropertyChanged(nameof(SelectedJobTarget));
-            OnPropertyChanged(nameof(SelectedJobType));
-            SetDefaultCatMessage();
-            RefreshSelectedJobState();
-        }
+        get => JobList.SelectedJob;
+        set => JobList.SelectedJob = value;
     }
 
-    /// <summary>
-    /// État d'exécution du job sélectionné (null si pas en cours ou pas de sélection)
-    /// </summary>
-    private BackupState? _selectedJobState;
-    public BackupState? SelectedJobState
-    {
-        get => _selectedJobState;
-        private set
-        {
-            if (value == _selectedJobState) return;
-            _selectedJobState = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsJobRunning));
-            OnPropertyChanged(nameof(ShowExecutionDetails));
-            OnPropertyChanged(nameof(IsJobCompleted));
-            OnPropertyChanged(nameof(JobStatusText));
-            OnPropertyChanged(nameof(JobStatusColor));
-            OnPropertyChanged(nameof(JobProgress));
-            OnPropertyChanged(nameof(JobTotalFiles));
-            OnPropertyChanged(nameof(JobFilesRemaining));
-            OnPropertyChanged(nameof(JobTotalSize));
-            OnPropertyChanged(nameof(JobSizeRemaining));
-            OnPropertyChanged(nameof(JobCurrentFile));
-            OnPropertyChanged(nameof(JobLastUpdate));
-        }
-    }
+    public bool HasSelection => JobList.HasSelection;
+    public string SelectedJobName => JobList.SelectedJobName;
+    public string SelectedJobSource => JobList.SelectedJobSource;
+    public string SelectedJobTarget => JobList.SelectedJobTarget;
+    public string SelectedJobType => JobList.SelectedJobType;
 
-    /// <summary>
-    /// Indique si un job est sélectionné
-    /// </summary>
-    public bool HasSelection => SelectedJob != null;
+    // Délégation pour JobExecution
+    public BackupState? SelectedJobState => JobExecution.JobState;
+    public bool IsJobRunning => JobExecution.IsJobRunning;
+    public bool ShowExecutionDetails => JobExecution.ShowExecutionDetails;
+    public bool IsJobCompleted => JobExecution.IsJobCompleted;
 
-    /// <summary>
-    /// Indique si le job sélectionné est en cours d'exécution
-    /// </summary>
-    public bool IsJobRunning => SelectedJobState != null && SelectedJobState.Status == BackupStatus.Active;
-
-    /// <summary>
-    /// Indique si on doit afficher les détails d'exécution (en cours ou terminé)
-    /// </summary>
-    public bool ShowExecutionDetails => SelectedJobState != null && 
-        (SelectedJobState.Status == BackupStatus.Active || 
-         SelectedJobState.Status == BackupStatus.Completed || 
-         SelectedJobState.Status == BackupStatus.Error);
-
-    /// <summary>
-    /// Indique si le job est terminé (succès ou erreur)
-    /// </summary>
-    public bool IsJobCompleted => SelectedJobState != null &&
-        (SelectedJobState.Status == BackupStatus.Completed ||
-         SelectedJobState.Status == BackupStatus.Error);
-
-    // Propriétés du job sélectionné
-    public string SelectedJobName => SelectedJob?.Name ?? string.Empty;
-    public string SelectedJobSource => SelectedJob?.SourceDirectory ?? string.Empty;
-    public string SelectedJobTarget => SelectedJob?.TargetDirectory ?? string.Empty;
-    public string SelectedJobType => SelectedJob?.Type.ToString() ?? string.Empty;
-
-    // Propriétés de l'état d'exécution
     public string JobStatusText => SelectedJobState?.Status switch
     {
         BackupStatus.Inactive => Text("GuiStatusInactive"),
@@ -604,24 +354,22 @@ public class MainWindowViewModel : INotifyPropertyChanged
         _ => Text("GuiStatusInactive")
     };
 
-    /// <summary>
-    /// Couleur du texte de statut selon l'état
-    /// </summary>
     public string JobStatusColor => SelectedJobState?.Status switch
     {
-        BackupStatus.Active => "#3498db",      // Bleu
-        BackupStatus.Completed => "#27ae60",   // Vert
-        BackupStatus.Error => "#e74c3c",       // Rouge
-        _ => "#95a5a6"                          // Gris
+        BackupStatus.Active => "#3498db",
+        BackupStatus.Completed => "#27ae60",
+        BackupStatus.Error => "#e74c3c",
+        _ => "#95a5a6"
     };
 
-    public double JobProgress => SelectedJobState?.ProgressPercentage ?? 0;
-    public string JobTotalFiles => SelectedJobState?.TotalFiles.ToString() ?? "-";
-    public string JobFilesRemaining => SelectedJobState?.FilesRemaining.ToString() ?? "-";
-    public string JobTotalSize => FormatBytes(SelectedJobState?.TotalBytes ?? 0);
-    public string JobSizeRemaining => FormatBytes(SelectedJobState?.BytesRemaining ?? 0);
-    public string JobCurrentFile => SelectedJobState?.CurrentFileSource ?? "-";
-    public string JobLastUpdate => SelectedJobState?.TimeStamp.ToString("HH:mm:ss") ?? "-";
+    public double JobProgress => JobExecution.JobProgress;
+    public string JobTotalFiles => JobExecution.JobTotalFiles;
+    public string JobFilesRemaining => JobExecution.JobFilesRemaining;
+    public string JobTotalSize => JobExecution.JobTotalSize;
+    public string JobSizeRemaining => JobExecution.JobSizeRemaining;
+    public string JobCurrentFile => JobExecution.JobCurrentFile;
+    public string JobLastUpdate => JobExecution.JobLastUpdate;
+    
     public string CatSpeech
     {
         get => _catSpeech;
@@ -631,25 +379,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             _catSpeech = value;
             OnPropertyChanged();
         }
-    }
-
-    /// <summary>
-    /// Formate une taille en octets en format lisible (KB, MB, GB)
-    /// </summary>
-    private string FormatBytes(long bytes)
-    {
-        if (bytes == 0) return "0 B";
-        string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
-        int suffixIndex = 0;
-        double size = bytes;
-        
-        while (size >= 1024 && suffixIndex < suffixes.Length - 1)
-        {
-            size /= 1024;
-            suffixIndex++;
-        }
-        
-        return $"{size:0.##} {suffixes[suffixIndex]}";
     }
 
     private void SetCatMessage(string key, params object[] args)
@@ -666,92 +395,24 @@ public class MainWindowViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Rafraîchit l'état du job sélectionné
-    /// À appeler périodiquement pendant l'exécution d'un job
-    /// Lit le fichier state.json pour obtenir l'état en temps réel
-    /// </summary>
-    private void RefreshSelectedJobState()
-    {
-        if (SelectedJob == null)
-        {
-            SelectedJobState = null;
-            return;
-        }
-
-        try
-        {
-            // Lit le fichier state.json créé par ProgressJsonWriter
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var statePath = Path.Combine(appData, "EasyLog", "Progress", "state.json");
-
-            if (!File.Exists(statePath))
-            {
-                SelectedJobState = null;
-                return;
-            }
-
-            var json = File.ReadAllText(statePath);
-            
-            // Options de désérialisation pour gérer les constructeurs avec paramètres
-            var options = new System.Text.Json.JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-            };
-            
-            var state = System.Text.Json.JsonSerializer.Deserialize<BackupState>(json, options);
-
-            // Vérifie si l'état correspond au job sélectionné
-            if (state?.Job?.Name == SelectedJob.Name)
-            {
-                SelectedJobState = state;
-            }
-            else
-            {
-                SelectedJobState = null;
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log l'erreur pour debug
-            System.Diagnostics.Debug.WriteLine($"Erreur RefreshSelectedJobState: {ex.Message}");
-            SelectedJobState = null;
-        }
-    }
-
-    /// <summary>
     /// Efface l'état d'exécution affiché
     /// </summary>
     public void ClearJobState()
     {
-        SelectedJobState = null;
+        _appViewModel.ClearJobState();
     }
-
-   
 
     /// <summary>
     /// Crée un nouveau job de sauvegarde de manière asynchrone
     /// </summary>
     public async Task CreateJobAsync()
     {
-        // Affichage du statut en cours sur le thread UI
         SetStatusOnUIThread(Text("GuiStatusCreatingJob"));
         SetCatMessage("GuiCatMessageCreating");
 
-        // Capture des valeurs du formulaire pour éviter les problèmes de thread
-        var name = NewJobName;
-        var src = NewJobSourceDirectory;
-        var target = NewJobTargetDirectory;
-        var typeIndex = NewJobTypeIndex;
+        var name = JobEditor.JobName;
+        var (success, message) = await _appViewModel.CreateJobAsync();
 
-        // Exécution de la création sur un thread séparé
-        var (success, message) = await Task.Run(() =>
-        {
-            var ok = _appViewModel.CreateBackupJob(name, src, target, typeIndex, out var msg);
-            return (ok, msg);
-        });
-
-        // Mise à jour du statut avec le résultat
         SetStatusOnUIThread(message);
 
         if (!success)
@@ -760,42 +421,23 @@ public class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        // Rafraîchissement de la liste des jobs
-        await RefreshJobsAsync();
         SetCatMessage("GuiCatMessageCreated", name);
 
-        // Réinitialisation du formulaire après création réussie
-        SetNewJobInputsOnUIThread(string.Empty, string.Empty, string.Empty, 0);
-        EditingJobId = null;
+        // Rafraîchir la liste des jobs
+        var jobs = await _appViewModel.RefreshJobsAsync();
+        await Dispatcher.UIThread.InvokeAsync(() => _appViewModel.ReplaceJobs(jobs));
     }
 
     /// <summary>
     /// Charge les données d'un job existant dans le formulaire pour modification
     /// </summary>
-    /// <param name="job">Le job à éditer</param>
     public void LoadSelectionForEdit(BackupJob job)
     {
-        if (job == null)
+        _appViewModel.LoadJobForEdit(job);
+        if (job != null && JobList.GetJobId(job) > 0)
         {
-            ClearSelectionForEdit();
-            return;
+            StatusMessage = Text("GuiStatusEditModeHint");
         }
-
-        // Calcul de l'ID du job (index + 1)
-        var id = BackupJobs.IndexOf(job) + 1;
-        if (id <= 0)
-        {
-            ClearSelectionForEdit();
-            return;
-        }
-
-        // Chargement des données du job dans le formulaire
-        EditingJobId = id;
-        NewJobName = job.Name;
-        NewJobSourceDirectory = job.SourceDirectory;
-        NewJobTargetDirectory = job.TargetDirectory;
-        NewJobTypeIndex = job.Type == BackupType.Full ? 0 : 1;
-        StatusMessage = Text("GuiStatusEditModeHint");
     }
 
     /// <summary>
@@ -803,37 +445,24 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public void ClearSelectionForEdit()
     {
-        EditingJobId = null;
+        _appViewModel.ClearJobEditor();
     }
 
     /// <summary>
     /// Met à jour le job en cours de modification avec les nouvelles données du formulaire
-    /// Opération asynchrone exécutée sur un thread séparé
     /// </summary>
     public async Task UpdateSelectedJobAsync()
     {
-        // Vérification qu'un job est bien en mode édition
-        if (EditingJobId is null)
-        {
-            SetStatusOnUIThread(Text("GuiErrorSelectSingleToEdit"));
-            return;
-        }
-
         SetStatusOnUIThread(Text("GuiStatusUpdatingJob"));
         SetCatMessage("GuiCatMessageUpdating");
 
-        // Capture des valeurs pour le thread séparé
-        var id = EditingJobId.Value;
-        var src = NewJobSourceDirectory;
-        var target = NewJobTargetDirectory;
-        var typeIndex = NewJobTypeIndex;
+        var (success, message, canContinue) = await _appViewModel.UpdateJobAsync();
 
-        // Exécution de la mise à jour sur un thread séparé
-        var (success, message) = await Task.Run(() =>
+        if (!canContinue)
         {
-            var ok = _appViewModel.UpdateBackupJob(id, src, target, typeIndex, out var msg);
-            return (ok, msg);
-        });
+            SetStatusOnUIThread(message);
+            return;
+        }
 
         SetStatusOnUIThread(message);
 
@@ -843,17 +472,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        // Rafraîchissement et sortie du mode édition
-        await RefreshJobsAsync();
         SetCatMessage("GuiCatMessageUpdated", SelectedJobName);
-        EditingJobId = null;
+
+        // Rafraîchir la liste des jobs
+        var jobs = await _appViewModel.RefreshJobsAsync();
+        await Dispatcher.UIThread.InvokeAsync(() => _appViewModel.ReplaceJobs(jobs));
     }
 
     /// <summary>
     /// Supprime les jobs sélectionnés de la liste
-    /// Traitement multi-sélection avec gestion des erreurs
     /// </summary>
-    /// <param name="selectedJobs">Liste des jobs à supprimer</param>
     public async Task DeleteSelectedJobsAsync(IReadOnlyList<BackupJob> selectedJobs)
     {
         if (selectedJobs == null || selectedJobs.Count == 0)
@@ -866,36 +494,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetStatusOnUIThread(Text("GuiStatusDeleting"));
         SetCatMessage("GuiCatMessageDeleting");
 
-        // Conversion des jobs en IDs, tri décroissant pour supprimer de la fin vers le début
-        var ids = selectedJobs
-            .Select(job => BackupJobs.IndexOf(job) + 1)
-            .Where(id => id > 0)
-            .Distinct()
-            .OrderByDescending(id => id)  // Important : évite les problèmes d'index
-            .ToList();
+        var (deletedCount, errors) = await _appViewModel.DeleteJobsAsync(selectedJobs);
 
-        // Exécution des suppressions sur un thread séparé
-        var (deletedCount, errors) = await Task.Run(() =>
-        {
-            var deleted = 0;
-            var errorMessages = new List<string>();
-            foreach (var id in ids)
-            {
-                var ok = _appViewModel.DeleteBackupJob(id, out var msg);
-                if (ok)
-                    deleted++;
-                else
-                    errorMessages.Add(msg);
-            }
+        // Rafraîchir la liste des jobs
+        var jobs = await _appViewModel.RefreshJobsAsync();
+        await Dispatcher.UIThread.InvokeAsync(() => _appViewModel.ReplaceJobs(jobs));
 
-            return (deleted, errorMessages);
-        });
-
-        // Rafraîchissement et sortie du mode édition
-        await RefreshJobsAsync();
-        EditingJobId = null;
-
-        // Affichage du résultat
         if (errors.Count == 0)
         {
             SetStatusOnUIThread(TextFormat("GuiStatusDeletedCount", deletedCount));
@@ -912,68 +516,19 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// Exécute tous les jobs de backup de la liste
     /// </summary>
-    public Task ExecuteAllAsync()
-    {
-        if (BackupJobs.Count == 0)
-        {
-            StatusMessage = Text("GuiErrorNoJobToExecute");
-            SetCatMessage("GuiCatMessageNoJobToRun");
-            return Task.CompletedTask;
-        }
-
-        // Création de l'input "1-N" pour exécuter tous les jobs
-        return ExecuteByInputAsync($"1-{BackupJobs.Count}");
-    }
-
-    /// <summary>
-    /// Exécute uniquement les jobs sélectionnés dans la liste
-    /// </summary>
-    /// <param name="selectedJobs">Liste des jobs à exécuter</param>
-    public Task ExecuteSelectedAsync(IReadOnlyList<BackupJob> selectedJobs)
-    {
-        if (selectedJobs == null || selectedJobs.Count == 0)
-        {
-            StatusMessage = Text("GuiErrorNoJobSelected");
-            SetDefaultCatMessage();
-            return Task.CompletedTask;
-        }
-
-        // Conversion des jobs en IDs triés
-        var ids = selectedJobs
-            .Select(job => BackupJobs.IndexOf(job) + 1)
-            .Where(id => id > 0)
-            .Distinct()
-            .OrderBy(id => id)
-            .ToList();
-
-        if (ids.Count == 0)
-        {
-            StatusMessage = Text("GuiErrorInvalidSelection");
-            SetCatMessage("GuiCatMessageInvalidSelection");
-            return Task.CompletedTask;
-        }
-
-        // Création de l'input formaté (ex: "1;3;5")
-        var input = string.Join(';', ids);
-        return ExecuteByInputAsync(input);
-    }
-
-    /// <summary>
-    /// Exécute les jobs spécifiés par une chaîne d'input (ex: "1-5" ou "1;3;5")
-    /// Opération asynchrone avec résumé des résultats
-    /// </summary>
-    /// <param name="input">String d'IDs de jobs (format: "1-5" ou "1;3;5")</param>
-    private async Task ExecuteByInputAsync(string input)
+    public async Task ExecuteAllAsync()
     {
         SetStatusOnUIThread(Text("GuiStatusExecuting"));
         SetCatMessage("GuiCatMessageExecuting");
 
-        // Exécution sur un thread séparé
-        var (success, results, errorMessage) = await Task.Run(() =>
+        var (success, results, errorMessage) = await _appViewModel.ExecuteAllJobsAsync();
+
+        if (!success && BackupJobs.Count == 0)
         {
-            var ok = _appViewModel.ExecuteBackupJobs(input, out var res, out var err);
-            return (ok, res, err);
-        });
+            StatusMessage = errorMessage;
+            SetCatMessage("GuiCatMessageNoJobToRun");
+            return;
+        }
 
         if (!success)
         {
@@ -982,83 +537,56 @@ public class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        // Calcul du résumé : nombre total, complétés, erreurs
-        var completed = results.Count(r => r.Status == Core.Enums.BackupStatus.Completed);
-        var errors = results.Count(r => r.Status == Core.Enums.BackupStatus.Error);
+        var completed = results.Count(r => r.Status == BackupStatus.Completed);
+        var errors = results.Count(r => r.Status == BackupStatus.Error);
         SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
 
         if (errors == 0)
-        {
             SetCatMessage("GuiCatMessageExecutedSuccess", completed);
-        }
         else
-        {
             SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
+    }
+
+    /// <summary>
+    /// Exécute uniquement les jobs sélectionnés dans la liste
+    /// </summary>
+    public async Task ExecuteSelectedAsync(IReadOnlyList<BackupJob> selectedJobs)
+    {
+        SetStatusOnUIThread(Text("GuiStatusExecuting"));
+        SetCatMessage("GuiCatMessageExecuting");
+
+        var (success, results, errorMessage) = await _appViewModel.ExecuteSelectedJobsAsync(selectedJobs);
+
+        if (!success && (selectedJobs == null || selectedJobs.Count == 0))
+        {
+            StatusMessage = errorMessage;
+            SetDefaultCatMessage();
+            return;
         }
+
+        if (!success)
+        {
+            SetStatusOnUIThread(errorMessage);
+            SetCatMessage("GuiCatMessageActionFailed", errorMessage);
+            return;
+        }
+
+        var completed = results.Count(r => r.Status == BackupStatus.Completed);
+        var errors = results.Count(r => r.Status == BackupStatus.Error);
+        SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
+
+        if (errors == 0)
+            SetCatMessage("GuiCatMessageExecutedSuccess", completed);
+        else
+            SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
     }
 
   
 
     /// <summary>
-    /// Rafraîchit la liste des jobs en chargeant les données depuis le stockage
-    /// Exécute le chargement sur un thread séparé, puis met à jour l'UI sur le thread UI
-    /// </summary>
-    private async Task RefreshJobsAsync()
-    {
-        // Chargement des jobs sur un thread séparé
-        var jobs = await Task.Run(() => _appViewModel.GetBackupJobs());
-
-        // Mise à jour de l'ObservableCollection sur le thread UI
-        if (Dispatcher.UIThread.CheckAccess())
-        {
-            ReplaceJobs(jobs);
-            return;
-        }
-
-        Dispatcher.UIThread.Post(() => ReplaceJobs(jobs));
-    }
-
-    /// <summary>
-    /// Remplace le contenu de la collection BackupJobs avec les nouveaux jobs
-    /// DOIT être appelée sur le thread UI uniquement
-    /// </summary>
-    /// <param name="jobs">Liste des nouveaux jobs</param>
-    private void ReplaceJobs(IReadOnlyList<BackupJob> jobs)
-    {
-        BackupJobs.Clear();
-        foreach (var job in jobs)
-            BackupJobs.Add(job);
-    }
-
-    /// <summary>
-    /// Définit les valeurs du formulaire de création de job de manière thread-safe
-    /// S'assure que la mise à jour se fait sur le thread UI
-    /// </summary>
-    private void SetNewJobInputsOnUIThread(string name, string src, string target, int typeIndex)
-    {
-        if (Dispatcher.UIThread.CheckAccess())
-        {
-            NewJobName = name;
-            NewJobSourceDirectory = src;
-            NewJobTargetDirectory = target;
-            NewJobTypeIndex = typeIndex;
-            return;
-        }
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            NewJobName = name;
-            NewJobSourceDirectory = src;
-            NewJobTargetDirectory = target;
-            NewJobTypeIndex = typeIndex;
-        });
-    }
-
-    /// <summary>
     /// Définit le message de statut de manière thread-safe
     /// S'assure que la mise à jour se fait sur le thread UI
     /// </summary>
-    /// <param name="message">Message à afficher dans la barre de statut</param>
     private void SetStatusOnUIThread(string message)
     {
         if (Dispatcher.UIThread.CheckAccess())
