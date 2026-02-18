@@ -1,4 +1,4 @@
-namespace GUI.ViewModels;
+namespace EasySave.Application.ViewModels;
 
 /// <summary>
 /// Option displayed for a settings entry.

@@ -1,0 +1,18 @@
+<Project>
+  <Target Name="CopyCryptoSoftToResources"
+          AfterTargets="Build"
+          Condition="'$(CopyCryptoSoftToResources)' == 'true'">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)src\CryptoSoft\CryptoSoft.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);UseAppHost=true" />
+
+    <PropertyGroup>
+      <CryptoSoftExePath>$(MSBuildThisFileDirectory)src\CryptoSoft\bin\$(Configuration)\net10.0\CryptoSoft.exe</CryptoSoftExePath>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(OutputPath)Resources" />
+    <Copy SourceFiles="$(CryptoSoftExePath)"
+          DestinationFolder="$(OutputPath)Resources"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

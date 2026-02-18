@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <CopyCryptoSoftToResources>true</CopyCryptoSoftToResources>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,14 +35,6 @@
     </None>
   </ItemGroup>
 
-	<Target Name="CopyCryptoSoft" AfterTargets="Build">
-		<ItemGroup>
-			<CryptoSoftFiles Include="..\CryptoSoft\publish\CryptoSoft.exe" />
-		</ItemGroup>
-		<MakeDir Directories="$(OutputPath)Resources" />
-		<Copy SourceFiles="@(CryptoSoftFiles)" DestinationFolder="$(OutputPath)Resources" SkipUnchangedFiles="true" />
-
-	</Target>
 </Project>
 
 

@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
-namespace GUI.ViewModels;
+namespace EasySave.Application.ViewModels;
 
 /// <summary>
 /// Represents a modular setting entry in the Settings menu.
 /// </summary>
-public sealed class SettingItemViewModel : INotifyPropertyChanged
+public sealed class SettingItemViewModel : ViewModelBase
 {
     private readonly Action<string> _onSelectionChanged;
     private string _label;
@@ -49,14 +47,7 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
     public bool IsTextInput
     {
         get => _isTextInput;
-        private set
-        {
-            if (value == _isTextInput)
-                return;
-
-            _isTextInput = value;
-            OnPropertyChanged();
-        }
+        private set => SetProperty(ref _isTextInput, value);
     }
 
     public string TextValue
@@ -64,26 +55,17 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
         get => _textValue;
         set
         {
-            if (value == _textValue)
-                return;
-
-            _textValue = value;
-            OnPropertyChanged();
-            _onSelectionChanged(value);
+            if (SetProperty(ref _textValue, value))
+            {
+                _onSelectionChanged(value);
+            }
         }
     }
 
     public string Label
     {
         get => _label;
-        private set
-        {
-            if (value == _label)
-                return;
-
-            _label = value;
-            OnPropertyChanged();
-        }
+        private set => SetProperty(ref _label, value);
     }
 
     public SettingOptionViewModel? SelectedOption
@@ -91,15 +73,13 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
         get => _selectedOption;
         set
         {
-            if (value == null)
+            if (value == null || _selectedOption?.Value == value.Value)
                 return;
 
-            if (_selectedOption?.Value == value.Value)
-                return;
-
-            _selectedOption = value;
-            OnPropertyChanged();
-            _onSelectionChanged(value.Value);
+            if (SetProperty(ref _selectedOption, value))
+            {
+                _onSelectionChanged(value.Value);
+            }
         }
     }
 
@@ -139,9 +119,4 @@ public sealed class SettingItemViewModel : INotifyPropertyChanged
         _selectedOption = fallback;
         OnPropertyChanged(nameof(SelectedOption));
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
