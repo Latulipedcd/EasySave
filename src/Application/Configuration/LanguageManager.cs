@@ -1,3 +1,4 @@
+using Core.Interfaces;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Text.Json;
 
 namespace EasySave.Application.Configuration
 {
-    public class LanguageManager
+    public class LanguageManager : ILanguageService
     {
         private static LanguageManager? _instance;
         private Dictionary<string, string>? _currentStrings;

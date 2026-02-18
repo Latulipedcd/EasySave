@@ -1,4 +1,4 @@
-﻿using EasySave.Application.ViewModels;
+﻿using EasySave.Application;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,11 +9,11 @@ namespace EasySave.ConsoleApp
     public class ConsoleLogic
     {
         //All the logical part of the console
-        private readonly MainViewModel _vm;
+        private readonly BackupController _vm;
 
         public ConsoleLogic()
         {
-            _vm = new MainViewModel();
+            _vm = new BackupController();
         }
 
 

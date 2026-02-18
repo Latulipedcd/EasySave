@@ -1,8 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Core.Models;
-using EasySave.Application.ViewModels;
-using GUI.ViewModels;
+using EasySave.Presentation.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,10 +17,10 @@ public partial class MainWindow : Window
     /// Constructeur de la fenetre principale.
     /// Initialise les composants XAML et configure le DataContext.
     /// </summary>
-    public MainWindow()
+    public MainWindow(MainWindowViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel();
+        DataContext = viewModel;
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-using EasySave.Application.ViewModels;
+using EasySave.Application;
 
 namespace EasySave.ConsoleApp
 {
@@ -22,14 +22,14 @@ namespace EasySave.ConsoleApp
         {
             if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
             {
-                var vm = new MainViewModel();
+                var vm = new BackupController();
                 vm.TryLoadSavedLanguage();
                 Console.WriteLine(vm.GetText("ErrorInvalidOption"));
                 return 1;
             }
 
             string command = args[0];
-            var viewModel = new MainViewModel();
+            var viewModel = new BackupController();
             viewModel.TryLoadSavedLanguage();
 
             if (string.IsNullOrWhiteSpace(command))

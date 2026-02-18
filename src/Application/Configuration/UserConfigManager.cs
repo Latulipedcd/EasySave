@@ -1,3 +1,4 @@
+using Core.Interfaces;
 using Log.Enums;
 using System;
 using System.IO;
@@ -6,9 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace EasySave.Application.Configuration
 {
-
-    //Persistant language configuration
-    public class UserConfigManager
+    public class UserConfigManager : IUserConfigService
     {
         private readonly string _configDirectoryPath;
         private readonly string _configFilePath;
