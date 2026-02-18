@@ -9,7 +9,7 @@
         x:Class="GUI.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
-        Icon="avares://GUI/Assets/Brand/easysave-logo.png"
+        Icon="avares://EasySave/Assets/Brand/easysave-logo.png"
         MinWidth="1200" MinHeight="760"
         Width="1400" Height="860">
 
@@ -34,7 +34,7 @@
                       RowSpacing="4">
                     <Image Grid.Column="1"
                            Grid.Row="0"
-                           Source="avares://GUI/Assets/Brand/easysave-full-logo.png"
+                           Source="avares://EasySave/Assets/Brand/easysave-full-logo.png"
                            Height="80"
                            Stretch="Uniform"
                            HorizontalAlignment="Left"
@@ -371,7 +371,7 @@
                                 Height="108"
                                 Padding="8"
                                 ClipToBounds="True">
-                            <lottie:Lottie Path="avares://GUI/Assets/Animations/cat%20default.json"
+                            <lottie:Lottie Path="avares://EasySave/Assets/Animations/cat%20default.json"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            Width="92"
