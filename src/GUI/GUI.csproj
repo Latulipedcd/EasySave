@@ -35,14 +35,6 @@
     </None>
   </ItemGroup>
 
-	<Target Name="CopyCryptoSoft" AfterTargets="Build">
-		<ItemGroup>
-			<CryptoSoftFiles Include="..\CryptoSoft\bin\Release\net10.0\CryptoSoft.exe" />
-		</ItemGroup>
-		<MakeDir Directories="$(OutputPath)Resources" />
-		<Copy SourceFiles="@(CryptoSoftFiles)" DestinationFolder="$(OutputPath)Resources" SkipUnchangedFiles="true" />
-
-	</Target>
 </Project>
 
 
