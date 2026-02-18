@@ -34,8 +34,8 @@ echo [3/5] Publishing EasySave GUI to "%GUI_DIR%"
 dotnet publish "%REPO_ROOT%\src\GUI\GUI.csproj" -c Release -o "%GUI_DIR%"
 if errorlevel 1 goto :error
 
-if not exist "%GUI_DIR%\GUI.exe" (
-    echo GUI.exe was not generated.
+if not exist "%GUI_DIR%\EasySave.exe" (
+    echo EasySave.exe was not generated.
     goto :error
 )
 
