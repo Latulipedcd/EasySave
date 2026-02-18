@@ -6,7 +6,6 @@
     <AssemblyName>EasySave</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <CopyCryptoSoftToResources>true</CopyCryptoSoftToResources>
   </PropertyGroup>
 
   <ItemGroup>

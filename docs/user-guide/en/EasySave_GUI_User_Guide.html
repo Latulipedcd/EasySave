@@ -1,0 +1,767 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasySave - GUI User Guide</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    :root {
+      --ink: #14213d;
+      --text: #283449;
+      --muted: #5f6b7e;
+      --brand: #0b6e4f;
+      --brand-2: #1f9d7a;
+      --accent: #ff7a00;
+      --paper: #f9fbfc;
+      --line: #d9e1e8;
+      --panel: #ffffff;
+      --shadow: 0 10px 24px rgba(17, 33, 67, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 4%, #ecfdf5 0%, transparent 34%),
+        radial-gradient(circle at 94% 0%, #fff7ed 0%, transparent 24%),
+        #ffffff;
+      color: var(--text);
+      font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+      font-size: 10.7pt;
+    }
+
+    .document {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 6px 2px 10px;
+    }
+
+    .cover {
+      position: relative;
+      margin: 0;
+      padding: 36px 34px 30px;
+      border-radius: 18px;
+      border: 1.5px solid #83c5be;
+      background:
+        linear-gradient(130deg, #ffffff 0%, #f2fbf8 48%, #ecfdf5 100%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .cover::before {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 999px;
+      background: rgba(11, 110, 79, 0.08);
+      right: -120px;
+      top: -130px;
+    }
+
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cover-mark {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 8.6pt;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      background: #dcfce7;
+      color: var(--brand);
+      border: 1px solid #86efac;
+    }
+
+    .logo {
+      height: 64px;
+      object-fit: contain;
+      filter: drop-shadow(0 5px 10px rgba(17, 33, 67, 0.1));
+    }
+
+    .title {
+      margin: 18px 0 8px;
+      color: var(--ink);
+      font-family: "Bahnschrift", "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+      font-size: 33pt;
+      line-height: 1.02;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 13.2pt;
+      color: var(--muted);
+      max-width: 74%;
+    }
+
+    .meta-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .meta-box {
+      border: 1px solid #d1fae5;
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 10px 12px;
+    }
+
+    .meta-label {
+      font-size: 8.8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
+      color: #047857;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .meta-value {
+      color: var(--text);
+      font-size: 10pt;
+      font-weight: 600;
+    }
+
+    .section {
+      margin-top: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      break-inside: auto;
+      page-break-inside: auto;
+    }
+
+    .section.keep {
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+    }
+
+    .section.toc {
+      page-break-after: always;
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-family: "Bahnschrift", "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+      font-size: 16pt;
+      color: var(--ink);
+      border-bottom: 1px solid #cffafe;
+      padding-bottom: 5px;
+      position: relative;
+      padding-left: 12px;
+    }
+
+    .section h2::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 4px;
+      height: calc(100% - 4px);
+      border-radius: 99px;
+      background: linear-gradient(180deg, var(--brand) 0%, var(--brand-2) 100%);
+    }
+
+    .toc-list {
+      column-count: 2;
+      column-gap: 28px;
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .toc-list li {
+      margin: 6px 0;
+      break-inside: avoid;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 7px 0;
+    }
+
+    ul,
+    ol {
+      margin: 6px 0 10px 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    .cmd {
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9.6pt;
+      white-space: pre-wrap;
+      border: 1px solid #334155;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .quick-card {
+      border-radius: 10px;
+      border: 1px solid #d8e3ec;
+      background: #f8fafc;
+      padding: 10px;
+    }
+
+    .quick-title {
+      margin: 0 0 4px;
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 10.2pt;
+    }
+
+    .quick-text {
+      margin: 0;
+      color: #475569;
+      font-size: 9.8pt;
+    }
+
+    .timeline {
+      margin: 8px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .timeline li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      margin: 8px 0;
+      align-items: start;
+    }
+
+    .step {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(145deg, var(--brand), var(--brand-2));
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 9.6pt;
+      box-shadow: 0 5px 10px rgba(11, 110, 79, 0.3);
+    }
+
+    .step-body {
+      border: 1px solid #dbe7ef;
+      border-radius: 9px;
+      background: #f8fbfd;
+      padding: 7px 10px;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 5px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 8.8pt;
+      font-weight: 700;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      background: #fffbeb;
+    }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .type-card {
+      border-radius: 10px;
+      border: 1px solid #dce7f1;
+      background: #ffffff;
+      padding: 10px;
+    }
+
+    .type-card h3 {
+      margin: 0 0 5px;
+      color: var(--ink);
+      font-size: 11pt;
+      font-family: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+    }
+
+    .path-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 9.8pt;
+    }
+
+    .path-table th,
+    .path-table td {
+      border: 1px solid #d7e0e8;
+      padding: 7px 8px;
+      vertical-align: top;
+    }
+
+    .path-table th {
+      background: #eff6ff;
+      color: #1e3a8a;
+      text-align: left;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+    }
+
+    .path {
+      font-family: Consolas, "Courier New", monospace;
+      color: #0f172a;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 2px 6px;
+      display: inline-block;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .flow-box {
+      border: 1px solid #d9e3eb;
+      border-radius: 9px;
+      background: #f8fafc;
+      padding: 8px;
+      text-align: center;
+      font-size: 9.4pt;
+      color: #334155;
+      font-weight: 700;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .warn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .warn-card {
+      border-radius: 10px;
+      border: 1px solid #fecaca;
+      background: #fff7ed;
+      padding: 9px 10px;
+    }
+
+    .warn-card h3 {
+      margin: 0 0 5px;
+      color: #9a3412;
+      font-size: 10.6pt;
+    }
+
+    .warn-card p {
+      margin: 0;
+      font-size: 9.7pt;
+      color: #7c2d12;
+    }
+
+    .closing {
+      margin-top: 14px;
+      text-align: center;
+      color: #334155;
+      font-size: 9.8pt;
+      font-weight: 700;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+      border-top: 1px dashed #cdd8e3;
+      padding-top: 10px;
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #1f2937;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .document {
+        max-width: none;
+        padding: 0;
+      }
+
+      .section,
+      .cover {
+        background: #ffffff !important;
+        box-shadow: none;
+      }
+
+      .cover::before {
+        display: none;
+      }
+
+      .section {
+        border-color: #d4dbe4;
+      }
+
+      .section.keep,
+      .section h2,
+      .section h3,
+      .section ul,
+      .section ol,
+      .timeline,
+      .quick-grid,
+      .type-grid,
+      .warn-grid,
+      .path-table {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+      }
+
+      .section h2,
+      .section h3 {
+        break-after: avoid-page;
+        page-break-after: avoid;
+      }
+
+      .quick-card,
+      .type-card,
+      .warn-card,
+      .step-body,
+      .flow-box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      li,
+      p {
+        orphans: 3;
+        widows: 3;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="document">
+    <section class="cover">
+      <div class="cover-top">
+        <div class="cover-mark">Official Guide</div>
+        <img class="logo" src="../../../src/GUI/Assets/Brand/easysave-full-logo.png" alt="EasySave" />
+      </div>
+      <h1 class="title">EasySave</h1>
+      <p class="subtitle">User Guide - Graphical Interface (GUI)</p>
+      <div class="meta-grid">
+        <div class="meta-box">
+          <div class="meta-label">Version</div>
+          <div class="meta-value">1.0</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Target audience</div>
+          <div class="meta-value">EasySave end user</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section toc">
+      <h2>Table of Contents</h2>
+      <ol class="toc-list">
+        <li>Software purpose</li>
+        <li>Starting the application</li>
+        <li>Interface overview</li>
+        <li>Create a backup job</li>
+        <li>Edit a backup job</li>
+        <li>Delete one or more jobs</li>
+        <li>Run backups</li>
+        <li>Understand backup types</li>
+        <li>Settings (language, logs, business software, encryption)</li>
+        <li>Where to find important files</li>
+        <li>How EasySave works</li>
+        <li>Quick troubleshooting</li>
+      </ol>
+    </section>
+
+    <section class="section keep">
+      <h2>1. Software purpose</h2>
+      <p>EasySave allows you to:</p>
+      <ul>
+        <li>create backup jobs (source to destination),</li>
+        <li>run one or more jobs,</li>
+        <li>track progress in real time,</li>
+        <li>write execution logs in JSON or XML.</li>
+      </ul>
+      <div class="quick-grid">
+        <article class="quick-card">
+          <h3 class="quick-title">Simple creation</h3>
+          <p class="quick-text">A clear form to define name, source, destination, and type.</p>
+        </article>
+        <article class="quick-card">
+          <h3 class="quick-title">Fast execution</h3>
+          <p class="quick-text">Run one job, a selection, or the entire list.</p>
+        </article>
+        <article class="quick-card">
+          <h3 class="quick-title">Live tracking</h3>
+          <p class="quick-text">Progress, current file, sizes, and status in real time.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section keep">
+      <h2>2. Starting the application</h2>
+      <p>To start EasySave (GUI):</p>
+      <div class="cmd">Run the application executable directly: EasySave.exe</div>
+      <p>The application opens a window with:</p>
+      <ul>
+        <li>the list of backup jobs,</li>
+        <li>action buttons (new, edit, run, delete),</li>
+        <li>an execution details panel,</li>
+        <li>a <strong>Settings</strong> menu at the top right.</li>
+      </ul>
+    </section>
+
+    <section class="section keep">
+      <h2>3. Interface overview</h2>
+      <div class="quick-grid">
+        <article class="quick-card">
+          <h3 class="quick-title">Main area</h3>
+          <p class="quick-text">Job list with multi-selection.</p>
+        </article>
+        <article class="quick-card">
+          <h3 class="quick-title">Action bar</h3>
+          <p class="quick-text">New, Edit, Run, Delete.</p>
+        </article>
+        <article class="quick-card">
+          <h3 class="quick-title">Details panel</h3>
+          <p class="quick-text">Status, progress, current file, timestamp.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section keep">
+      <h2>4. Create a backup job</h2>
+      <ol class="timeline">
+        <li>
+          <div class="step">1</div>
+          <div class="step-body">Click <strong>New job</strong>.</div>
+        </li>
+        <li>
+          <div class="step">2</div>
+          <div class="step-body">Fill in: Name, Source folder, Destination folder, Type.</div>
+        </li>
+        <li>
+          <div class="step">3</div>
+          <div class="step-body">Click <strong>Save</strong>.</div>
+        </li>
+      </ol>
+      <div class="chip-row">
+        <span class="chip">Name required</span>
+        <span class="chip">Unique name</span>
+        <span class="chip">Source required</span>
+        <span class="chip">Destination required</span>
+      </div>
+    </section>
+
+    <section class="section keep">
+      <h2>5. Edit a backup job</h2>
+      <ol class="timeline">
+        <li>
+          <div class="step">1</div>
+          <div class="step-body">Select <strong>exactly one</strong> job.</div>
+        </li>
+        <li>
+          <div class="step">2</div>
+          <div class="step-body">Click <strong>Edit job</strong>.</div>
+        </li>
+        <li>
+          <div class="step">3</div>
+          <div class="step-body">Update the fields, then click <strong>Save</strong>.</div>
+        </li>
+      </ol>
+      <p>If no job or multiple jobs are selected, editing is blocked.</p>
+    </section>
+
+    <section class="section keep">
+      <h2>6. Delete one or more jobs</h2>
+      <ol class="timeline">
+        <li>
+          <div class="step">1</div>
+          <div class="step-body">Select one or more jobs.</div>
+        </li>
+        <li>
+          <div class="step">2</div>
+          <div class="step-body">Click <strong>Delete selection</strong>.</div>
+        </li>
+      </ol>
+      <p>The list refreshes automatically after deletion.</p>
+    </section>
+
+    <section class="section keep">
+      <h2>7. Run backups</h2>
+      <div class="quick-grid">
+        <article class="quick-card">
+          <h3 class="quick-title">Run selection</h3>
+          <p class="quick-text">Select jobs, then click Run selection.</p>
+        </article>
+        <article class="quick-card">
+          <h3 class="quick-title">Run all</h3>
+          <p class="quick-text">Runs the full job list in one action.</p>
+        </article>
+        <article class="quick-card">
+          <h3 class="quick-title">Execution tracking</h3>
+          <p class="quick-text">Progress, sizes, status, and current file are visible live.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section keep">
+      <h2>8. Understand backup types</h2>
+      <div class="type-grid">
+        <article class="type-card">
+          <h3>Full</h3>
+          <ul>
+            <li>copies all source files,</li>
+            <li>overwrites existing files at destination.</li>
+          </ul>
+        </article>
+        <article class="type-card">
+          <h3>Differential</h3>
+          <ul>
+            <li>copies only missing files,</li>
+            <li>or files newer than those at destination.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section keep">
+      <h2>9. Settings (language, logs, business software, encryption)</h2>
+      <ul>
+        <li><strong>Language</strong>: changes interface text.</li>
+        <li><strong>Log format</strong>: JSON or XML for upcoming executions.</li>
+        <li><strong>Business software to block</strong>: process name without <code>.exe</code>.</li>
+        <li><strong>Extensions to encrypt</strong>: comma-separated extensions (for example: .txt, .pdf, .docx).</li>
+      </ul>
+    </section>
+
+    <section class="section keep">
+      <h2>10. Where to find important files</h2>
+      <table class="path-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Path</th>
+            <th>Content / usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>User configuration</td>
+            <td><span class="path">%APPDATA%\EasySave\userdata\userconfig.json</span></td>
+            <td>Language, log format, business software, encryption extensions.</td>
+          </tr>
+          <tr>
+            <td>Job list</td>
+            <td><span class="path">%APPDATA%\EasySave\Jobs\jobs.json</span></td>
+            <td>Name, source, destination, and type of each job.</td>
+          </tr>
+          <tr>
+            <td>Execution logs</td>
+            <td><span class="path">%APPDATA%\EasyLog\Logs\</span></td>
+            <td>Daily files: log-YYYY-MM-DD.json or .xml.</td>
+          </tr>
+          <tr>
+            <td>Current state</td>
+            <td><span class="path">%APPDATA%\EasyLog\Progress\state.json</span></td>
+            <td>Status, progress, remaining size, current file.</td>
+          </tr>
+          <tr>
+            <td>Application resources</td>
+            <td><span class="path">&lt;application_folder&gt;\Resources\</span></td>
+            <td>Language files and CryptoSoft.exe.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section keep">
+      <h2>11. How EasySave works</h2>
+      <div class="flow">
+        <div class="flow-box">Create jobs<br />in jobs.json</div>
+        <div class="flow-box">Read<br />user settings</div>
+        <div class="flow-box">Copy / encrypt<br />file by file</div>
+        <div class="flow-box">Write logs<br />and state.json</div>
+        <div class="flow-box">Live display<br />in the GUI</div>
+      </div>
+    </section>
+
+    <section class="section keep">
+      <h2>12. Quick troubleshooting</h2>
+      <div class="warn-grid">
+        <article class="warn-card">
+          <h3>No job to run</h3>
+          <p>Verify the list contains at least one active job.</p>
+        </article>
+        <article class="warn-card">
+          <h3>Error during backup</h3>
+          <p>Verify source/destination paths and access permissions.</p>
+        </article>
+        <article class="warn-card">
+          <h3>Encryption not applied</h3>
+          <p>Verify configured extensions and the presence of CryptoSoft.exe.</p>
+        </article>
+        <article class="warn-card">
+          <h3>Business software block</h3>
+          <p>Verify configured process name (without .exe) or close that software.</p>
+        </article>
+      </div>
+      <p class="closing">End of EasySave user guide</p>
+    </section>
+  </main>
+</body>
+</html>
+
+
+
+
