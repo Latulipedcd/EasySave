@@ -127,8 +127,8 @@ namespace Core.Services
             var logError = new LogEntry
             {
                 BackupName = job.Name,
-                Source = PathHelper.ToUncPath(job.SourceDirectory),
-                Target = PathHelper.ToUncPath(job.TargetDirectory),
+                Source = "Path not found",
+                Target = "Path not found or cannot be created",
                 Duration = TimeSpan.Zero,
                 Timestamp = DateTime.Now,
                 FileSize = 0,
