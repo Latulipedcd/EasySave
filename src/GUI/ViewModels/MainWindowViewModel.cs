@@ -109,6 +109,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     
     // Délégation aux ViewModels spécialisés
     public ObservableCollection<BackupJob> BackupJobs => JobList.BackupJobs;
+    public ObservableCollection<BackupJobDisplayItem> DisplayJobs => JobList.DisplayJobs;
     public ObservableCollection<string> SupportedLanguages => Settings.SupportedLanguages;
     public ObservableCollection<SettingItemViewModel> SettingsItems => Settings.SettingsItems;
     

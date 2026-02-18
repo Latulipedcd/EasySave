@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Core.Models;
+using EasySave.Application.ViewModels;
 using GUI.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,8 @@ public partial class MainWindow : Window
             return;
 
         var selected = JobsList?.SelectedItems?
-            .OfType<BackupJob>()
+            .OfType<BackupJobDisplayItem>()
+            .Select(item => item.Job)
             .ToList() ?? new List<BackupJob>();
 
         await vm.ExecuteSelectedAsync(selected);
@@ -76,7 +78,8 @@ public partial class MainWindow : Window
             return;
 
         var selected = JobsList?.SelectedItems?
-            .OfType<BackupJob>()
+            .OfType<BackupJobDisplayItem>()
+            .Select(item => item.Job)
             .ToList();
 
         if (selected == null || selected.Count != 1)
@@ -104,7 +107,8 @@ public partial class MainWindow : Window
             return;
 
         var selected = JobsList?.SelectedItems?
-            .OfType<BackupJob>()
+            .OfType<BackupJobDisplayItem>()
+            .Select(item => item.Job)
             .FirstOrDefault();
 
         vm.SelectedJob = selected;
@@ -120,7 +124,8 @@ public partial class MainWindow : Window
             return;
 
         var selected = JobsList?.SelectedItems?
-            .OfType<BackupJob>()
+            .OfType<BackupJobDisplayItem>()
+            .Select(item => item.Job)
             .ToList() ?? new List<BackupJob>();
 
         await vm.DeleteSelectedJobsAsync(selected);

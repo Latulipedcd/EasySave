@@ -24,6 +24,11 @@ public class JobListViewModel : ViewModelBase
     public ObservableCollection<BackupJob> BackupJobs { get; }
 
     /// <summary>
+    /// Observable collection of backup jobs for display with IDs
+    /// </summary>
+    public ObservableCollection<BackupJobDisplayItem> DisplayJobs { get; }
+
+    /// <summary>
     /// Currently selected job
     /// </summary>
     private BackupJob? _selectedJob;
@@ -65,6 +70,22 @@ public class JobListViewModel : ViewModelBase
         _backupJobRepository = backupJobRepository;
         _langManager = langManager;
         BackupJobs = new ObservableCollection<BackupJob>(_backupJobRepository.GetAll());
+        DisplayJobs = new ObservableCollection<BackupJobDisplayItem>();
+        RefreshDisplayJobs();
+    }
+
+    /// <summary>
+    /// Refreshes the DisplayJobs collection based on BackupJobs
+    /// </summary>
+    private void RefreshDisplayJobs()
+    {
+        DisplayJobs.Clear();
+        int id = 1;
+        foreach (var job in BackupJobs)
+        {
+            DisplayJobs.Add(new BackupJobDisplayItem(job, id));
+            id++;
+        }
     }
 
     /// <summary>
@@ -215,5 +236,7 @@ public class JobListViewModel : ViewModelBase
         BackupJobs.Clear();
         foreach (var job in jobs)
             BackupJobs.Add(job);
+        
+        RefreshDisplayJobs();
     }
 }
