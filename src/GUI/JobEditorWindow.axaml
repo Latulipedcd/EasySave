@@ -7,7 +7,7 @@
         x:Class="GUI.JobEditorWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding EditorWindowTitle}"
-        Icon="avares://GUI/Assets/Brand/easysave-logo.png"
+        Icon="avares://EasySave/Assets/Brand/easysave-logo.png"
         Width="500" Height="600"
         MinWidth="450" MinHeight="500"
         WindowStartupLocation="CenterOwner"
