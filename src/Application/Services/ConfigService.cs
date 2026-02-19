@@ -7,11 +7,11 @@ namespace EasySave.Application.Services;
 /// Application-layer orchestration service for user configuration management.
 /// Provides convenient methods with validation and type conversion.
 /// </summary>
-public class ConfigOrchestrationService
+public class ConfigService
 {
     private readonly IUserConfigService _userConfigService;
 
-    public ConfigOrchestrationService(IUserConfigService userConfigService)
+    public ConfigService(IUserConfigService userConfigService)
     {
         _userConfigService = userConfigService ?? throw new ArgumentNullException(nameof(userConfigService));
     }

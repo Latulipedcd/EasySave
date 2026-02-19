@@ -7,12 +7,12 @@ namespace EasySave.Application.Services;
 /// Coordinates between ILanguageService and IUserConfigService.
 /// Provides convenience methods like "ChangeLanguage" that load + save in one call.
 /// </summary>
-public class LanguageOrchestrationService
+public class LanguageService
 {
     private readonly ILanguageService _languageService;
     private readonly IUserConfigService _userConfigService;
 
-    public LanguageOrchestrationService(
+    public LanguageService(
         ILanguageService languageService,
         IUserConfigService userConfigService)
     {

@@ -9,8 +9,8 @@ namespace EasySave.ConsoleApp
 
         //Console display
         private readonly ILanguageService _languageService;
-        private readonly LanguageOrchestrationService _languageOrchestration;
-        private readonly ConfigOrchestrationService _configOrchestration;
+        private readonly LanguageService _languageOrchestration;
+        private readonly ConfigService _configOrchestration;
         private readonly ConsoleLogic _logic;
 
         public ConsoleView()

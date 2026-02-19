@@ -70,9 +70,9 @@ public static class ServiceFactory
     /// <summary>
     /// Creates a new instance of LanguageOrchestrationService.
     /// </summary>
-    public static LanguageOrchestrationService CreateLanguageOrchestrationService()
+    public static LanguageService CreateLanguageOrchestrationService()
     {
-        return new LanguageOrchestrationService(
+        return new LanguageService(
             GetLanguageService(),
             GetUserConfigService());
     }
@@ -80,9 +80,9 @@ public static class ServiceFactory
     /// <summary>
     /// Creates a new instance of ConfigOrchestrationService.
     /// </summary>
-    public static ConfigOrchestrationService CreateConfigOrchestrationService()
+    public static ConfigService CreateConfigOrchestrationService()
     {
-        return new ConfigOrchestrationService(GetUserConfigService());
+        return new ConfigService(GetUserConfigService());
     }
 
     /// <summary>
