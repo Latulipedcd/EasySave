@@ -45,17 +45,22 @@ public partial class JobEditorWindow : Window
     {
         try
         {
+            var saved = false;
+
             if (_isEditMode)
             {
-                await _viewModel.UpdateSelectedJobAsync();
+                saved = await _viewModel.UpdateSelectedJobAsync();
             }
             else
             {
-                await _viewModel.CreateJobAsync();
+                saved = await _viewModel.CreateJobAsync();
             }
 
-            // Ferme la fenêtre avec succès
-            Close(true);
+            if (saved)
+            {
+                // Ferme la fenêtre avec succès
+                Close(true);
+            }
         }
         catch (Exception ex)
         {

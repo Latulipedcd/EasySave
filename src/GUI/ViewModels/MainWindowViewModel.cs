@@ -19,6 +19,28 @@ namespace GUI.ViewModels;
 /// </summary>
 public class MainWindowViewModel : INotifyPropertyChanged
 {
+    // Chat assistant notification types
+    private enum CatNotification
+    {
+        NoSelection,
+        SelectedReady,
+        SelectedRunning,
+        Creating,
+        Created,
+        Updating,
+        Updated,
+        Deleting,
+        Deleted,
+        DeleteWithErrors,
+        ExecutingAll,
+        ExecutingSelected,
+        ExecutedSuccess,
+        ExecutedWithErrors,
+        ActionFailed,
+        NoJobToRun,
+        EditModeHint
+    }
+
     // ViewModel de la couche Application pour accéder aux services métier
     private readonly MainViewModel _appViewModel;
 
@@ -30,6 +52,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     private readonly DispatcherTimer _stateRefreshTimer;
     private string _catSpeech = string.Empty;
+    private DateTime _catPriorityUntilUtc = DateTime.MinValue;
+    private bool _pendingSelectionNotification;
+    private const int CatPriorityHoldSeconds = 4;
+    private static readonly string[] DirectValidationErrorKeys =
+    {
+        "GuiErrorJobNameEmpty"
+    };
 
     /// <summary>
     /// Récupère un texte localisé depuis les fichiers de ressources
@@ -168,7 +197,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         JobList.SelectionChanged += (s, job) =>
         {
             JobExecution.MonitoredJob = job;
-            SetDefaultCatMessage();
+            UpdateSelectionNotification();
             OnPropertyChanged(nameof(SelectedJob));
             OnPropertyChanged(nameof(HasSelection));
             OnPropertyChanged(nameof(SelectedJobName));
@@ -191,6 +220,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(JobSizeRemaining));
             OnPropertyChanged(nameof(JobCurrentFile));
             OnPropertyChanged(nameof(JobLastUpdate));
+
+            // Keep assistant message aligned with runtime status when a selected job is running.
+            if (HasSelection && state?.Status == BackupStatus.Active)
+            {
+                UpdateSelectionNotification();
+            }
         };
         JobEditor.PropertyChanged += (s, e) =>
         {
@@ -215,7 +250,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SelectedLanguageCode));
         OnPropertyChanged(nameof(SelectedLogFormatIndex));
 
-        SetDefaultCatMessage();
+        UpdateSelectionNotification();
 
         // Initialisation du timer pour rafraîchir l'état des jobs
         _stateRefreshTimer = new DispatcherTimer
@@ -232,6 +267,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private void OnRefreshTimerTick(object? sender, EventArgs e)
     {
         _appViewModel.RefreshJobState();
+
+        if (_pendingSelectionNotification && !IsCatMessagePinned)
+        {
+            UpdateSelectionNotification(force: true);
+        }
     }
 
     /// <summary>
@@ -280,7 +320,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(JobDetailsCurrentFile));
         OnPropertyChanged(nameof(JobDetailsLastUpdate));
         OnPropertyChanged(nameof(CatWidgetTitle));
-        SetDefaultCatMessage();
+        UpdateSelectionNotification();
         OnPropertyChanged(nameof(EditorWindowTitle));
         OnPropertyChanged(nameof(JobStatusText));
         
@@ -371,6 +411,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string JobCurrentFile => JobExecution.JobCurrentFile;
     public string JobLastUpdate => JobExecution.JobLastUpdate;
     
+    // Chat assistant notification state and helpers
     public string CatSpeech
     {
         get => _catSpeech;
@@ -382,17 +423,106 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    private void SetCatMessage(string key, params object[] args)
+    private bool IsCatMessagePinned => DateTime.UtcNow < _catPriorityUntilUtc;
+
+    private static bool IsContextNotification(CatNotification notification)
     {
-        CatSpeech = args.Length > 0 ? TextFormat(key, args) : Text(key);
+        return notification is CatNotification.NoSelection
+            or CatNotification.SelectedReady
+            or CatNotification.SelectedRunning;
     }
 
-    private void SetDefaultCatMessage()
+    private void PublishCatSpeech(string message, bool pinMessage)
     {
-        if (HasSelection)
-            SetCatMessage("GuiCatMessageSelected", SelectedJobName);
-        else
-            SetCatMessage("GuiCatMessageNoSelection");
+        CatSpeech = message;
+
+        if (pinMessage)
+        {
+            _catPriorityUntilUtc = DateTime.UtcNow.AddSeconds(CatPriorityHoldSeconds);
+            _pendingSelectionNotification = false;
+        }
+    }
+
+    private void NotifyCat(CatNotification notification, params object[] args)
+    {
+        var key = notification switch
+        {
+            CatNotification.NoSelection => "GuiCatMessageNoSelection",
+            CatNotification.SelectedReady => "GuiCatMessageSelected",
+            CatNotification.SelectedRunning => "GuiCatMessageSelectedRunning",
+            CatNotification.Creating => "GuiCatMessageCreating",
+            CatNotification.Created => "GuiCatMessageCreated",
+            CatNotification.Updating => "GuiCatMessageUpdating",
+            CatNotification.Updated => "GuiCatMessageUpdated",
+            CatNotification.Deleting => "GuiCatMessageDeletingCount",
+            CatNotification.Deleted => "GuiCatMessageDeleted",
+            CatNotification.DeleteWithErrors => "GuiCatMessageDeleteWithErrors",
+            CatNotification.ExecutingAll => "GuiCatMessageExecutingAll",
+            CatNotification.ExecutingSelected => "GuiCatMessageExecutingSelected",
+            CatNotification.ExecutedSuccess => "GuiCatMessageExecutedSuccess",
+            CatNotification.ExecutedWithErrors => "GuiCatMessageExecutedWithErrors",
+            CatNotification.ActionFailed => "GuiCatMessageActionFailed",
+            CatNotification.NoJobToRun => "GuiCatMessageNoJobToRun",
+            CatNotification.EditModeHint => "GuiStatusEditModeHint",
+            _ => "GuiCatMessageNoSelection"
+        };
+
+        var message = args.Length > 0 ? TextFormat(key, args) : Text(key);
+        PublishCatSpeech(message, pinMessage: !IsContextNotification(notification));
+    }
+
+    private void NotifyCatRaw(string message, bool pinMessage = true)
+    {
+        PublishCatSpeech(message, pinMessage);
+    }
+
+    /// <summary>
+    /// Méthode publique pour définir le message de statut
+    /// Utilisée par les fenêtres enfants (JobEditorWindow)
+    /// </summary>
+    /// <param name="message">Message à afficher</param>
+    public void SetStatus(string message)
+    {
+        NotifyCatRaw(message);
+    }
+
+    private bool IsDirectValidationError(string message)
+    {
+        return DirectValidationErrorKeys.Any(key => string.Equals(message, Text(key), StringComparison.Ordinal));
+    }
+
+    private bool TryNotifyDirectValidationError(string message)
+    {
+        if (!IsDirectValidationError(message))
+            return false;
+
+        NotifyCatRaw(message);
+        return true;
+    }
+
+    private void UpdateSelectionNotification(bool force = false)
+    {
+        if (!force && IsCatMessagePinned)
+        {
+            _pendingSelectionNotification = true;
+            return;
+        }
+
+        _pendingSelectionNotification = false;
+
+        if (!HasSelection)
+        {
+            NotifyCat(CatNotification.NoSelection);
+            return;
+        }
+
+        if (SelectedJobState?.Status == BackupStatus.Active)
+        {
+            NotifyCat(CatNotification.SelectedRunning, SelectedJobName);
+            return;
+        }
+
+        NotifyCat(CatNotification.SelectedReady, SelectedJobName);
     }
 
     /// <summary>
@@ -406,38 +536,26 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// Crée un nouveau job de sauvegarde de manière asynchrone
     /// </summary>
-    public async Task CreateJobAsync()
+    public async Task<bool> CreateJobAsync()
     {
-        SetCatMessage("GuiStatusCreatingJob");
-        SetCatMessage("GuiCatMessageCreating");
+        NotifyCat(CatNotification.Creating);
 
         var name = JobEditor.JobName;
         var (success, message) = await _appViewModel.CreateJobAsync();
 
-        SetCatMessage(message);
-
         if (!success)
         {
-            // Si le message correspond à l'erreur de nom vide, affiche en rouge dans le chat
-            if (message == Text("GuiErrorJobNameEmpty"))
-            {
-                CatSpeech = message;
-                OnPropertyChanged(nameof(CatSpeech));
-                // Optionnel: déclencher une animation spécifique (ex: cat error)
-                // AnimationCat = "cat error.json";
-            }
-            else
-            {
-                SetCatMessage("GuiCatMessageActionFailed", message);
-            }
-            return;
+            if (!TryNotifyDirectValidationError(message))
+                NotifyCat(CatNotification.ActionFailed, message);
+            return false;
         }
 
-        SetCatMessage("GuiCatMessageCreated", name);
+        NotifyCat(CatNotification.Created, name);
 
         // Rafraîchir la liste des jobs
         var jobs = await _appViewModel.RefreshJobsAsync();
         await Dispatcher.UIThread.InvokeAsync(() => _appViewModel.ReplaceJobs(jobs));
+        return true;
     }
 
     /// <summary>
@@ -449,7 +567,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         // Message d'édition relocalisé dans le chat
         if (job != null && JobList.GetJobId(job) > 0)
         {
-            SetCatMessage("GuiStatusEditModeHint");
+            NotifyCat(CatNotification.EditModeHint);
         }
     }
 
@@ -464,42 +582,31 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// Met à jour le job en cours de modification avec les nouvelles données du formulaire
     /// </summary>
-    public async Task UpdateSelectedJobAsync()
+    public async Task<bool> UpdateSelectedJobAsync()
     {
-        SetCatMessage("GuiCatMessageUpdating");
+        NotifyCat(CatNotification.Updating);
 
         var (success, message, canContinue) = await _appViewModel.UpdateJobAsync();
 
         if (!canContinue)
         {
-            // Si le message correspond à l'erreur de nom vide, affiche en rouge dans le chat
-            if (message == Text("GuiErrorJobNameEmpty"))
-            {
-                CatSpeech = message;
-                OnPropertyChanged(nameof(CatSpeech));
-                // Optionnel: déclencher une animation spécifique (ex: cat error)
-                // AnimationCat = "cat error.json";
-            }
-            else
-            {
-                SetStatusOnUIThread(message);
-            }
-            return;
+            if (!TryNotifyDirectValidationError(message))
+                NotifyCatRaw(message);
+            return false;
         }
-
-        SetCatMessage(message);
 
         if (!success)
         {
-            SetCatMessage("GuiCatMessageActionFailed", message);
-            return;
+            NotifyCat(CatNotification.ActionFailed, message);
+            return false;
         }
 
-        SetCatMessage("GuiCatMessageUpdated", SelectedJobName);
+        NotifyCat(CatNotification.Updated, SelectedJobName);
 
         // Rafraîchir la liste des jobs
         var jobs = await _appViewModel.RefreshJobsAsync();
         await Dispatcher.UIThread.InvokeAsync(() => _appViewModel.ReplaceJobs(jobs));
+        return true;
     }
 
     /// <summary>
@@ -510,12 +617,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (selectedJobs == null || selectedJobs.Count == 0)
         {
             SetStatusOnUIThread(Text("GuiErrorNoJobSelected"));
-            SetDefaultCatMessage();
+            NotifyCatRaw(Text("GuiErrorNoJobSelected"));
             return;
         }
 
         SetStatusOnUIThread(Text("GuiStatusDeleting"));
-        SetCatMessage("GuiCatMessageDeleting");
+        NotifyCat(CatNotification.Deleting, selectedJobs.Count);
 
         var (deletedCount, errors) = await _appViewModel.DeleteJobsAsync(selectedJobs);
 
@@ -526,12 +633,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (errors.Count == 0)
         {
             SetStatusOnUIThread(TextFormat("GuiStatusDeletedCount", deletedCount));
-            SetCatMessage("GuiCatMessageDeleted", deletedCount);
+            NotifyCat(CatNotification.Deleted, deletedCount);
             return;
         }
 
         SetStatusOnUIThread(TextFormat("GuiStatusDeletedWithErrors", deletedCount, errors.Count, errors[0]));
-        SetCatMessage("GuiCatMessageDeleteWithErrors", errors.Count);
+        NotifyCat(CatNotification.DeleteWithErrors, errors.Count);
     }
 
    
@@ -542,21 +649,21 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public async Task ExecuteAllAsync()
     {
         SetStatusOnUIThread(Text("GuiStatusExecuting"));
-        SetCatMessage("GuiCatMessageExecuting");
+        NotifyCat(CatNotification.ExecutingAll, BackupJobs.Count);
 
         var (success, results, errorMessage) = await _appViewModel.ExecuteAllJobsAsync();
 
         if (!success && BackupJobs.Count == 0)
         {
             StatusMessage = errorMessage;
-            SetCatMessage("GuiCatMessageNoJobToRun");
+            NotifyCat(CatNotification.NoJobToRun);
             return;
         }
 
         if (!success)
         {
             SetStatusOnUIThread(errorMessage);
-            SetCatMessage("GuiCatMessageActionFailed", errorMessage);
+            NotifyCat(CatNotification.ActionFailed, errorMessage);
             return;
         }
 
@@ -565,9 +672,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
 
         if (errors == 0)
-            SetCatMessage("GuiCatMessageExecutedSuccess", completed);
+            NotifyCat(CatNotification.ExecutedSuccess, completed);
         else
-            SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
+            NotifyCat(CatNotification.ExecutedWithErrors, errors);
     }
 
     /// <summary>
@@ -575,22 +682,22 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task ExecuteSelectedAsync(IReadOnlyList<BackupJob> selectedJobs)
     {
-        SetStatusOnUIThread(Text("GuiStatusExecuting"));
-        SetCatMessage("GuiCatMessageExecuting");
-
-        var (success, results, errorMessage) = await _appViewModel.ExecuteSelectedJobsAsync(selectedJobs);
-
-        if (!success && (selectedJobs == null || selectedJobs.Count == 0))
+        if (selectedJobs == null || selectedJobs.Count == 0)
         {
-            StatusMessage = errorMessage;
-            SetDefaultCatMessage();
+            SetStatusOnUIThread(Text("GuiErrorNoJobSelected"));
+            NotifyCatRaw(Text("GuiErrorNoJobSelected"));
             return;
         }
+
+        SetStatusOnUIThread(Text("GuiStatusExecuting"));
+        NotifyCat(CatNotification.ExecutingSelected, selectedJobs.Count);
+
+        var (success, results, errorMessage) = await _appViewModel.ExecuteSelectedJobsAsync(selectedJobs);
 
         if (!success)
         {
             SetStatusOnUIThread(errorMessage);
-            SetCatMessage("GuiCatMessageActionFailed", errorMessage);
+            NotifyCat(CatNotification.ActionFailed, errorMessage);
             return;
         }
 
@@ -599,9 +706,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
 
         if (errors == 0)
-            SetCatMessage("GuiCatMessageExecutedSuccess", completed);
+            NotifyCat(CatNotification.ExecutedSuccess, completed);
         else
-            SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
+            NotifyCat(CatNotification.ExecutedWithErrors, errors);
     }
 
   
@@ -619,16 +726,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
 
         Dispatcher.UIThread.Post(() => StatusMessage = message);
-    }
-
-    /// <summary>
-    /// Méthode publique pour définir le message de statut
-    /// Utilisée par les fenêtres enfants (JobEditorWindow)
-    /// </summary>
-    /// <param name="message">Message à afficher</param>
-    public void SetStatus(string message)
-    {
-            SetCatMessage(message);
     }
 
     /// <summary>
