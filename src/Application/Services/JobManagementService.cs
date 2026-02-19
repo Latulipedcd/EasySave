@@ -1,46 +1,40 @@
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
-using Core.Services;
-using EasySave.Application.Configuration;
 using Log.Enums;
-using Log.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace EasySave.Application;
+namespace EasySave.Application.Services;
 
 /// <summary>
-/// Application-layer controller that wires up infrastructure services and exposes
-/// all use-case operations for backup job management.
-/// Used directly by the Console layer and as the backbone of the Presentation layer.
+/// Application-layer service that orchestrates backup job management.
+/// Implements IJobManagementService from Core using proper dependency injection.
+/// This service focuses ONLY on job-related operations (CRUD + Execution).
 /// </summary>
-public class BackupController
+public class JobManagementService : IJobManagementService
 {
-    private readonly LanguageManager _langManager;
-    private readonly UserConfigManager _userConfigManager;
+    private readonly ILanguageService _languageService;
+    private readonly IUserConfigService _userConfigService;
     private readonly IBackupJobRepository _backupJobRepository;
     private readonly IBackupService _backupService;
 
-    // Exposed for the Presentation layer to initialise its specialised ViewModels
-    public LanguageManager Language => _langManager;
-    public UserConfigManager UserConfig => _userConfigManager;
-    public IBackupJobRepository JobRepository => _backupJobRepository;
-    public IBackupService BackupService => _backupService;
-
-    public BackupController()
+    /// <summary>
+    /// Constructor with dependency injection.
+    /// All dependencies are interfaces, making this class unit-testable.
+    /// </summary>
+    public JobManagementService(
+        ILanguageService languageService,
+        IUserConfigService userConfigService,
+        IBackupJobRepository backupJobRepository,
+        IBackupService backupService)
     {
-        _langManager = LanguageManager.GetInstance();
-        _userConfigManager = new UserConfigManager();
-        _backupJobRepository = new BackupJobRepository(new JobStorage());
-        _backupService = new BackupService(
-            LogService.Instance,
-            new FileService(),
-            new CopyService(),
-            new ProgressJsonWriter(),
-            new BusinessSoftwareMonitor());
+        _languageService = languageService ?? throw new ArgumentNullException(nameof(languageService));
+        _userConfigService = userConfigService ?? throw new ArgumentNullException(nameof(userConfigService));
+        _backupJobRepository = backupJobRepository ?? throw new ArgumentNullException(nameof(backupJobRepository));
+        _backupService = backupService ?? throw new ArgumentNullException(nameof(backupService));
     }
 
     public IReadOnlyList<BackupJob> GetBackupJobs()
@@ -53,7 +47,7 @@ public class BackupController
             BackupType trueJobType = jobType == 0 ? BackupType.Full : BackupType.Differencial;
             var job = new BackupJob(jobTitle, jobSrcPath, jobTargetPath, trueJobType);
             _backupJobRepository.Add(job);
-            message = GetText("JobCreatedSuccess");
+            message = _languageService.GetString("JobCreatedSuccess");
             return true;
         }
         catch (InvalidOperationException ex)
@@ -70,11 +64,11 @@ public class BackupController
             var jobs = _backupJobRepository.GetAll();
             if (jobId < 1 || jobId > jobs.Count)
             {
-                message = GetText("ErrorJobNotFound");
+                message = _languageService.GetString("ErrorJobNotFound");
                 return false;
             }
             _backupJobRepository.Delete(jobs[jobId - 1].Name);
-            message = GetText("JobDeletedSuccess");
+            message = _languageService.GetString("JobDeletedSuccess");
             return true;
         }
         catch (InvalidOperationException ex)
@@ -91,13 +85,13 @@ public class BackupController
             var jobs = _backupJobRepository.GetAll();
             if (jobId < 1 || jobId > jobs.Count)
             {
-                message = GetText("ErrorJobNotFound");
+                message = _languageService.GetString("ErrorJobNotFound");
                 return false;
             }
             var existingJob = jobs[jobId - 1];
             BackupType trueJobType = jobType == 0 ? BackupType.Full : BackupType.Differencial;
             _backupJobRepository.Update(new BackupJob(existingJob.Name, newSrcPath, newTargetPath, trueJobType));
-            message = GetText("JobUpdatedSuccess");
+            message = _languageService.GetString("JobUpdatedSuccess");
             return true;
         }
         catch (InvalidOperationException ex)
@@ -119,18 +113,28 @@ public class BackupController
 
         foreach (var job in jobsToExecute)
         {
+            // Load user configurations for each backup execution
+            var logFormat = _userConfigService.LoadLogFormat() ?? LogFormat.Json;
+            var businessSoftware = _userConfigService.LoadBusinessSoftware();
+            var cryptoExtensions = _userConfigService.LoadCryptoSoftExtensions() ?? new List<string>();
+            var cryptoPath = GetCryptoSoftPath();
+
             var state = _backupService.ExecuteBackup(
                 job,
-                GetSavedLogFormat(),
-                GetSavedBusinessSoftware(),
-                GetCryptoSoftExtensions(),
-                GetCryptoSoftPath());
+                logFormat,
+                businessSoftware,
+                cryptoExtensions,
+                cryptoPath);
+
             results.Add(state);
         }
 
         return true;
     }
 
+    /// <summary>
+    /// Parses user input like "1;3-5" into a list of jobs to execute.
+    /// </summary>
     private List<BackupJob>? ResolveJobsFromInput(string input, List<BackupJob> allJobs, out string errorMessage)
     {
         errorMessage = string.Empty;
@@ -149,7 +153,7 @@ public class BackupController
                     || startId > allJobs.Count || endId > allJobs.Count
                     || startId > endId)
                 {
-                    errorMessage = GetText("ErrorInvalidRange");
+                    errorMessage = _languageService.GetString("ErrorInvalidRange");
                     return null;
                 }
                 result.AddRange(allJobs.Skip(startId - 1).Take(endId - startId + 1));
@@ -158,7 +162,7 @@ public class BackupController
             {
                 if (!int.TryParse(part, out int jobId) || jobId < 1 || jobId > allJobs.Count)
                 {
-                    errorMessage = GetText("ErrorJobNotFound");
+                    errorMessage = _languageService.GetString("ErrorJobNotFound");
                     return null;
                 }
                 result.Add(allJobs[jobId - 1]);
@@ -168,56 +172,13 @@ public class BackupController
         return result.Distinct().ToList();
     }
 
-    public bool TryLoadSavedLanguage()
-    {
-        string? savedLanguage = _userConfigManager.LoadLanguage();
-        if (string.IsNullOrWhiteSpace(savedLanguage))
-            return false;
-        return _langManager.LoadLanguage(savedLanguage);
-    }
-
-    public bool ChangeLanguage(string cultureCode)
-    {
-        bool loaded = _langManager.LoadLanguage(cultureCode);
-        if (!loaded)
-            return false;
-        _userConfigManager.SaveLanguage(_langManager.CurrentCultureCode);
-        return true;
-    }
-
-    public bool ChangeLogFormat(string format)
-    {
-        if (format == "Json") { _userConfigManager.SaveLogFormat(LogFormat.Json); return true; }
-        if (format == "Xml")  { _userConfigManager.SaveLogFormat(LogFormat.Xml);  return true; }
-        return false;
-    }
-
-    public bool ChangeBusinessSoftware(string software)
-        => _userConfigManager.SaveBusinessSoftware(software);
-
-    public bool ChangeCryptoSoftExtensions(List<string> extensions)
-        => _userConfigManager.SaveCryptoSoftExtensions(extensions);
-
-    public LogFormat GetSavedLogFormat()
-        => _userConfigManager.LoadLogFormat() ?? LogFormat.Json;
-
-    public string? GetSavedBusinessSoftware()
-        => _userConfigManager.LoadBusinessSoftware();
-
-    public List<string> GetCryptoSoftExtensions()
-        => _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>();
-
-    public string? GetCryptoSoftPath()
+    /// <summary>
+    /// Gets the path to CryptoSoft.exe if it exists.
+    /// </summary>
+    private static string? GetCryptoSoftPath()
     {
         string workDir = AppDomain.CurrentDomain.BaseDirectory;
         string cryptoPath = Path.Combine(workDir, "Resources", "CryptoSoft.exe");
         return File.Exists(cryptoPath) ? cryptoPath : null;
     }
-
-    public IReadOnlyList<string> GetSupportedLanguages()
-        => _langManager.GetSupportedLanguages();
-
-    public string CurrentLanguageCode => _langManager.CurrentCultureCode;
-
-    public string GetText(string key) => _langManager.GetString(key);
 }
