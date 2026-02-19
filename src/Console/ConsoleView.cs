@@ -1,4 +1,6 @@
-using EasySave.Application.ViewModels;
+using Core.Interfaces;
+using EasySave.Application;
+using EasySave.Application.Services;
 
 namespace EasySave.ConsoleApp
 {
@@ -6,13 +8,19 @@ namespace EasySave.ConsoleApp
     {
 
         //Console display
-        private readonly MainViewModel _vm;
+        private readonly ILanguageService _languageService;
+        private readonly LanguageService _languageOrchestration;
+        private readonly ConfigService _configOrchestration;
         private readonly ConsoleLogic _logic;
 
         public ConsoleView()
         {
-            _vm = new MainViewModel();
-            _logic = new ConsoleLogic();
+            _languageService = ServiceFactory.GetLanguageService();
+            _languageOrchestration = ServiceFactory.CreateLanguageOrchestrationService();
+            _configOrchestration = ServiceFactory.CreateConfigOrchestrationService();
+
+            var jobService = ServiceFactory.CreateJobManagementService();
+            _logic = new ConsoleLogic(jobService, _languageService);
         }
 
         public void Start()
@@ -57,7 +65,7 @@ namespace EasySave.ConsoleApp
                         running = false;
                         break;
                     default:
-                        Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
+                        Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
                         Pause();
                         break;
                 }
@@ -66,7 +74,7 @@ namespace EasySave.ConsoleApp
 
         private void InitializeLanguage()
         {
-            bool hasLoadedSavedLanguage = _vm.TryLoadSavedLanguage();
+            bool hasLoadedSavedLanguage = _languageOrchestration.TryLoadSavedLanguage();
 
             if (hasLoadedSavedLanguage)
             {
@@ -79,16 +87,16 @@ namespace EasySave.ConsoleApp
         private void DisplayMenu()
         {
             Console.Clear();
-            Console.WriteLine(_vm.GetText("MainMenuTitle"));
-            Console.WriteLine(_vm.GetText("MenuOptionList"));
-            Console.WriteLine(_vm.GetText("MenuOptionCreate"));
-            Console.WriteLine(_vm.GetText("MenuOptionExecute"));
-            Console.WriteLine(_vm.GetText("MenuOptionModify"));
-            Console.WriteLine(_vm.GetText("MenuOptionDelete"));
-            Console.WriteLine(_vm.GetText("MenuOptionLang"));
-            Console.WriteLine(_vm.GetText("MenuOptionLog"));
-            Console.WriteLine(_vm.GetText("MenuOptionExit"));
-            Console.Write(_vm.GetText("MenuPrompt"));
+            Console.WriteLine(_languageService.GetString("MainMenuTitle"));
+            Console.WriteLine(_languageService.GetString("MenuOptionList"));
+            Console.WriteLine(_languageService.GetString("MenuOptionCreate"));
+            Console.WriteLine(_languageService.GetString("MenuOptionExecute"));
+            Console.WriteLine(_languageService.GetString("MenuOptionModify"));
+            Console.WriteLine(_languageService.GetString("MenuOptionDelete"));
+            Console.WriteLine(_languageService.GetString("MenuOptionLang"));
+            Console.WriteLine(_languageService.GetString("MenuOptionLog"));
+            Console.WriteLine(_languageService.GetString("MenuOptionExit"));
+            Console.Write(_languageService.GetString("MenuPrompt"));
         }
 
         private void RequestLanguageAtStartup()
@@ -127,7 +135,7 @@ namespace EasySave.ConsoleApp
 
             if (!hasChangedLanguage)
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
                 Pause();
             }
         }
@@ -136,8 +144,8 @@ namespace EasySave.ConsoleApp
         {
             return choice switch
             {
-                "1" => _vm.ChangeLanguage("en"),
-                "2" => _vm.ChangeLanguage("fr"),
+                "1" => _languageOrchestration.ChangeLanguage("en"),
+                "2" => _languageOrchestration.ChangeLanguage("fr"),
                 _ => false
             };
         }
@@ -154,7 +162,7 @@ namespace EasySave.ConsoleApp
 
             if (!hasChangedLogFormat)
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
                 Pause();
             }
         }
@@ -163,8 +171,8 @@ namespace EasySave.ConsoleApp
         {
             return choice switch
             {
-                "1" => _vm.ChangeLogFormat("Json"),
-                "2" => _vm.ChangeLogFormat("Xml"),
+                "1" => _configOrchestration.ChangeLogFormat("Json"),
+                "2" => _configOrchestration.ChangeLogFormat("Xml"),
                 _ => false
             };
         }

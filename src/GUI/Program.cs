@@ -1,5 +1,5 @@
 using Avalonia;
-using EasySave.Application.ViewModels;
+using EasySave.Application;
 using System;
 using System.Diagnostics;
 
@@ -44,23 +44,27 @@ class Program
     {
         if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
         {
-            var vm = new MainViewModel();
-            vm.TryLoadSavedLanguage();
-            Console.WriteLine(vm.GetText("ErrorInvalidOption"));
+            var langService = ServiceFactory.GetLanguageService();
+            var langOrchestration = ServiceFactory.CreateLanguageOrchestrationService();
+            langOrchestration.TryLoadSavedLanguage();
+            Console.WriteLine(langService.GetString("ErrorInvalidOption"));
             return 1;
         }
 
         string command = args[0];
-        var viewModel = new MainViewModel();
-        viewModel.TryLoadSavedLanguage();
+        var languageService = ServiceFactory.GetLanguageService();
+        var languageOrchestrationService = ServiceFactory.CreateLanguageOrchestrationService();
+        var jobManagementService = ServiceFactory.CreateJobManagementService();
+
+        languageOrchestrationService.TryLoadSavedLanguage();
 
         if (string.IsNullOrWhiteSpace(command))
         {
-            Console.WriteLine(viewModel.GetText("ErrorInvalidOption"));
+            Console.WriteLine(languageService.GetString("ErrorInvalidOption"));
             return 1;
         }
 
-        bool success = viewModel.ExecuteBackupJobs(command, out var results, out string errorMessage);
+        bool success = jobManagementService.ExecuteBackupJobs(command, out var results, out string errorMessage);
         if (!success)
         {
             Console.WriteLine(errorMessage);

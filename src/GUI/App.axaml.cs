@@ -1,34 +1,39 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Core.Interfaces;
+using Core.Services;
+using EasySave.Application.Configuration;
+using EasySave.Presentation.ViewModels;
+using Log.Services;
 
 namespace GUI;
 
-/// <summary>
-/// Classe principale de l'application Avalonia
-/// Gère le cycle de vie de l'application et l'initialisation des ressources
-/// </summary>
 public partial class App : Application
 {
-    /// <summary>
-    /// Initialise l'application en chargeant les ressources XAML
-    /// Appelée automatiquement au démarrage de l'application
-    /// </summary>
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
-    /// <summary>
-    /// Appelée lorsque l'initialisation du framework est terminée
-    /// Configure la fenêtre principale pour les applications desktop classiques
-    /// </summary>
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Création et affichage de la fenêtre principale
-            desktop.MainWindow = new MainWindow();
+            // Composition Root: create all concrete services
+            ILanguageService languageService = LanguageManager.GetInstance();
+            IUserConfigService userConfigService = new UserConfigManager();
+            IBackupJobRepository jobRepository = new BackupJobRepository(new JobStorage());
+            IBackupService backupService = new BackupService(
+                LogService.Instance,
+                new FileService(),
+                new CopyService(),
+                new ProgressJsonWriter(),
+                new BusinessSoftwareMonitor());
+
+            // Wire up ViewModels
+            var mainViewModel = new MainViewModel(languageService, userConfigService, jobRepository, backupService);
+            desktop.MainWindow = new MainWindow(new MainWindowViewModel(mainViewModel));
         }
 
         base.OnFrameworkInitializationCompleted();

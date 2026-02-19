@@ -1,4 +1,4 @@
-﻿using EasySave.Application.ViewModels;
+﻿using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,11 +9,13 @@ namespace EasySave.ConsoleApp
     public class ConsoleLogic
     {
         //All the logical part of the console
-        private readonly MainViewModel _vm;
+        private readonly IJobManagementService _jobService;
+        private readonly ILanguageService _languageService;
 
-        public ConsoleLogic()
+        public ConsoleLogic(IJobManagementService jobService, ILanguageService languageService)
         {
-            _vm = new MainViewModel();
+            _jobService = jobService ?? throw new ArgumentNullException(nameof(jobService));
+            _languageService = languageService ?? throw new ArgumentNullException(nameof(languageService));
         }
 
 
@@ -21,14 +23,14 @@ namespace EasySave.ConsoleApp
         public bool DisplayJobs()
         {
             Console.Clear();
-            Console.WriteLine(_vm.GetText("JobListTitle"));
+            Console.WriteLine(_languageService.GetString("JobListTitle"));
             Console.WriteLine();
 
-            var jobs = _vm.GetBackupJobs();
+            var jobs = _jobService.GetBackupJobs();
 
             if (jobs.Count == 0)
             {
-                Console.WriteLine(_vm.GetText("NoJobsFound"));
+                Console.WriteLine(_languageService.GetString("NoJobsFound"));
                 return false;
             }
 
@@ -51,25 +53,25 @@ namespace EasySave.ConsoleApp
         {
             Console.Clear();
 
-            Console.WriteLine(_vm.GetText("AskJobName"));
+            Console.WriteLine(_languageService.GetString("AskJobName"));
             var jobTitle = Console.ReadLine();
 
-            Console.WriteLine(_vm.GetText("AskSrcPath"));
+            Console.WriteLine(_languageService.GetString("AskSrcPath"));
             var jobSrcPath = Console.ReadLine();
 
-            Console.WriteLine(_vm.GetText("AskTargetPath"));
+            Console.WriteLine(_languageService.GetString("AskTargetPath"));
             var jobDestPath = Console.ReadLine();
 
-            Console.WriteLine(_vm.GetText("AskJobType"));
+            Console.WriteLine(_languageService.GetString("AskJobType"));
             var jobTypeInput = Console.ReadLine();
 
             if (!int.TryParse(jobTypeInput, out int jobType))
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
                 return;
             }
 
-            bool success = _vm.CreateBackupJob(
+            bool success = _jobService.CreateBackupJob(
                 jobTitle!,
                 jobSrcPath!,
                 jobDestPath!,
@@ -88,23 +90,23 @@ namespace EasySave.ConsoleApp
                 return;
             }
 
-            Console.WriteLine(_vm.GetText("AskJobNameToDelete"));
+            Console.WriteLine(_languageService.GetString("AskJobNameToDelete"));
             var jobIdInput = Console.ReadLine();
 
             if (!int.TryParse(jobIdInput, out int jobId))
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-                
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
+
                 return;
             }
 
-            bool success = _vm.DeleteBackupJob(
+            bool success = _jobService.DeleteBackupJob(
                 jobId,
                 out string resultMessage
             );
 
             Console.WriteLine(resultMessage);
-          
+
         }
 
         public void UpdateJob()
@@ -115,33 +117,33 @@ namespace EasySave.ConsoleApp
                 return;
             }
 
-            Console.WriteLine(_vm.GetText("AskJobNameToUpdate"));
+            Console.WriteLine(_languageService.GetString("AskJobNameToUpdate"));
             var jobIdInput = Console.ReadLine();
 
             if (!int.TryParse(jobIdInput, out int jobId))
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-               
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
+
                 return;
             }
 
-            Console.WriteLine(_vm.GetText("AskSrcPath"));
+            Console.WriteLine(_languageService.GetString("AskSrcPath"));
             var newSrcPath = Console.ReadLine();
 
-            Console.WriteLine(_vm.GetText("AskTargetPath"));
+            Console.WriteLine(_languageService.GetString("AskTargetPath"));
             var newTargetPath = Console.ReadLine();
 
-            Console.WriteLine(_vm.GetText("AskJobType"));
+            Console.WriteLine(_languageService.GetString("AskJobType"));
             var jobTypeInput = Console.ReadLine();
 
             if (!int.TryParse(jobTypeInput, out int jobType))
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-               
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
+
                 return;
             }
 
-            bool success = _vm.UpdateBackupJob(
+            bool success = _jobService.UpdateBackupJob(
                 jobId,
                 newSrcPath!,
                 newTargetPath!,
@@ -150,7 +152,7 @@ namespace EasySave.ConsoleApp
             );
 
             Console.WriteLine(resultMessage);
-            
+
         }
 
 
@@ -162,18 +164,18 @@ namespace EasySave.ConsoleApp
                 return;
             }
 
-            Console.WriteLine(_vm.GetText("AskJobsToExecute"));
-            Console.WriteLine(_vm.GetText("ExecuteHelp"));
+            Console.WriteLine(_languageService.GetString("AskJobsToExecute"));
+            Console.WriteLine(_languageService.GetString("ExecuteHelp"));
             var input = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(input))
             {
-                Console.WriteLine(_vm.GetText("ErrorInvalidOption"));
-               
+                Console.WriteLine(_languageService.GetString("ErrorInvalidOption"));
+
                 return;
             }
 
-            bool success = _vm.ExecuteBackupJobs(
+            bool success = _jobService.ExecuteBackupJobs(
                 input,
                 out var results,
                 out string errorMessage
@@ -182,7 +184,7 @@ namespace EasySave.ConsoleApp
             if (!success)
             {
                 Console.WriteLine(errorMessage);
-              
+
                 return;
             }
 
@@ -193,7 +195,7 @@ namespace EasySave.ConsoleApp
                 Console.WriteLine($"{state.Job.Name} : {state.Status}");
             }
 
-          
+
         }
     }
 }
