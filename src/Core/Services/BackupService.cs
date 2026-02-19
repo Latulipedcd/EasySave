@@ -393,7 +393,7 @@ namespace Core.Services
                     return false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 encryptionStopwatch.Stop();
                 encryptionTimeMs = -99; // Error code: Exception occurred
