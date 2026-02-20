@@ -383,6 +383,20 @@
             <Setter Property="BorderBrush" Value="#6DACF0" />
         </Style>
 
+        <Style Selector="Border.job-list-item-surface">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+
+        <Style Selector="Border.job-list-item-surface.running">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+
         <!-- Status and semantic badges -->
         <Style Selector="Border.type-pill">
             <Setter Property="Background" Value="#1F334C" />
@@ -396,6 +410,35 @@
             <Setter Property="Foreground" Value="#B8DCFF" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Border.execution-state-token">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Border.execution-state-token.success">
+            <Setter Property="Background" Value="#1C3126" />
+            <Setter Property="BorderBrush" Value="#4EBF93" />
+        </Style>
+
+        <Style Selector="Border.execution-state-token.error">
+            <Setter Property="Background" Value="#3A2020" />
+            <Setter Property="BorderBrush" Value="#A95454" />
+        </Style>
+
+        <Style Selector="TextBlock.execution-state-token-glyph">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="#E7F0FA" />
         </Style>
 
         <Style Selector="Border.live-pill">
