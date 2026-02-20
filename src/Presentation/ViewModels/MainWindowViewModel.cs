@@ -393,6 +393,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
         CatSpeech = args.Length > 0 ? TextFormat(key, args) : Text(key);
     }
 
+    private void SetCatRawMessage(string message)
+    {
+        CatSpeech = message;
+    }
+
     private void SetDefaultCatMessage()
     {
         if (HasSelection)
@@ -420,15 +425,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var name = JobEditor.JobName;
         var (success, message) = await _appViewModel.CreateJobAsync();
 
-        SetCatMessage(message);
+        SetCatRawMessage(message);
 
         if (!success)
         {
             // Si le message correspond à l'erreur de nom vide, affiche en rouge dans le chat
             if (message == Text("GuiErrorJobNameEmpty"))
             {
-                CatSpeech = message;
-                OnPropertyChanged(nameof(CatSpeech));
+                SetCatRawMessage(message);
                 // Optionnel: déclencher une animation spécifique (ex: cat error)
                 // AnimationCat = "cat error.json";
             }
@@ -481,8 +485,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             // Si le message correspond à l'erreur de nom vide, affiche en rouge dans le chat
             if (message == Text("GuiErrorJobNameEmpty"))
             {
-                CatSpeech = message;
-                OnPropertyChanged(nameof(CatSpeech));
+                SetCatRawMessage(message);
                 // Optionnel: déclencher une animation spécifique (ex: cat error)
                 // AnimationCat = "cat error.json";
             }
@@ -493,11 +496,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        SetCatMessage(message);
+        SetCatRawMessage(message);
 
         if (!success)
         {
-            SetCatMessage("GuiCatMessageActionFailed", message);
+            SetCatRawMessage(message);
             return;
         }
 
@@ -634,7 +637,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// <param name="message">Message à afficher</param>
     public void SetStatus(string message)
     {
-            SetCatMessage(message);
+        SetStatusOnUIThread(message);
+        SetCatRawMessage(message);
     }
 
     /// <summary>
