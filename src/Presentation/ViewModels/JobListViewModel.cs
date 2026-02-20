@@ -16,6 +16,7 @@ public class JobListViewModel : ViewModelBase
 {
     private readonly IBackupJobRepository _backupJobRepository;
     private readonly ILanguageService _langManager;
+    private readonly DateTime _sessionStartedAt = DateTime.Now;
 
     /// <summary>
     /// Observable collection of backup jobs
@@ -107,6 +108,10 @@ public class JobListViewModel : ViewModelBase
             string.Equals(item.Name, state.Job.Name, StringComparison.Ordinal));
 
         if (target == null)
+            return;
+
+        if ((state.Status == BackupStatus.Completed || state.Status == BackupStatus.Error) &&
+            (state.TimeStamp == default || state.TimeStamp < _sessionStartedAt))
             return;
 
         switch (state.Status)
