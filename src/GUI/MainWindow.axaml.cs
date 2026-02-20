@@ -1,9 +1,13 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Core.Models;
 using EasySave.Presentation.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GUI;
 
@@ -126,8 +130,89 @@ public partial class MainWindow : Window
             .OfType<BackupJobDisplayItem>()
             .Select(item => item.Job)
             .ToList() ?? new List<BackupJob>();
+        
+        if (selected.Count > 0)
+        {
+            var confirmed = await ShowDeleteConfirmationAsync(vm, selected.Count);
+            if (!confirmed)
+                return;
+        }
 
         await vm.DeleteSelectedJobsAsync(selected);
+    }
+
+    private async Task<bool> ShowDeleteConfirmationAsync(MainWindowViewModel vm, int selectedCount)
+    {
+        var isConfirmed = false;
+
+        var dialog = new Window
+        {
+            Title = vm.GetText("GuiDeleteConfirmTitle"),
+            Width = 420,
+            SizeToContent = SizeToContent.Height,
+            CanResize = false,
+            ShowInTaskbar = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var message = string.Format(vm.GetText("GuiDeleteConfirmMessage"), selectedCount);
+
+        var messageText = new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap
+        };
+
+        var cancelButton = new Button
+        {
+            Content = vm.GetText("GuiDeleteConfirmNo"),
+            MinWidth = 100,
+            IsCancel = true,
+            Classes = { "secondary" }
+        };
+
+        cancelButton.Click += (_, _) => dialog.Close();
+
+        var confirmButton = new Button
+        {
+            Content = vm.GetText("GuiDeleteConfirmYes"),
+            MinWidth = 100,
+            IsDefault = true,
+            Classes = { "danger" }
+        };
+
+        confirmButton.Click += (_, _) =>
+        {
+            isConfirmed = true;
+            dialog.Close();
+        };
+
+        dialog.Content = new Border
+        {
+            Padding = new Thickness(20),
+            Child = new StackPanel
+            {
+                Spacing = 16,
+                Children =
+                {
+                    messageText,
+                    new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        Spacing = 8,
+                        Children =
+                        {
+                            cancelButton,
+                            confirmButton
+                        }
+                    }
+                }
+            }
+        };
+
+        await dialog.ShowDialog(this);
+        return isConfirmed;
     }
 
     /// <summary>
