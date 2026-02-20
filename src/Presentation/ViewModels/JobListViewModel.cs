@@ -88,6 +88,53 @@ public class JobListViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Updates inline execution state in the jobs list.
+    /// Only the active job is highlighted with progress.
+    /// </summary>
+    public void UpdateExecutionState(BackupState? state)
+    {
+        foreach (var item in DisplayJobs)
+        {
+            // One job max can be active (state.json contains the latest one).
+            item.IsRunning = false;
+            item.ExecutionProgress = 0;
+        }
+
+        if (state?.Job == null)
+            return;
+
+        var target = DisplayJobs.FirstOrDefault(item =>
+            string.Equals(item.Name, state.Job.Name, StringComparison.Ordinal));
+
+        if (target == null)
+            return;
+
+        switch (state.Status)
+        {
+            case BackupStatus.Active:
+                target.IsRunning = true;
+                target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
+                target.IsCompletedSuccess = false;
+                target.HasExecutionError = false;
+                break;
+
+            case BackupStatus.Completed:
+                target.IsRunning = false;
+                target.ExecutionProgress = 100;
+                target.IsCompletedSuccess = true;
+                target.HasExecutionError = false;
+                break;
+
+            case BackupStatus.Error:
+                target.IsRunning = false;
+                target.ExecutionProgress = 0;
+                target.IsCompletedSuccess = false;
+                target.HasExecutionError = true;
+                break;
+        }
+    }
+
+    /// <summary>
     /// Creates a new backup job
     /// </summary>
     public async Task<(bool success, string message)> CreateJobAsync(string name, string source, string target, int typeIndex)

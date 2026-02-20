@@ -222,6 +222,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
         _stateRefreshTimer.Elapsed += OnRefreshTimerTick;
         _stateRefreshTimer.AutoReset = true;
         _stateRefreshTimer.Start();
+
+        // Initial refresh so the list/details can reflect a running job immediately.
+        _appViewModel.RefreshJobState();
+        _appViewModel.RefreshJobListExecutionState();
     }
 
     /// <summary>
@@ -229,7 +233,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnRefreshTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        _uiContext?.Post(_ => _appViewModel.RefreshJobState(), null);
+        _uiContext?.Post(_ =>
+        {
+            _appViewModel.RefreshJobState();
+            _appViewModel.RefreshJobListExecutionState();
+        }, null);
     }
 
     /// <summary>
