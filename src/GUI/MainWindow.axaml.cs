@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Core.Models;
 using EasySave.Presentation.ViewModels;
 using System.Collections.Generic;
@@ -13,6 +15,9 @@ namespace GUI;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private const string JobDragDataFormat = "EasySave.JobDisplayItem";
+    private BackupJobDisplayItem? _dragCandidate;
+
     /// <summary>
     /// Constructeur de la fenetre principale.
     /// Initialise les composants XAML et configure le DataContext.
@@ -21,6 +26,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = viewModel;
+
+        if (JobsList != null)
+        {
+            JobsList.AddHandler(InputElement.PointerPressedEvent, JobsList_PointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            JobsList.AddHandler(InputElement.PointerMovedEvent, JobsList_PointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            JobsList.AddHandler(InputElement.PointerReleasedEvent, JobsList_PointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+        }
     }
 
     /// <summary>
@@ -111,6 +123,80 @@ public partial class MainWindow : Window
             .FirstOrDefault();
 
         vm.SelectedJob = selected;
+    }
+
+    private void JobsList_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(JobsList).Properties.IsLeftButtonPressed)
+            return;
+
+        _dragCandidate = GetDisplayItemFromSource(e.Source);
+    }
+
+    private async void JobsList_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_dragCandidate == null || !e.GetCurrentPoint(JobsList).Properties.IsLeftButtonPressed)
+            return;
+
+        var draggedItem = _dragCandidate;
+        _dragCandidate = null;
+
+        var data = new DataObject();
+        data.Set(JobDragDataFormat, draggedItem);
+
+        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+    }
+
+    private void JobsList_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _dragCandidate = null;
+    }
+
+    private void JobsList_DragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = e.Data.Contains(JobDragDataFormat) ? DragDropEffects.Move : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private async void JobsList_Drop(object? sender, DragEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        if (!e.Data.Contains(JobDragDataFormat))
+            return;
+
+        if (e.Data.Get(JobDragDataFormat) is not BackupJobDisplayItem draggedItem)
+            return;
+
+        var targetItem = GetDisplayItemFromSource(e.Source);
+        var moved = await vm.MoveJobAsync(draggedItem.Job, targetItem?.Job);
+        if (moved)
+        {
+            var updatedItem = vm.DisplayJobs.FirstOrDefault(item => item.Job == draggedItem.Job);
+            if (updatedItem != null && JobsList != null)
+            {
+                JobsList.SelectedItems?.Clear();
+                JobsList.SelectedItem = updatedItem;
+            }
+        }
+
+        e.Handled = true;
+    }
+
+    private static BackupJobDisplayItem? GetDisplayItemFromSource(object? source)
+    {
+        if (source is not Control control)
+            return null;
+
+        if (control.DataContext is BackupJobDisplayItem directItem)
+            return directItem;
+
+        if (control is ListBoxItem item && item.DataContext is BackupJobDisplayItem selfItem)
+            return selfItem;
+
+        var listBoxItem = control.FindAncestorOfType<ListBoxItem>();
+        return listBoxItem?.DataContext as BackupJobDisplayItem;
     }
 
     /// <summary>

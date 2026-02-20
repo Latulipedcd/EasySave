@@ -33,5 +33,11 @@ namespace Core.Interfaces
         /// </summary>
         /// <param name="jobName">The name of the job to delete.</param>
         void Delete(string jobName);
+
+        /// <summary>
+        /// Replaces all backup jobs with the provided ordered list.
+        /// </summary>
+        /// <param name="jobs">Ordered list of jobs to persist.</param>
+        void ReplaceAll(IReadOnlyList<BackupJob> jobs);
     }
 }

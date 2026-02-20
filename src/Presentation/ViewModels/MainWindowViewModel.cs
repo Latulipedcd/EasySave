@@ -532,6 +532,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         SetCatMessage("GuiCatMessageDeleteWithErrors", errors.Count);
     }
 
+    /// <summary>
+    /// Réordonne un job dans la liste via glisser-déposer
+    /// </summary>
+    public async Task<bool> MoveJobAsync(BackupJob movedJob, BackupJob? targetJob)
+    {
+        return await JobList.MoveJobAsync(movedJob, targetJob);
+    }
+
    
 
     /// <summary>
