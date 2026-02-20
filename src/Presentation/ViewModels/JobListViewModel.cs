@@ -16,6 +16,7 @@ public class JobListViewModel : ViewModelBase
 {
     private readonly IBackupJobRepository _backupJobRepository;
     private readonly ILanguageService _langManager;
+    private readonly DateTime _sessionStartedAt = DateTime.Now;
 
     /// <summary>
     /// Observable collection of backup jobs
@@ -84,6 +85,57 @@ public class JobListViewModel : ViewModelBase
         {
             DisplayJobs.Add(new BackupJobDisplayItem(job, id));
             id++;
+        }
+    }
+
+    /// <summary>
+    /// Updates inline execution state in the jobs list.
+    /// Only the active job is highlighted with progress.
+    /// </summary>
+    public void UpdateExecutionState(BackupState? state)
+    {
+        foreach (var item in DisplayJobs)
+        {
+            // One job max can be active (state.json contains the latest one).
+            item.IsRunning = false;
+            item.ExecutionProgress = 0;
+        }
+
+        if (state?.Job == null)
+            return;
+
+        var target = DisplayJobs.FirstOrDefault(item =>
+            string.Equals(item.Name, state.Job.Name, StringComparison.Ordinal));
+
+        if (target == null)
+            return;
+
+        if ((state.Status == BackupStatus.Completed || state.Status == BackupStatus.Error) &&
+            (state.TimeStamp == default || state.TimeStamp < _sessionStartedAt))
+            return;
+
+        switch (state.Status)
+        {
+            case BackupStatus.Active:
+                target.IsRunning = true;
+                target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
+                target.IsCompletedSuccess = false;
+                target.HasExecutionError = false;
+                break;
+
+            case BackupStatus.Completed:
+                target.IsRunning = false;
+                target.ExecutionProgress = 100;
+                target.IsCompletedSuccess = true;
+                target.HasExecutionError = false;
+                break;
+
+            case BackupStatus.Error:
+                target.IsRunning = false;
+                target.ExecutionProgress = 0;
+                target.IsCompletedSuccess = false;
+                target.HasExecutionError = true;
+                break;
         }
     }
 
