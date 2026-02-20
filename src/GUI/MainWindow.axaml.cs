@@ -1,9 +1,12 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Core.Models;
 using EasySave.Presentation.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GUI;
 
@@ -127,7 +130,127 @@ public partial class MainWindow : Window
             .Select(item => item.Job)
             .ToList() ?? new List<BackupJob>();
 
+        if (selected.Count > 0)
+        {
+            var confirmed = await ShowDeleteConfirmationAsync(vm, selected);
+            if (!confirmed)
+            {
+                vm.SetStatus(vm.GetText("GuiStatusDeleteCancelled"));
+                return;
+            }
+        }
+
         await vm.DeleteSelectedJobsAsync(selected);
+    }
+
+    private async Task<bool> ShowDeleteConfirmationAsync(MainWindowViewModel vm, IReadOnlyList<BackupJob> selectedJobs)
+    {
+        var selectedNames = selectedJobs
+            .Select(job => job.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct()
+            .ToList();
+
+        var message = selectedNames.Count == 1
+            ? string.Format(vm.GetText("GuiDeleteConfirmMessageSingle"), selectedNames[0])
+            : string.Format(vm.GetText("GuiDeleteConfirmMessageMultiple"), selectedNames.Count);
+
+        var jobNamesText = string.Join(Environment.NewLine, selectedNames.Select(name => $"• {name}"));
+
+        var cancelButton = new Button
+        {
+            Content = vm.GetText("GuiDeleteConfirmNo"),
+            MinWidth = 100
+        };
+        cancelButton.Classes.Add("secondary");
+
+        var confirmButton = new Button
+        {
+            Content = vm.GetText("GuiDeleteConfirmYes"),
+            MinWidth = 100
+        };
+        confirmButton.Classes.Add("danger");
+
+        var dialog = new Window
+        {
+            Title = vm.GetText("GuiDeleteConfirmTitle"),
+            Width = 520,
+            Height = 310,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = new Border
+            {
+                Classes = { "card" },
+                Margin = new Avalonia.Thickness(14),
+                Child = new StackPanel
+                {
+                    Spacing = 14,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = message,
+                            Classes = { "subtitle" },
+                            TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                            HorizontalAlignment = HorizontalAlignment.Stretch
+                        },
+                        new TextBlock
+                        {
+                            Text = vm.GetText("GuiDeleteConfirmJobsLabel"),
+                            Classes = { "label" }
+                        },
+                        new Border
+                        {
+                            BorderBrush = Avalonia.Media.Brushes.Gray,
+                            BorderThickness = new Avalonia.Thickness(1),
+                            CornerRadius = new Avalonia.CornerRadius(8),
+                            Padding = new Avalonia.Thickness(10),
+                            MaxHeight = 130,
+                            Child = new ScrollViewer
+                            {
+                                VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+                                HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
+                                Content = new TextBlock
+                                {
+                                    Text = string.IsNullOrWhiteSpace(jobNamesText) ? "-" : jobNamesText,
+                                    TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                                }
+                            }
+                        },
+                        new StackPanel
+                        {
+                            Orientation = Orientation.Horizontal,
+                            HorizontalAlignment = HorizontalAlignment.Right,
+                            Spacing = 10,
+                            Children =
+                            {
+                                cancelButton,
+                                confirmButton
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        var completion = new TaskCompletionSource<bool>();
+
+        cancelButton.Click += (_, _) =>
+        {
+            completion.TrySetResult(false);
+            dialog.Close();
+        };
+
+        confirmButton.Click += (_, _) =>
+        {
+            completion.TrySetResult(true);
+            dialog.Close();
+        };
+
+        dialog.Closed += (_, _) => completion.TrySetResult(false);
+
+        await dialog.ShowDialog(this);
+        return await completion.Task;
     }
 
     /// <summary>
