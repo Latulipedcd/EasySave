@@ -184,11 +184,20 @@ namespace EasySave.Presentation.ViewModels
         }
 
         /// <summary>
+        /// Refreshes inline execution indicators in the jobs list.
+        /// </summary>
+        public void RefreshJobListExecutionState()
+        {
+            JobList.UpdateExecutionState(JobExecution.LatestProgressState);
+        }
+
+        /// <summary>
         /// Clears the current job execution state
         /// </summary>
         public void ClearJobState()
         {
             JobExecution.ClearJobState();
+            JobList.UpdateExecutionState(null);
         }
     }
 }

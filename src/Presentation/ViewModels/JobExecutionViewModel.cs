@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
@@ -19,6 +21,11 @@ public class JobExecutionViewModel : ViewModelBase
     private readonly IBackupJobRepository _backupJobRepository;
     private readonly IUserConfigService _userConfigManager;
     private readonly ILanguageService _langManager;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
     /// <summary>
     /// Current job being monitored
@@ -90,6 +97,11 @@ public class JobExecutionViewModel : ViewModelBase
     public string JobSizeRemaining => FormatBytes(JobState?.BytesRemaining ?? 0);
     public string JobCurrentFile => JobState?.CurrentFileSource ?? "-";
     public string JobLastUpdate => JobState?.TimeStamp.ToString("HH:mm:ss") ?? "-";
+
+    /// <summary>
+    /// Latest execution state read from state.json (for list-level monitoring).
+    /// </summary>
+    public BackupState? LatestProgressState { get; private set; }
 
     /// <summary>
     /// Event raised when job state changes
@@ -246,48 +258,17 @@ public class JobExecutionViewModel : ViewModelBase
     /// </summary>
     public void RefreshJobState()
     {
-        if (MonitoredJob == null)
+        var state = ReadLatestState();
+        LatestProgressState = state;
+
+        // Details panel only tracks the selected job.
+        if (MonitoredJob == null || state?.Job?.Name != MonitoredJob.Name)
         {
             JobState = null;
             return;
         }
 
-        try
-        {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var statePath = Path.Combine(appData, "EasyLog", "Progress", "state.json");
-
-            if (!File.Exists(statePath))
-            {
-                JobState = null;
-                return;
-            }
-
-            var json = File.ReadAllText(statePath);
-
-            var options = new System.Text.Json.JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-            };
-
-            var state = System.Text.Json.JsonSerializer.Deserialize<BackupState>(json, options);
-
-            // Check if state corresponds to monitored job
-            if (state?.Job?.Name == MonitoredJob.Name)
-            {
-                JobState = state;
-            }
-            else
-            {
-                JobState = null;
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error refreshing job state: {ex.Message}");
-            JobState = null;
-        }
+        JobState = state;
     }
 
     /// <summary>
@@ -296,6 +277,7 @@ public class JobExecutionViewModel : ViewModelBase
     public void ClearJobState()
     {
         JobState = null;
+        LatestProgressState = null;
     }
 
     /// <summary>
@@ -315,5 +297,29 @@ public class JobExecutionViewModel : ViewModelBase
         }
 
         return $"{size:0.##} {suffixes[suffixIndex]}";
+    }
+
+    /// <summary>
+    /// Reads the latest progress state from state.json.
+    /// Returns null if unavailable or invalid.
+    /// </summary>
+    private BackupState? ReadLatestState()
+    {
+        try
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var statePath = Path.Combine(appData, "EasyLog", "Progress", "state.json");
+
+            if (!File.Exists(statePath))
+                return null;
+
+            var json = File.ReadAllText(statePath);
+            return JsonSerializer.Deserialize<BackupState>(json, JsonOptions);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error reading state.json: {ex.Message}");
+            return null;
+        }
     }
 }

@@ -81,6 +81,13 @@
 
   "GuiStatusDeletedCount": "{0} job(s) deleted.",
   "GuiStatusDeletedWithErrors": "{0} deleted, {1} error(s): {2}",
+  "GuiStatusDeleteCancelled": "Delete cancelled.",
+  "GuiDeleteConfirmTitle": "Confirm deletion",
+  "GuiDeleteConfirmMessageSingle": "Do you really want to delete the job \"{0}\"?",
+  "GuiDeleteConfirmMessageMultiple": "Do you really want to delete {0} job(s)?",
+  "GuiDeleteConfirmJobsLabel": "Selected jobs:",
+  "GuiDeleteConfirmYes": "Delete",
+  "GuiDeleteConfirmNo": "Cancel",
   "GuiStatusExecutionSummary": "{0} job(s) executed: {1} completed, {2} error(s).",
 
   "GuiJobDetailsTitle": "Job Details",
