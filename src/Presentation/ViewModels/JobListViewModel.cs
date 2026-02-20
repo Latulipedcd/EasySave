@@ -279,6 +279,40 @@ public class JobListViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Moves a job before/at the target position and persists the new order
+    /// </summary>
+    public async Task<bool> MoveJobAsync(BackupJob movedJob, BackupJob? targetJob)
+    {
+        if (movedJob == null)
+        {
+            return false;
+        }
+
+        var sourceIndex = BackupJobs.IndexOf(movedJob);
+        if (sourceIndex < 0)
+        {
+            return false;
+        }
+
+        var targetIndex = targetJob == null ? BackupJobs.Count - 1 : BackupJobs.IndexOf(targetJob);
+        if (targetIndex < 0)
+        {
+            targetIndex = BackupJobs.Count - 1;
+        }
+
+        if (sourceIndex == targetIndex)
+        {
+            return false;
+        }
+
+        BackupJobs.Move(sourceIndex, targetIndex);
+        RefreshDisplayJobs();
+
+        await Task.Run(() => _backupJobRepository.ReplaceAll(BackupJobs.ToList()));
+        return true;
+    }
+
+    /// <summary>
     /// Replaces the content of BackupJobs collection with new jobs
     /// Should be called on UI thread
     /// </summary>

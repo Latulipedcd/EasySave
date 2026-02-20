@@ -84,6 +84,16 @@ namespace Core.Services
             SaveJobs(jobs);
         }
 
+        /// <summary>
+        /// Replaces all jobs with the provided ordered list.
+        /// </summary>
+        /// <param name="jobs">Ordered list of jobs to persist.</param>
+        public void ReplaceAll(IReadOnlyList<BackupJob> jobs)
+        {
+            var orderedJobs = jobs?.ToList() ?? new List<BackupJob>();
+            SaveJobs(orderedJobs);
+        }
+
 
         /// <summary>
         /// Ensures the storage directory and file exist, creating them if necessary.
