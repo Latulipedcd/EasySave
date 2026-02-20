@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Core.Models;
 using EasySave.Presentation.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,7 +16,7 @@ namespace GUI;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private const string JobDragDataFormat = "EasySave.JobDisplayItem";
+    private static readonly DataFormat<string> JobDragDataFormat = DataFormat.CreateStringApplicationFormat("EasySave.JobDisplayItem");
     private BackupJobDisplayItem? _dragCandidate;
 
     /// <summary>
@@ -141,10 +142,10 @@ public partial class MainWindow : Window
         var draggedItem = _dragCandidate;
         _dragCandidate = null;
 
-        var data = new DataObject();
-        data.Set(JobDragDataFormat, draggedItem);
+        var data = new DataTransfer();
+        data.Add(DataTransferItem.Create(JobDragDataFormat, draggedItem.Job.Name));
 
-        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
     }
 
     private void JobsList_PointerReleased(object? sender, PointerReleasedEventArgs e)
@@ -154,7 +155,7 @@ public partial class MainWindow : Window
 
     private void JobsList_DragOver(object? sender, DragEventArgs e)
     {
-        e.DragEffects = e.Data.Contains(JobDragDataFormat) ? DragDropEffects.Move : DragDropEffects.None;
+        e.DragEffects = e.DataTransfer.Contains(JobDragDataFormat) ? DragDropEffects.Move : DragDropEffects.None;
         e.Handled = true;
     }
 
@@ -163,10 +164,15 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        if (!e.Data.Contains(JobDragDataFormat))
+        if (!e.DataTransfer.Contains(JobDragDataFormat))
             return;
 
-        if (e.Data.Get(JobDragDataFormat) is not BackupJobDisplayItem draggedItem)
+        var draggedJobName = e.DataTransfer.TryGetValue(JobDragDataFormat);
+        if (string.IsNullOrWhiteSpace(draggedJobName))
+            return;
+
+        var draggedItem = vm.DisplayJobs.FirstOrDefault(item => item.Job.Name == draggedJobName);
+        if (draggedItem == null)
             return;
 
         var targetItem = GetDisplayItemFromSource(e.Source);
