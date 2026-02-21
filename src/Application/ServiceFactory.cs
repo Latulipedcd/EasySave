@@ -17,6 +17,7 @@ public static class ServiceFactory
     private static IUserConfigService? _userConfigServiceInstance;
     private static IBackupJobRepository? _backupJobRepositoryInstance;
     private static IBackupService? _backupServiceInstance;
+    private static IProgressWriter? _progressWriterInstance;
 
     /// <summary>
     /// Gets or creates the singleton ILanguageService instance.
@@ -43,15 +44,23 @@ public static class ServiceFactory
     }
 
     /// <summary>
+    /// Gets or creates the singleton IProgressWriter instance.
+    /// </summary>
+    public static IProgressWriter GetProgressWriter()
+    {
+        return _progressWriterInstance ??= new ProgressJsonWriter();
+    }
+
+    /// <summary>
     /// Gets or creates the singleton IBackupService instance.
     /// </summary>
     public static IBackupService GetBackupService()
     {
-        return _backupServiceInstance ??= new BackupService(
+        return _backupServiceInstance ??= new Core.Services.BackupService(
             LogService.Instance,
             new FileService(),
             new CopyService(),
-            new ProgressJsonWriter(),
+            GetProgressWriter(),
             new BusinessSoftwareMonitor());
     }
 
@@ -64,7 +73,9 @@ public static class ServiceFactory
             GetLanguageService(),
             GetUserConfigService(),
             GetBackupJobRepository(),
-            GetBackupService());
+            GetBackupService(),
+            new BusinessSoftwareMonitor(),
+            GetProgressWriter());
     }
 
     /// <summary>
@@ -94,5 +105,6 @@ public static class ServiceFactory
         _userConfigServiceInstance = null;
         _backupJobRepositoryInstance = null;
         _backupServiceInstance = null;
+        _progressWriterInstance = null;
     }
 }
