@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
-using Log.Enums;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -17,9 +16,7 @@ namespace EasySave.Presentation.ViewModels;
 /// </summary>
 public class JobExecutionViewModel : ViewModelBase
 {
-    private readonly IBackupService _backupService;
-    private readonly IBackupJobRepository _backupJobRepository;
-    private readonly IUserConfigService _userConfigManager;
+    private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -57,6 +54,7 @@ public class JobExecutionViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsJobRunning));
                 OnPropertyChanged(nameof(ShowExecutionDetails));
                 OnPropertyChanged(nameof(IsJobCompleted));
+                OnPropertyChanged(nameof(IsJobPaused));
                 OnPropertyChanged(nameof(JobProgress));
                 OnPropertyChanged(nameof(JobTotalFiles));
                 OnPropertyChanged(nameof(JobFilesRemaining));
@@ -75,19 +73,27 @@ public class JobExecutionViewModel : ViewModelBase
     public bool IsJobRunning => JobState != null && JobState.Status == BackupStatus.Active;
 
     /// <summary>
+    /// Indicates if the job is currently paused
+    /// </summary>
+    public bool IsJobPaused => JobState != null && JobState.Status == BackupStatus.Paused;
+
+    /// <summary>
     /// Indicates if execution details should be shown
     /// </summary>
     public bool ShowExecutionDetails => JobState != null &&
         (JobState.Status == BackupStatus.Active ||
+         JobState.Status == BackupStatus.Paused ||
          JobState.Status == BackupStatus.Completed ||
-         JobState.Status == BackupStatus.Error);
+         JobState.Status == BackupStatus.Error ||
+         JobState.Status == BackupStatus.Cancelled);
 
     /// <summary>
-    /// Indicates if job has completed (success or error)
+    /// Indicates if job has completed (success, error, or cancelled)
     /// </summary>
     public bool IsJobCompleted => JobState != null &&
         (JobState.Status == BackupStatus.Completed ||
-         JobState.Status == BackupStatus.Error);
+         JobState.Status == BackupStatus.Error ||
+         JobState.Status == BackupStatus.Cancelled);
 
     // Job execution properties
     public double JobProgress => JobState?.ProgressPercentage ?? 0;
@@ -99,9 +105,10 @@ public class JobExecutionViewModel : ViewModelBase
     public string JobLastUpdate => JobState?.TimeStamp.ToString("HH:mm:ss") ?? "-";
 
     /// <summary>
-    /// Latest execution state read from state.json (for list-level monitoring).
+    /// All execution states read from state.json (for list-level monitoring).
+    /// Contains one entry per running/completed job in the current batch.
     /// </summary>
-    public BackupState? LatestProgressState { get; private set; }
+    public List<BackupState>? LatestProgressStates { get; private set; }
 
     /// <summary>
     /// Event raised when job state changes
@@ -109,19 +116,15 @@ public class JobExecutionViewModel : ViewModelBase
     public event EventHandler<BackupState?>? StateChanged;
 
     public JobExecutionViewModel(
-        IBackupService backupService, 
-        IBackupJobRepository backupJobRepository,
-        IUserConfigService userConfigService,
+        IJobManagementService jobManagementService,
         ILanguageService languageService)
     {
-        _backupService = backupService;
-        _backupJobRepository = backupJobRepository;
-        _userConfigManager = userConfigService;
+        _jobManagementService = jobManagementService;
         _langManager = languageService;
     }
 
     /// <summary>
-    /// Executes all jobs
+    /// Executes all jobs in parallel
     /// </summary>
     public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteAllJobsAsync(int totalJobCount)
     {
@@ -135,7 +138,7 @@ public class JobExecutionViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Executes selected jobs
+    /// Executes selected jobs in parallel
     /// </summary>
     public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteSelectedJobsAsync(
         IReadOnlyList<BackupJob> selectedJobs,
@@ -146,7 +149,6 @@ public class JobExecutionViewModel : ViewModelBase
             return (false, new List<BackupState>(), _langManager.GetString("GuiErrorNoJobSelected"));
         }
 
-        // Convert jobs to IDs
         var ids = selectedJobs
             .Select(job => getJobId(job))
             .Where(id => id > 0)
@@ -164,93 +166,42 @@ public class JobExecutionViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Executes jobs specified by input string (e.g., "1-5" or "1;3;5")
+    /// Executes jobs specified by input string (e.g., "1-5" or "1;3;5") in parallel
     /// </summary>
     public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteJobsByInputAsync(string input)
     {
-        var (success, results, errorMessage) = await Task.Run(() =>
-        {
-            var resultsList = new List<BackupState>();
-            string error = string.Empty;
-
-            var jobs = _backupJobRepository.GetAll().ToList();
-            var jobsToExecute = ResolveJobsFromInput(input, jobs, out error);
-            
-            if (jobsToExecute == null)
-                return (false, resultsList, error);
-
-            var logFormat = _userConfigManager.LoadLogFormat() ?? LogFormat.Json;
-            var businessSoftware = _userConfigManager.LoadBusinessSoftware();
-            var cryptoExtensions = _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>();
-            var cryptoPath = GetCryptoSoftPath();
-
-            foreach (var job in jobsToExecute)
-            {
-                var state = _backupService.ExecuteBackup(job, logFormat, businessSoftware, cryptoExtensions, cryptoPath);
-                resultsList.Add(state);
-            }
-
-            return (true, resultsList, string.Empty);
-        });
-
-        return (success, results ?? new List<BackupState>(), errorMessage);
+        return await _jobManagementService.ExecuteBackupJobsAsync(input);
     }
 
-    private List<BackupJob>? ResolveJobsFromInput(string input, List<BackupJob> allJobs, out string errorMessage)
-    {
-        errorMessage = string.Empty;
-        var result = new List<BackupJob>();
+    /// <summary>
+    /// Pauses a running job by name.
+    /// </summary>
+    public void PauseJob(string jobName) => _jobManagementService.PauseJob(jobName);
 
-        var indexedJobs = allJobs;
-        var parts = input.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    /// <summary>
+    /// Resumes a paused job by name.
+    /// </summary>
+    public void ResumeJob(string jobName) => _jobManagementService.ResumeJob(jobName);
 
-        foreach (var part in parts)
-        {
-            if (part.Contains('-'))
-            {
-                var range = part.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (range.Length != 2)
-                {
-                    errorMessage = _langManager.GetString("ErrorInvalidRange");
-                    return null;
-                }
+    /// <summary>
+    /// Stops (cancels) a running job by name.
+    /// </summary>
+    public void StopJob(string jobName) => _jobManagementService.StopJob(jobName);
 
-                if (!int.TryParse(range[0], out int startId)
-                    || !int.TryParse(range[1], out int endId)
-                    || startId < 1
-                    || endId < 1
-                    || startId > indexedJobs.Count
-                    || endId > indexedJobs.Count
-                    || startId > endId)
-                {
-                    errorMessage = _langManager.GetString("ErrorInvalidRange");
-                    return null;
-                }
+    /// <summary>
+    /// Pauses all currently running jobs.
+    /// </summary>
+    public void PauseAllJobs() => _jobManagementService.PauseAllJobs();
 
-                result.AddRange(indexedJobs.Skip(startId - 1).Take(endId - startId + 1));
-            }
-            else
-            {
-                bool isIdValid = int.TryParse(part, out int jobId);
-                if (!isIdValid || jobId < 1 || jobId > indexedJobs.Count)
-                {
-                    errorMessage = _langManager.GetString("ErrorJobNotFound");
-                    return null;
-                }
+    /// <summary>
+    /// Resumes all currently paused jobs.
+    /// </summary>
+    public void ResumeAllJobs() => _jobManagementService.ResumeAllJobs();
 
-                result.Add(indexedJobs[jobId - 1]);
-            }
-        }
-
-        return result.Distinct().ToList();
-    }
-
-    private string? GetCryptoSoftPath()
-    {
-        string workDir = AppDomain.CurrentDomain.BaseDirectory;
-        string cryptoPath = Path.Combine(workDir, "Resources", "CryptoSoft.exe");
-        return File.Exists(cryptoPath) ? cryptoPath : null;
-    }
+    /// <summary>
+    /// Stops (cancels) all currently running jobs.
+    /// </summary>
+    public void StopAllJobs() => _jobManagementService.StopAllJobs();
 
     /// <summary>
     /// Refreshes the state of the monitored job
@@ -258,17 +209,19 @@ public class JobExecutionViewModel : ViewModelBase
     /// </summary>
     public void RefreshJobState()
     {
-        var state = ReadLatestState();
-        LatestProgressState = state;
+        var states = ReadAllStates();
+        LatestProgressStates = states;
 
-        // Details panel only tracks the selected job.
-        if (MonitoredJob == null || state?.Job?.Name != MonitoredJob.Name)
+        if (MonitoredJob == null || states == null || states.Count == 0)
         {
             JobState = null;
             return;
         }
 
-        JobState = state;
+        var matchingState = states.FirstOrDefault(s =>
+            string.Equals(s.Job?.Name, MonitoredJob.Name, StringComparison.Ordinal));
+
+        JobState = matchingState;
     }
 
     /// <summary>
@@ -277,7 +230,7 @@ public class JobExecutionViewModel : ViewModelBase
     public void ClearJobState()
     {
         JobState = null;
-        LatestProgressState = null;
+        LatestProgressStates = null;
     }
 
     /// <summary>
@@ -300,10 +253,11 @@ public class JobExecutionViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Reads the latest progress state from state.json.
+    /// Reads all progress states from state.json.
+    /// The file contains a JSON array of BackupState objects (one per job).
     /// Returns null if unavailable or invalid.
     /// </summary>
-    private BackupState? ReadLatestState()
+    private List<BackupState>? ReadAllStates()
     {
         try
         {
@@ -313,8 +267,10 @@ public class JobExecutionViewModel : ViewModelBase
             if (!File.Exists(statePath))
                 return null;
 
-            var json = File.ReadAllText(statePath);
-            return JsonSerializer.Deserialize<BackupState>(json, JsonOptions);
+            using var fs = new FileStream(statePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new StreamReader(fs);
+            var json = reader.ReadToEnd();
+            return JsonSerializer.Deserialize<List<BackupState>>(json, JsonOptions);
         }
         catch (Exception ex)
         {
