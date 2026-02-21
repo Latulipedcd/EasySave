@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Log.Interfaces;
 using Log.Services;
 using Log.Enums;
@@ -19,6 +21,12 @@ namespace Core.Services
         private readonly ICopyService _copyService;
         private readonly IProgressWriter _progressWriter;
         private readonly IBusinessSoftwareMonitor _businessSoftwareMonitor;
+
+        /// <summary>
+        /// Gate that ensures only one job processes a file at a time.
+        /// After processing, the job releases the gate and yields, letting another job take its turn.
+        /// </summary>
+        private static readonly SemaphoreSlim _fileProcessingGate = new(1, 1);
 
         public BackupService(
             ILog logService,
@@ -85,6 +93,117 @@ namespace Core.Services
                 state.CurrentFileTarget = targetPath;
 
                 UpdateProgress(job, state);
+            }
+
+            FinalizeBackup(job, state);
+            return state;
+        }
+
+
+
+        /// <summary>
+        /// Executes a backup job asynchronously with support for pause and cancellation.
+        /// Uses a shared SemaphoreSlim so only one job does file I/O at a time,
+        /// then yields to let other jobs take their turn (cooperative async interleaving).
+        /// </summary>
+        public async Task<BackupState> ExecuteBackupAsync(BackupJob job, LogFormat format, List<string> CryptoSoftExtensions, string? cryptoSoftPath, CancellationToken cancellationToken, ManualResetEventSlim pauseEvent)
+        {
+            _logService.Configure(format);
+
+            if (!Directory.Exists(job.SourceDirectory))
+            {
+                return HandleSourceDirectoryNotFound(job);
+            }
+
+            var state = InitializeBackupState(job, format, out var files);
+
+            foreach (var file in files)
+            {
+                // Async pause check — poll until resumed or cancelled
+                if (!pauseEvent.IsSet)
+                {
+                    state.Status = BackupStatus.Paused;
+                    UpdateProgress(job, state);
+                }
+
+                try
+                {
+                    while (!pauseEvent.IsSet)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        await Task.Delay(100, cancellationToken);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    state.Status = BackupStatus.Cancelled;
+                    FinalizeBackup(job, state);
+                    return state;
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    state.Status = BackupStatus.Cancelled;
+                    FinalizeBackup(job, state);
+                    return state;
+                }
+
+                // Resume from pause
+                if (state.Status == BackupStatus.Paused)
+                {
+                    state.Status = BackupStatus.Active;
+                    UpdateProgress(job, state);
+                }
+
+                // Acquire exclusive turn for file I/O
+                try
+                {
+                    await _fileProcessingGate.WaitAsync(cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    state.Status = BackupStatus.Cancelled;
+                    FinalizeBackup(job, state);
+                    return state;
+                }
+
+                try
+                {
+                    var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
+                    var targetPath = Path.Combine(job.TargetDirectory, relativePath);
+
+                    CreateTargetDirectory(job, file, targetPath);
+
+                    if (!ShouldProcessFile(job, targetPath, file))
+                    {
+                        state.FilesRemaining--;
+                        continue;
+                    }
+
+                    var stopwatch = Stopwatch.StartNew();
+                    bool success = ProcessFile(file, targetPath, CryptoSoftExtensions, cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs);
+                    stopwatch.Stop();
+
+                    if (!success)
+                        state.Status = BackupStatus.Error;
+
+                    var fileInfo = new FileInfo(file);
+                    LogFileOperation(job, file, targetPath, stopwatch.Elapsed, fileInfo.Length, wasEncrypted, encryptionTimeMs);
+
+                    state.FilesRemaining--;
+                    state.BytesRemaining -= fileInfo.Length;
+                    state.CurrentFileSource = file;
+                    state.CurrentFileTarget = targetPath;
+
+                    UpdateProgress(job, state);
+                }
+                finally
+                {
+                    _fileProcessingGate.Release();
+                }
+
+                // Yield to let other jobs take their turn
+                await Task.Yield();
             }
 
             FinalizeBackup(job, state);
@@ -288,7 +407,7 @@ namespace Core.Services
         /// </summary>
         private void FinalizeBackup(BackupJob job, BackupState state)
         {
-            if (state.Status != BackupStatus.Error)
+            if (state.Status != BackupStatus.Error && state.Status != BackupStatus.Cancelled)
                 state.Status = BackupStatus.Completed;
 
             var resetInfo = new BackupState(job)
