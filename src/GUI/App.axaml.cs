@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using Core.Interfaces;
 using Core.Services;
 using EasySave.Application.Configuration;
+using EasySave.Application.Services;
 using EasySave.Presentation.ViewModels;
 using Log.Services;
 
@@ -24,15 +25,24 @@ public partial class App : Application
             ILanguageService languageService = LanguageManager.GetInstance();
             IUserConfigService userConfigService = new UserConfigManager();
             IBackupJobRepository jobRepository = new BackupJobRepository(new JobStorage());
+            IProgressWriter progressWriter = new ProgressJsonWriter();
             IBackupService backupService = new BackupService(
                 LogService.Instance,
                 new FileService(),
                 new CopyService(),
-                new ProgressJsonWriter(),
+                progressWriter,
                 new BusinessSoftwareMonitor());
 
+            IJobManagementService jobManagementService = new JobManagementService(
+                languageService,
+                userConfigService,
+                jobRepository,
+                backupService,
+                new BusinessSoftwareMonitor(),
+                progressWriter);
+
             // Wire up ViewModels
-            var mainViewModel = new MainViewModel(languageService, userConfigService, jobRepository, backupService);
+            var mainViewModel = new MainViewModel(languageService, userConfigService, jobRepository, jobManagementService);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(mainViewModel));
         }
 
