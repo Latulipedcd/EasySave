@@ -1,6 +1,7 @@
 using Core.Interfaces;
 using EasySave.Application.Interfaces;
 using Core.Services;
+using Core.Repository;
 using EasySave.Application.Configuration;
 using EasySave.Application.Services;
 using Log.Services;
@@ -19,6 +20,7 @@ public static class ServiceFactory
     private static IBackupJobRepository? _backupJobRepositoryInstance;
     private static IBackupService? _backupServiceInstance;
     private static IProgressWriter? _progressWriterInstance;
+    private static ICopyService? _copyServiceInstance;
 
     /// <summary>
     /// Gets or creates the singleton ILanguageService instance.
@@ -53,17 +55,36 @@ public static class ServiceFactory
     }
 
     /// <summary>
+    /// Gets or creates the singleton ICopyService instance.
+    /// </summary>
+    public static ICopyService GetCopyService()
+    {
+        return _copyServiceInstance ??= new CopyService();
+    }
+
+    /// <summary>
     /// Gets or creates the singleton IBackupService instance.
+    /// Wires the shared BackupOperationLogger instance into every sub-service that
+    /// needs it (BackupPreflightChecker, BackupDirectoryService, BackupService itself)
+    /// so that a single Configure(format) call applies to all three.
     /// </summary>
     public static IBackupService GetBackupService()
     {
-        return _backupServiceInstance ??= new BackupService(
-            LogService.Instance,
-            new FileService(),
-            new CopyService(),
-            GetProgressWriter(),
-            new BusinessSoftwareMonitor(),
-            new CryptoService());
+        if (_backupServiceInstance != null) return _backupServiceInstance;
+
+        var copyService      = GetCopyService();
+        var encryptionService = new EncryptionService(copyService);
+        var operationLogger  = new BackupLoggerService(LogService.Instance);
+
+        _backupServiceInstance = new BackupService(
+            new BackupValidationService(new BusinessSoftwareMonitor(), operationLogger),
+            new BackupStateService(new FileService(), GetProgressWriter()),
+            new BackupDirectoryService(operationLogger),
+            new FileTransferService(encryptionService, copyService),
+            new BackupFileFilter(),
+            operationLogger);
+
+        return _backupServiceInstance;
     }
 
     /// <summary>
@@ -110,5 +131,6 @@ public static class ServiceFactory
         _backupJobRepositoryInstance = null;
         _backupServiceInstance = null;
         _progressWriterInstance = null;
+        _copyServiceInstance = null;
     }
 }
