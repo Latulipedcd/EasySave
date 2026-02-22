@@ -26,7 +26,19 @@ public class JobManagementService : IJobManagementService
     private readonly IBusinessSoftwareMonitor _businessSoftwareMonitor;
     private readonly IProgressWriter _progressWriter;
 
+    /// <summary>
+    /// Thread-safe dictionary keyed by job name that holds the handle for every
+    /// currently running job. ConcurrentDictionary is used instead of Dictionary
+    /// because the business software monitor thread reads it concurrently with the
+    /// execution thread that adds/removes entries.
+    /// </summary>
     private readonly ConcurrentDictionary<string, JobExecutionHandle> _runningJobs = new();
+
+    /// <summary>
+    /// CancellationTokenSource for the business software monitor loop.
+    /// A separate CTS (not the per-job ones) so the monitor can be stopped
+    /// independently once all jobs finish, without affecting the jobs themselves.
+    /// </summary>
     private CancellationTokenSource? _monitorCts;
 
     /// <summary>
@@ -135,6 +147,8 @@ public class JobManagementService : IJobManagementService
         var businessSoftware = _userConfigService.LoadBusinessSoftware();
         var cryptoExtensions = _userConfigService.LoadCryptoSoftExtensions() ?? new List<string>();
         var cryptoPath = GetCryptoSoftPath();
+        var priorityExtensions = _userConfigService.LoadPriorityExtensions() ?? new List<string>();
+        var maxParallelFileSizeKb = _userConfigService.LoadMaxParallelFileSizeKb();
 
         // Create handles for each job
         var handles = new List<JobExecutionHandle>();
@@ -148,23 +162,34 @@ public class JobManagementService : IJobManagementService
         // Start business software monitor on its own dedicated thread
         StartBusinessSoftwareMonitor(businessSoftware);
 
-        // Single Task.Run offloads from the UI thread.
-        // Inside, all jobs run as async tasks that cooperatively yield between files.
-        // The SemaphoreSlim inside BackupService ensures only one job does file I/O at a time.
+        // SharedExecutionContext holds the large-file semaphore and priority coordinator.
+        // It is shared across all jobs in this batch and disposed once all jobs finish.
+        using var executionContext = new SharedExecutionContext(priorityExtensions, maxParallelFileSizeKb);
+
+        // Task.Run moves execution off the UI thread onto a thread pool thread so
+        // the UI stays responsive while jobs run. The async lambda inside means the
+        // thread pool thread itself is released while awaiting individual file operations.
         var results = await Task.Run(async () =>
         {
             for (int i = 0; i < handles.Count; i++)
             {
                 var capturedJob = jobsToExecute[i];
                 var capturedHandle = handles[i];
+                // Start each job as an async Task (hot — starts immediately).
+                // No Task.Run per job: they share the same async context and
+                // cooperatively interleave via await Task.Yield() in ExecuteBackupAsync.
                 capturedHandle.ExecutionTask = _backupService.ExecuteBackupAsync(
                     capturedJob,
                     logFormat,
                     cryptoExtensions,
                     cryptoPath,
                     capturedHandle.Cts.Token,
-                    capturedHandle.PauseEvent);
+                    capturedHandle.PauseEvent,
+                    executionContext);
             }
+            // Task.WhenAll waits for ALL job tasks to complete (or fault/cancel).
+            // It does not block a thread; it suspends this async method until every
+            // task in the collection reaches a terminal state.
             return await Task.WhenAll(handles.Select(h => h.ExecutionTask!));
         });
 
@@ -265,7 +290,7 @@ public class JobManagementService : IJobManagementService
 
                 try
                 {
-                    await Task.Delay(100, token);
+                    await Task.Delay(75, token);
                 }
                 catch (OperationCanceledException)
                 {
