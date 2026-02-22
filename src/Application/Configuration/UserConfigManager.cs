@@ -280,6 +280,68 @@ namespace EasySave.Application.Configuration
             }
         }
 
+        public List<string>? LoadPriorityExtensions()
+        {
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                    return null;
+
+                string json = File.ReadAllText(_configFilePath);
+                var config = JsonSerializer.Deserialize<UserConfig>(
+                    json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return config?.PriorityExtensions;
+            }
+            catch { return null; }
+        }
+
+        public bool SavePriorityExtensions(List<string> extensions)
+        {
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+                var userConfig = LoadConfig();
+                userConfig.PriorityExtensions = extensions ?? new List<string>();
+                File.WriteAllText(_configFilePath, JsonSerializer.Serialize(
+                    userConfig, new JsonSerializerOptions { WriteIndented = true }));
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public long LoadMaxParallelFileSizeKb()
+        {
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                    return 0;
+
+                string json = File.ReadAllText(_configFilePath);
+                var config = JsonSerializer.Deserialize<UserConfig>(
+                    json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return config?.MaxParallelFileSizeKb ?? 0;
+            }
+            catch { return 0; }
+        }
+
+        public bool SaveMaxParallelFileSizeKb(long sizeKb)
+        {
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+                var userConfig = LoadConfig();
+                userConfig.MaxParallelFileSizeKb = sizeKb < 0 ? 0 : sizeKb;
+                File.WriteAllText(_configFilePath, JsonSerializer.Serialize(
+                    userConfig, new JsonSerializerOptions { WriteIndented = true }));
+                return true;
+            }
+            catch { return false; }
+        }
+
         private UserConfig LoadConfig()
         {
             try
@@ -301,8 +363,16 @@ namespace EasySave.Application.Configuration
             public string? Language { get; set; }
             public LogFormat? SavedLogFormat { get; set; }
             public string? BusinessSoftware { get; set; }
-
             public List<string> CryptoSoftExtensions { get; set; } = new();
+
+            /// <summary>File extensions treated as priority during parallel execution.</summary>
+            public List<string> PriorityExtensions { get; set; } = new();
+
+            /// <summary>
+            /// Max file size (KB) that can be transferred in parallel.
+            /// 0 = large-file bandwidth rule disabled.
+            /// </summary>
+            public long MaxParallelFileSizeKb { get; set; } = 0;
         }
     }
 }
