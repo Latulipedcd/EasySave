@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core.Models;
 
-namespace Core.Interfaces;
+namespace EasySave.Application.Interfaces;
 
 /// <summary>
 /// Service contract for managing backup jobs (CRUD and Execution).

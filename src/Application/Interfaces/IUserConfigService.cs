@@ -1,7 +1,7 @@
 using Log.Enums;
 using System.Collections.Generic;
 
-namespace Core.Interfaces;
+namespace EasySave.Application.Interfaces;
 
 public interface IUserConfigService
 {
