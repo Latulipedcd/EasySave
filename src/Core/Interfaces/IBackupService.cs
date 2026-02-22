@@ -24,11 +24,10 @@ namespace Core.Interfaces
         BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware, List<string> CryptoSoftExtensions, string? cryptoSoftPath);
 
         /// <summary>
-        /// Executes a backup job asynchronously with support for pause and cancellation.
-        /// Yields between files to allow cooperative interleaving with other jobs.
-        /// Business software monitoring is handled externally via the pauseEvent.
+        /// Executes a backup job asynchronously with support for pause, cancellation,
+        /// priority file rules, and large-file bandwidth control.
         /// </summary>
-        Task<BackupState> ExecuteBackupAsync(BackupJob job, LogFormat format, List<string> CryptoSoftExtensions, string? cryptoSoftPath, CancellationToken cancellationToken, ManualResetEventSlim pauseEvent);
+        Task<BackupState> ExecuteBackupAsync(BackupJob job, LogFormat format, List<string> CryptoSoftExtensions, string? cryptoSoftPath, CancellationToken cancellationToken, ManualResetEventSlim pauseEvent, SharedExecutionContext executionContext);
     }
 }
 

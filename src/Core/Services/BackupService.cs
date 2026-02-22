@@ -23,8 +23,14 @@ namespace Core.Services
         private readonly IBusinessSoftwareMonitor _businessSoftwareMonitor;
 
         /// <summary>
-        /// Gate that ensures only one job processes a file at a time.
-        /// After processing, the job releases the gate and yields, letting another job take its turn.
+        /// Async-compatible mutex that lets exactly one job process a file at a time.
+        /// SemaphoreSlim(1, 1) means: capacity of 1, initially 1 slot available.
+        /// A regular lock cannot be used here because:
+        ///   - lock blocks the calling thread while waiting.
+        ///   - In async code this wastes a thread pool thread instead of releasing it.
+        ///   - The C# compiler also forbids await inside a lock block.
+        /// SemaphoreSlim.WaitAsync() suspends the task without occupying a thread,
+        /// and accepts a CancellationToken so a Stop request can interrupt the wait.
         /// </summary>
         private static readonly SemaphoreSlim _fileProcessingGate = new(1, 1);
 
@@ -42,6 +48,10 @@ namespace Core.Services
             _progressWriter = progressWriter;
             _businessSoftwareMonitor = businessSoftwareMonitor;
         }
+
+        // Semaphore to ensure only one CryptoSoft process runs at a time across all jobs.
+        // Implemented as a SemaphoreSlim with capacity 1 (mono-instance).
+        private static readonly SemaphoreSlim _cryptoSemaphore = new(1, 1);
 
         public BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware, List<string> CryptoSoftExtensions, string? cryptoSoftPath)
         {
@@ -77,7 +87,7 @@ namespace Core.Services
 
                 // Process the file (copy or encrypt)
                 var stopwatch = Stopwatch.StartNew();
-                bool success = ProcessFile(file, targetPath, CryptoSoftExtensions, cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs);
+                bool success = ProcessFile(file, targetPath, CryptoSoftExtensions, cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs, CancellationToken.None);
                 stopwatch.Stop();
 
                 if (!success)
@@ -102,24 +112,52 @@ namespace Core.Services
 
 
         /// <summary>
-        /// Executes a backup job asynchronously with support for pause and cancellation.
-        /// Uses a shared SemaphoreSlim so only one job does file I/O at a time,
-        /// then yields to let other jobs take their turn (cooperative async interleaving).
+        /// Executes a backup job asynchronously with support for pause, cancellation,
+        /// priority file rules, and large-file bandwidth control.
         /// </summary>
-        public async Task<BackupState> ExecuteBackupAsync(BackupJob job, LogFormat format, List<string> CryptoSoftExtensions, string? cryptoSoftPath, CancellationToken cancellationToken, ManualResetEventSlim pauseEvent)
+        /// <param name="cancellationToken">
+        /// Provided by CancellationTokenSource.Token (one per job in JobExecutionHandle).
+        /// Calling Cts.Cancel() signals this token, which causes ThrowIfCancellationRequested()
+        /// or WaitAsync(token) to throw OperationCanceledException, stopping the job cleanly.
+        /// </param>
+        /// <param name="pauseEvent">
+        /// A ManualResetEventSlim that starts in Set state (not blocking).
+        /// Reset() blocks any thread/task that calls Wait() on it — used to pause the job.
+        /// Set() unblocks all waiters — used to resume.
+        /// The async version polls it with Task.Delay instead of calling the blocking Wait()
+        /// so the thread is not held while the job is paused.
+        /// </param>
+        /// <param name="executionContext">
+        /// Shared state for the current batch: large-file semaphore and priority coordinator.
+        /// Same instance is passed to every concurrent job so they can coordinate.
+        /// </param>
+        public async Task<BackupState> ExecuteBackupAsync(BackupJob job, LogFormat format, List<string> CryptoSoftExtensions, string? cryptoSoftPath, CancellationToken cancellationToken, ManualResetEventSlim pauseEvent, SharedExecutionContext executionContext)
         {
             _logService.Configure(format);
 
             if (!Directory.Exists(job.SourceDirectory))
             {
+                executionContext.UnregisterJob(job.Name);
                 return HandleSourceDirectoryNotFound(job);
             }
 
             var state = InitializeBackupState(job, format, out var files);
 
+            bool hasPriorityRules = executionContext.PriorityExtensions.Count > 0;
+
+            // Build the set of priority files for this job upfront so we only scan once.
+            var prioritySet = hasPriorityRules
+                ? new HashSet<string>(
+                    files.Where(f => IsPriorityFile(f, executionContext.PriorityExtensions)),
+                    StringComparer.OrdinalIgnoreCase)
+                : new HashSet<string>();
+
+            // Register how many priority files this job owns so other jobs can wait if needed.
+            executionContext.RegisterJob(job.Name, prioritySet.Count);
+
             foreach (var file in files)
             {
-                // Async pause check — poll until resumed or cancelled
+                // ── Async pause check: poll until resumed or cancelled ──────────────────
                 if (!pauseEvent.IsSet)
                 {
                     state.Status = BackupStatus.Paused;
@@ -137,6 +175,7 @@ namespace Core.Services
                 catch (OperationCanceledException)
                 {
                     state.Status = BackupStatus.Cancelled;
+                    executionContext.UnregisterJob(job.Name);
                     FinalizeBackup(job, state);
                     return state;
                 }
@@ -144,29 +183,65 @@ namespace Core.Services
                 if (cancellationToken.IsCancellationRequested)
                 {
                     state.Status = BackupStatus.Cancelled;
+                    executionContext.UnregisterJob(job.Name);
                     FinalizeBackup(job, state);
                     return state;
                 }
 
-                // Resume from pause
                 if (state.Status == BackupStatus.Paused)
                 {
                     state.Status = BackupStatus.Active;
                     UpdateProgress(job, state);
                 }
 
-                // Acquire exclusive turn for file I/O
-                try
+                // ── Rule 1: Priority extensions ────────────────────────────────────────
+                // Non-priority files must wait while any job still has priority files pending.
+                bool isPriority = prioritySet.Contains(file);
+
+                if (!isPriority && hasPriorityRules)
                 {
-                    await _fileProcessingGate.WaitAsync(cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    state.Status = BackupStatus.Cancelled;
-                    FinalizeBackup(job, state);
-                    return state;
+                    try
+                    {
+                        while (executionContext.HasAnyPriorityFilePending)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            await Task.Delay(50, cancellationToken);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        state.Status = BackupStatus.Cancelled;
+                        executionContext.UnregisterJob(job.Name);
+                        FinalizeBackup(job, state);
+                        return state;
+                    }
                 }
 
+                // ── Rule 2: Large-file bandwidth gate ──────────────────────────────────
+                // Only one file larger than MaxParallelFileSizeBytes can transfer at a time.
+                // Small files skip this gate and run freely in parallel.
+                long fileSize = new FileInfo(file).Length;
+                bool isLargeFile = executionContext.MaxParallelFileSizeBytes > 0
+                                   && fileSize > executionContext.MaxParallelFileSizeBytes;
+
+                if (isLargeFile)
+                {
+                    try
+                    {
+                        await executionContext.LargeFileSemaphore.WaitAsync(cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        state.Status = BackupStatus.Cancelled;
+                        executionContext.UnregisterJob(job.Name);
+                        FinalizeBackup(job, state);
+                        return state;
+                    }
+                }
+
+                // ── File processing ────────────────────────────────────────────────────
+                // finally always runs: releases the large-file semaphore (if held) and
+                // decrements the priority counter (if this is a priority file).
                 try
                 {
                     var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
@@ -176,12 +251,13 @@ namespace Core.Services
 
                     if (!ShouldProcessFile(job, targetPath, file))
                     {
+                        // File is already up-to-date (differential backup). Count it as done.
                         state.FilesRemaining--;
-                        continue;
+                        continue; // finally will decrement priority + release semaphore
                     }
 
                     var stopwatch = Stopwatch.StartNew();
-                    bool success = ProcessFile(file, targetPath, CryptoSoftExtensions, cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs);
+                    bool success = ProcessFile(file, targetPath, CryptoSoftExtensions, cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs, cancellationToken);
                     stopwatch.Stop();
 
                     if (!success)
@@ -199,13 +275,20 @@ namespace Core.Services
                 }
                 finally
                 {
-                    _fileProcessingGate.Release();
+                    // Always release the large-file slot so the next waiter can proceed.
+                    if (isLargeFile)
+                        executionContext.LargeFileSemaphore.Release();
+
+                    // Always mark this priority file as done, even if it was skipped.
+                    if (isPriority)
+                        executionContext.DecrementPriority(job.Name);
                 }
 
-                // Yield to let other jobs take their turn
+                // Yield to let other async tasks take their turn.
                 await Task.Yield();
             }
 
+            executionContext.UnregisterJob(job.Name);
             FinalizeBackup(job, state);
             return state;
         }
@@ -348,13 +431,31 @@ namespace Core.Services
         /// <param name="wasEncrypted">Output parameter indicating if the file was encrypted.</param>
         /// <param name="encryptionTimeMs">Output parameter with encryption time: 0=no encryption, >0=time in ms, <0=error code.</param>
         /// <returns>True if operation succeeded, false otherwise.</returns>
-        private bool ProcessFile(string sourceFile, string targetPath, List<string> cryptoExtensions, string? cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs)
+        private bool ProcessFile(string sourceFile, string targetPath, List<string> cryptoExtensions, string? cryptoSoftPath, out bool wasEncrypted, out long encryptionTimeMs, CancellationToken cancellationToken)
         {
             wasEncrypted = RequiresEncryption(sourceFile, cryptoExtensions);
 
             if (wasEncrypted)
             {
-                return EncryptFile(sourceFile, targetPath, cryptoSoftPath, out encryptionTimeMs);
+                // Ensure only one CryptoSoft process runs at a time across all jobs.
+                try
+                {
+                    _cryptoSemaphore.Wait(cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    encryptionTimeMs = -99; // cancelled while waiting for crypto slot
+                    return false;
+                }
+
+                try
+                {
+                    return EncryptFile(sourceFile, targetPath, cryptoSoftPath, out encryptionTimeMs);
+                }
+                finally
+                {
+                    try { _cryptoSemaphore.Release(); } catch { }
+                }
             }
             else
             {
@@ -423,6 +524,16 @@ namespace Core.Services
             };
 
             _progressWriter.Write(resetInfo);
+        }
+
+        /// <summary>
+        /// Returns true if the file's extension is in the configured priority list.
+        /// Extensions in the context are already normalised (lowercase, leading dot).
+        /// </summary>
+        private static bool IsPriorityFile(string filePath, IReadOnlyList<string> priorityExtensions)
+        {
+            string ext = Path.GetExtension(filePath).ToLowerInvariant();
+            return priorityExtensions.Contains(ext);
         }
 
         /// <summary>
