@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Core.Enums;
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Core.Models;
 
 namespace EasySave.Presentation.ViewModels;

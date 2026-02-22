@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
+using EasySave.Application.Interfaces;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -164,7 +165,7 @@ public class JobListViewModel : ViewModelBase
     /// </summary>
     public async Task<(bool success, string message)> CreateJobAsync(string name, string source, string target, int typeIndex)
     {
-        var (success, message) = await Task.Run(() =>
+        (bool success, string message) = await Task.Run(() =>
         {
             try
             {
@@ -194,7 +195,7 @@ public class JobListViewModel : ViewModelBase
     // Surcharge avec nom
     public async Task<(bool success, string message)> UpdateJobAsync(int jobId, string? newName, string source, string target, int typeIndex)
     {
-        var (success, message) = await Task.Run(() =>
+        (bool success, string message) = await Task.Run(() =>
         {
             try
             {
@@ -249,7 +250,7 @@ public class JobListViewModel : ViewModelBase
             .OrderByDescending(id => id)
             .ToList();
 
-        var (deletedCount, errors) = await Task.Run(() =>
+        (int deletedCount, List<string> errors) = await Task.Run(() =>
         {
             var deleted = 0;
             var errorMessages = new List<string>();

@@ -1,4 +1,5 @@
 using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Core.Services;
 using EasySave.Application.Configuration;
 using EasySave.Application.Services;
@@ -56,12 +57,13 @@ public static class ServiceFactory
     /// </summary>
     public static IBackupService GetBackupService()
     {
-        return _backupServiceInstance ??= new Core.Services.BackupService(
+        return _backupServiceInstance ??= new BackupService(
             LogService.Instance,
             new FileService(),
             new CopyService(),
             GetProgressWriter(),
-            new BusinessSoftwareMonitor());
+            new BusinessSoftwareMonitor(),
+            new CryptoService());
     }
 
     /// <summary>
@@ -93,9 +95,9 @@ public static class ServiceFactory
     /// <summary>
     /// Creates a new instance of ConfigService.
     /// </summary>
-    public static ConfigService CreateConfigService()
+    public static UserConfigService CreateConfigService()
     {
-        return new ConfigService(GetUserConfigService());
+        return new UserConfigService(GetUserConfigService());
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using Core.Interfaces;
+﻿using EasySave.Application.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;

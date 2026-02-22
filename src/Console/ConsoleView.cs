@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using EasySave.Application;
 using EasySave.Application.Services;
 
@@ -10,7 +10,7 @@ namespace EasySave.ConsoleApp
         //Console display
         private readonly ILanguageService _languageService;
         private readonly LanguageService _languageServiceManager;
-        private readonly ConfigService _configService;
+        private readonly UserConfigService _configService;
         private readonly ConsoleLogic _logic;
 
         public ConsoleView()

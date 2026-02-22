@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Log.Enums;
 using System;
 using System.IO;

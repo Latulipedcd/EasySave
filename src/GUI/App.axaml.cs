@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Core.Services;
 using EasySave.Application.Configuration;
 using EasySave.Application.Services;
@@ -31,7 +32,8 @@ public partial class App : Application
                 new FileService(),
                 new CopyService(),
                 progressWriter,
-                new BusinessSoftwareMonitor());
+                new BusinessSoftwareMonitor(),
+                new CryptoService());
 
             IJobManagementService jobManagementService = new JobManagementService(
                 languageService,

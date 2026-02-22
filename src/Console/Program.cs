@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using EasySave.Application;
 using EasySave.Application.Services;
 
