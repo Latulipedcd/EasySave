@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using EasySave.Application;
 using EasySave.Application.Services;
 
@@ -9,15 +9,15 @@ namespace EasySave.ConsoleApp
 
         //Console display
         private readonly ILanguageService _languageService;
-        private readonly LanguageService _languageOrchestration;
-        private readonly ConfigService _configOrchestration;
+        private readonly LanguageService _languageServiceManager;
+        private readonly UserConfigService _configService;
         private readonly ConsoleLogic _logic;
 
         public ConsoleView()
         {
             _languageService = ServiceFactory.GetLanguageService();
-            _languageOrchestration = ServiceFactory.CreateLanguageOrchestrationService();
-            _configOrchestration = ServiceFactory.CreateConfigOrchestrationService();
+            _languageServiceManager = ServiceFactory.CreateLanguageService();
+            _configService = ServiceFactory.CreateConfigService();
 
             var jobService = ServiceFactory.CreateJobManagementService();
             _logic = new ConsoleLogic(jobService, _languageService);
@@ -74,7 +74,7 @@ namespace EasySave.ConsoleApp
 
         private void InitializeLanguage()
         {
-            bool hasLoadedSavedLanguage = _languageOrchestration.TryLoadSavedLanguage();
+            bool hasLoadedSavedLanguage = _languageServiceManager.TryLoadSavedLanguage();
 
             if (hasLoadedSavedLanguage)
             {
@@ -144,8 +144,8 @@ namespace EasySave.ConsoleApp
         {
             return choice switch
             {
-                "1" => _languageOrchestration.ChangeLanguage("en"),
-                "2" => _languageOrchestration.ChangeLanguage("fr"),
+                "1" => _languageServiceManager.ChangeLanguage("en"),
+                "2" => _languageServiceManager.ChangeLanguage("fr"),
                 _ => false
             };
         }
@@ -171,8 +171,8 @@ namespace EasySave.ConsoleApp
         {
             return choice switch
             {
-                "1" => _configOrchestration.ChangeLogFormat("Json"),
-                "2" => _configOrchestration.ChangeLogFormat("Xml"),
+                "1" => _configService.ChangeLogFormat("Json"),
+                "2" => _configService.ChangeLogFormat("Xml"),
                 _ => false
             };
         }

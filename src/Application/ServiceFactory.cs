@@ -1,5 +1,7 @@
 using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Core.Services;
+using Core.Repository;
 using EasySave.Application.Configuration;
 using EasySave.Application.Services;
 using Log.Services;
@@ -17,6 +19,8 @@ public static class ServiceFactory
     private static IUserConfigService? _userConfigServiceInstance;
     private static IBackupJobRepository? _backupJobRepositoryInstance;
     private static IBackupService? _backupServiceInstance;
+    private static IProgressWriter? _progressWriterInstance;
+    private static ICopyService? _copyServiceInstance;
 
     /// <summary>
     /// Gets or creates the singleton ILanguageService instance.
@@ -43,16 +47,44 @@ public static class ServiceFactory
     }
 
     /// <summary>
+    /// Gets or creates the singleton IProgressWriter instance.
+    /// </summary>
+    public static IProgressWriter GetProgressWriter()
+    {
+        return _progressWriterInstance ??= new ProgressJsonWriter();
+    }
+
+    /// <summary>
+    /// Gets or creates the singleton ICopyService instance.
+    /// </summary>
+    public static ICopyService GetCopyService()
+    {
+        return _copyServiceInstance ??= new CopyService();
+    }
+
+    /// <summary>
     /// Gets or creates the singleton IBackupService instance.
+    /// Wires the shared BackupOperationLogger instance into every sub-service that
+    /// needs it (BackupPreflightChecker, BackupDirectoryService, BackupService itself)
+    /// so that a single Configure(format) call applies to all three.
     /// </summary>
     public static IBackupService GetBackupService()
     {
-        return _backupServiceInstance ??= new BackupService(
-            LogService.Instance,
-            new FileService(),
-            new CopyService(),
-            new ProgressJsonWriter(),
-            new BusinessSoftwareMonitor());
+        if (_backupServiceInstance != null) return _backupServiceInstance;
+
+        var copyService      = GetCopyService();
+        var encryptionService = new EncryptionService(copyService);
+        var operationLogger  = new BackupLoggerService(LogService.Instance);
+
+        _backupServiceInstance = new BackupService(
+            new BackupValidationService(new BusinessSoftwareMonitor(), operationLogger),
+            new BackupStateService(new FileService(), GetProgressWriter()),
+            new BackupDirectoryService(operationLogger),
+            new FileTransferService(encryptionService, copyService),
+            new BackupFileFilter(),
+            operationLogger);
+
+        return _backupServiceInstance;
     }
 
     /// <summary>
@@ -64,13 +96,16 @@ public static class ServiceFactory
             GetLanguageService(),
             GetUserConfigService(),
             GetBackupJobRepository(),
-            GetBackupService());
+            GetBackupService(),
+            new BusinessSoftwareMonitor(),
+            GetProgressWriter());
     }
 
     /// <summary>
-    /// Creates a new instance of LanguageOrchestrationService.
+    /// <summary>
+    /// Creates a new instance of LanguageService.
     /// </summary>
-    public static LanguageService CreateLanguageOrchestrationService()
+    public static LanguageService CreateLanguageService()
     {
         return new LanguageService(
             GetLanguageService(),
@@ -78,11 +113,12 @@ public static class ServiceFactory
     }
 
     /// <summary>
-    /// Creates a new instance of ConfigOrchestrationService.
+    /// <summary>
+    /// Creates a new instance of ConfigService.
     /// </summary>
-    public static ConfigService CreateConfigOrchestrationService()
+    public static UserConfigService CreateConfigService()
     {
-        return new ConfigService(GetUserConfigService());
+        return new UserConfigService(GetUserConfigService());
     }
 
     /// <summary>
@@ -94,5 +130,7 @@ public static class ServiceFactory
         _userConfigServiceInstance = null;
         _backupJobRepositoryInstance = null;
         _backupServiceInstance = null;
+        _progressWriterInstance = null;
+        _copyServiceInstance = null;
     }
 }

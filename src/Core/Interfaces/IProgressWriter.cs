@@ -1,5 +1,4 @@
 ﻿using Core.Models;
-using Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,9 +11,16 @@ namespace Core.Interfaces
     public interface IProgressWriter
     {
         /// <summary>
-        /// Writes the backup state to storage.
+        /// Writes/updates the backup state for a specific job.
+        /// The writer tracks all job states and persists the full collection.
         /// </summary>
         /// <param name="backupState">The backup state to write.</param>
         void Write(BackupState backupState);
+
+        /// <summary>
+        /// Clears all tracked job states and resets the persistent storage.
+        /// Should be called before starting a new batch of jobs.
+        /// </summary>
+        void Clear();
     }
 }

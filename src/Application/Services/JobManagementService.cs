@@ -1,11 +1,15 @@
 using Core.Enums;
 using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Core.Models;
 using Log.Enums;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EasySave.Application.Services;
 
@@ -20,6 +24,9 @@ public class JobManagementService : IJobManagementService
     private readonly IUserConfigService _userConfigService;
     private readonly IBackupJobRepository _backupJobRepository;
     private readonly IBackupService _backupService;
+    private readonly IBusinessSoftwareMonitor _businessSoftwareMonitor;
+    private readonly IProgressWriter _progressWriter;
+    private readonly EasySave.Application.Interfaces.IJobExecutionService _jobExecutionService;
 
     /// <summary>
     /// Constructor with dependency injection.
@@ -29,12 +36,24 @@ public class JobManagementService : IJobManagementService
         ILanguageService languageService,
         IUserConfigService userConfigService,
         IBackupJobRepository backupJobRepository,
-        IBackupService backupService)
+        IBackupService backupService,
+        IBusinessSoftwareMonitor businessSoftwareMonitor,
+        IProgressWriter progressWriter)
     {
         _languageService = languageService ?? throw new ArgumentNullException(nameof(languageService));
         _userConfigService = userConfigService ?? throw new ArgumentNullException(nameof(userConfigService));
         _backupJobRepository = backupJobRepository ?? throw new ArgumentNullException(nameof(backupJobRepository));
         _backupService = backupService ?? throw new ArgumentNullException(nameof(backupService));
+        _businessSoftwareMonitor = businessSoftwareMonitor ?? throw new ArgumentNullException(nameof(businessSoftwareMonitor));
+        _progressWriter = progressWriter ?? throw new ArgumentNullException(nameof(progressWriter));
+        // Initialize execution service used for running/controlling jobs.
+        _jobExecutionService = new JobExecutionService(
+            _userConfigService,
+            _backupJobRepository,
+            _backupService,
+            _progressWriter,
+            _businessSoftwareMonitor,
+            _languageService);
     }
 
     public IReadOnlyList<BackupJob> GetBackupJobs()
@@ -103,33 +122,42 @@ public class JobManagementService : IJobManagementService
 
     public bool ExecuteBackupJobs(string userInput, out List<BackupState> results, out string errorMessage)
     {
-        results = new List<BackupState>();
-        errorMessage = string.Empty;
+        return _jobExecutionService.ExecuteBackupJobs(userInput, out results, out errorMessage);
+    }
 
-        var jobs = _backupJobRepository.GetAll().ToList();
-        var jobsToExecute = ResolveJobsFromInput(userInput, jobs, out errorMessage);
-        if (jobsToExecute == null)
-            return false;
+    public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteBackupJobsAsync(string userInput)
+    {
+        return await _jobExecutionService.ExecuteBackupJobsAsync(userInput);
+    }
 
-        foreach (var job in jobsToExecute)
-        {
-            // Load user configurations for each backup execution
-            var logFormat = _userConfigService.LoadLogFormat() ?? LogFormat.Json;
-            var businessSoftware = _userConfigService.LoadBusinessSoftware();
-            var cryptoExtensions = _userConfigService.LoadCryptoSoftExtensions() ?? new List<string>();
-            var cryptoPath = GetCryptoSoftPath();
+    public void PauseJob(string jobName)
+    {
+        _jobExecutionService.PauseJob(jobName);
+    }
 
-            var state = _backupService.ExecuteBackup(
-                job,
-                logFormat,
-                businessSoftware,
-                cryptoExtensions,
-                cryptoPath);
+    public void ResumeJob(string jobName)
+    {
+        _jobExecutionService.ResumeJob(jobName);
+    }
 
-            results.Add(state);
-        }
+    public void StopJob(string jobName)
+    {
+        _jobExecutionService.StopJob(jobName);
+    }
 
-        return true;
+    public void PauseAllJobs()
+    {
+        _jobExecutionService.PauseAllJobs();
+    }
+
+    public void ResumeAllJobs()
+    {
+        _jobExecutionService.ResumeAllJobs();
+    }
+
+    public void StopAllJobs()
+    {
+        _jobExecutionService.StopAllJobs();
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using Core.Interfaces;
 using Core.Models;
+using EasySave.Application.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,13 +26,13 @@ namespace EasySave.Presentation.ViewModels
             ILanguageService languageService,
             IUserConfigService userConfigService,
             IBackupJobRepository backupJobRepository,
-            IBackupService backupService)
+            IJobManagementService jobManagementService)
         {
             _languageService = languageService;
             Settings = new SettingsViewModel(languageService, userConfigService);
             JobEditor = new JobEditorViewModel();
             JobList = new JobListViewModel(backupJobRepository, languageService);
-            JobExecution = new JobExecutionViewModel(backupService, backupJobRepository, userConfigService, languageService);
+            JobExecution = new JobExecutionViewModel(jobManagementService, languageService);
         }
 
         public string GetText(string key) => _languageService.GetString(key);
@@ -188,7 +189,7 @@ namespace EasySave.Presentation.ViewModels
         /// </summary>
         public void RefreshJobListExecutionState()
         {
-            JobList.UpdateExecutionState(JobExecution.LatestProgressState);
+            JobList.UpdateExecutionStates(JobExecution.LatestProgressStates);
         }
 
         /// <summary>
@@ -197,7 +198,7 @@ namespace EasySave.Presentation.ViewModels
         public void ClearJobState()
         {
             JobExecution.ClearJobState();
-            JobList.UpdateExecutionState(null);
+            JobList.UpdateExecutionStates(null);
         }
     }
 }

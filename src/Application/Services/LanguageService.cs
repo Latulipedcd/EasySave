@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 
 namespace EasySave.Application.Services;
 

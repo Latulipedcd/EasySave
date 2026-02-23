@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
+using EasySave.Application.Interfaces;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -90,52 +91,72 @@ public class JobListViewModel : ViewModelBase
 
     /// <summary>
     /// Updates inline execution state in the jobs list.
-    /// Only the active job is highlighted with progress.
+    /// Supports multiple concurrent job states from parallel execution.
     /// </summary>
-    public void UpdateExecutionState(BackupState? state)
+    public void UpdateExecutionStates(List<BackupState>? states)
     {
+        // Reset all items first
         foreach (var item in DisplayJobs)
         {
-            // One job max can be active (state.json contains the latest one).
             item.IsRunning = false;
             item.ExecutionProgress = 0;
         }
 
-        if (state?.Job == null)
+        if (states == null || states.Count == 0)
             return;
 
-        var target = DisplayJobs.FirstOrDefault(item =>
-            string.Equals(item.Name, state.Job.Name, StringComparison.Ordinal));
-
-        if (target == null)
-            return;
-
-        if ((state.Status == BackupStatus.Completed || state.Status == BackupStatus.Error) &&
-            (state.TimeStamp == default || state.TimeStamp < _sessionStartedAt))
-            return;
-
-        switch (state.Status)
+        foreach (var state in states)
         {
-            case BackupStatus.Active:
-                target.IsRunning = true;
-                target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
-                target.IsCompletedSuccess = false;
-                target.HasExecutionError = false;
-                break;
+            if (state.Job == null)
+                continue;
 
-            case BackupStatus.Completed:
-                target.IsRunning = false;
-                target.ExecutionProgress = 100;
-                target.IsCompletedSuccess = true;
-                target.HasExecutionError = false;
-                break;
+            var target = DisplayJobs.FirstOrDefault(item =>
+                string.Equals(item.Name, state.Job.Name, StringComparison.Ordinal));
 
-            case BackupStatus.Error:
-                target.IsRunning = false;
-                target.ExecutionProgress = 0;
-                target.IsCompletedSuccess = false;
-                target.HasExecutionError = true;
-                break;
+            if (target == null)
+                continue;
+
+            if ((state.Status == BackupStatus.Completed || state.Status == BackupStatus.Error || state.Status == BackupStatus.Cancelled) &&
+                (state.TimeStamp == default || state.TimeStamp < _sessionStartedAt))
+                continue;
+
+            switch (state.Status)
+            {
+                case BackupStatus.Active:
+                    target.IsRunning = true;
+                    target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
+                    target.IsCompletedSuccess = false;
+                    target.HasExecutionError = false;
+                    break;
+
+                case BackupStatus.Paused:
+                    target.IsRunning = true;
+                    target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
+                    target.IsCompletedSuccess = false;
+                    target.HasExecutionError = false;
+                    break;
+
+                case BackupStatus.Completed:
+                    target.IsRunning = false;
+                    target.ExecutionProgress = 100;
+                    target.IsCompletedSuccess = true;
+                    target.HasExecutionError = false;
+                    break;
+
+                case BackupStatus.Error:
+                    target.IsRunning = false;
+                    target.ExecutionProgress = 0;
+                    target.IsCompletedSuccess = false;
+                    target.HasExecutionError = true;
+                    break;
+
+                case BackupStatus.Cancelled:
+                    target.IsRunning = false;
+                    target.ExecutionProgress = 0;
+                    target.IsCompletedSuccess = false;
+                    target.HasExecutionError = true;
+                    break;
+            }
         }
     }
 
@@ -144,7 +165,7 @@ public class JobListViewModel : ViewModelBase
     /// </summary>
     public async Task<(bool success, string message)> CreateJobAsync(string name, string source, string target, int typeIndex)
     {
-        var (success, message) = await Task.Run(() =>
+        (bool success, string message) = await Task.Run(() =>
         {
             try
             {
@@ -174,7 +195,7 @@ public class JobListViewModel : ViewModelBase
     // Surcharge avec nom
     public async Task<(bool success, string message)> UpdateJobAsync(int jobId, string? newName, string source, string target, int typeIndex)
     {
-        var (success, message) = await Task.Run(() =>
+        (bool success, string message) = await Task.Run(() =>
         {
             try
             {
@@ -229,7 +250,7 @@ public class JobListViewModel : ViewModelBase
             .OrderByDescending(id => id)
             .ToList();
 
-        var (deletedCount, errors) = await Task.Run(() =>
+        (int deletedCount, List<string> errors) = await Task.Run(() =>
         {
             var deleted = 0;
             var errorMessages = new List<string>();

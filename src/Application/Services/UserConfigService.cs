@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using Log.Enums;
 
 namespace EasySave.Application.Services;
@@ -7,11 +7,11 @@ namespace EasySave.Application.Services;
 /// Application-layer orchestration service for user configuration management.
 /// Provides convenient methods with validation and type conversion.
 /// </summary>
-public class ConfigService
+public class UserConfigService
 {
     private readonly IUserConfigService _userConfigService;
 
-    public ConfigService(IUserConfigService userConfigService)
+    public UserConfigService(IUserConfigService userConfigService)
     {
         _userConfigService = userConfigService ?? throw new ArgumentNullException(nameof(userConfigService));
     }

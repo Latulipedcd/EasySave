@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using EasySave.Application.Interfaces;
 using EasySave.Application;
 using EasySave.Application.Services;
 
@@ -25,18 +25,18 @@ namespace EasySave.ConsoleApp
             if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
             {
                 var langService = ServiceFactory.GetLanguageService();
-                var langOrchestration = ServiceFactory.CreateLanguageOrchestrationService();
-                langOrchestration.TryLoadSavedLanguage();
+                var langServiceManager = ServiceFactory.CreateLanguageService();
+                langServiceManager.TryLoadSavedLanguage();
                 Console.WriteLine(langService.GetString("ErrorInvalidOption"));
                 return 1;
             }
 
             string command = args[0];
             var languageService = ServiceFactory.GetLanguageService();
-            var languageOrchestrationService = ServiceFactory.CreateLanguageOrchestrationService();
+            var languageServiceManager = ServiceFactory.CreateLanguageService();
             var jobManagementService = ServiceFactory.CreateJobManagementService();
 
-            languageOrchestrationService.TryLoadSavedLanguage();
+            languageServiceManager.TryLoadSavedLanguage();
 
             if (string.IsNullOrWhiteSpace(command))
             {

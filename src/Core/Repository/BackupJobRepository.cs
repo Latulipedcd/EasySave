@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 
-namespace Core.Services
+namespace Core.Repository
 {
     /// <summary>
     /// Repository service for managing backup job persistence and CRUD operations.

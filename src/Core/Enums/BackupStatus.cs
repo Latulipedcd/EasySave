@@ -9,6 +9,8 @@ namespace Core.Enums
         Completed,
         Error,
         Active,
-        Inactive
+        Inactive,
+        Paused,
+        Cancelled
     }
 }
