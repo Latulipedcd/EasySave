@@ -6,7 +6,6 @@ using Avalonia.VisualTree;
 using Avalonia.Layout;
 using Core.Models;
 using EasySave.Presentation.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,6 +65,39 @@ public partial class MainWindow : Window
             .ToList() ?? new List<BackupJob>();
 
         await vm.ExecuteSelectedAsync(selected);
+    }
+
+    /// <summary>
+    /// Démarre (ou reprend) le job affiché dans le panneau de détails.
+    /// </summary>
+    private async void StartJob_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.StartSelectedJobAsync();
+    }
+
+    /// <summary>
+    /// Met en pause le job affiché dans le panneau de détails.
+    /// </summary>
+    private void StopJob_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        vm.StopSelectedJob();
+    }
+
+    /// <summary>
+    /// Annule le job affiché dans le panneau de détails.
+    /// </summary>
+    private void BreakJob_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        vm.BreakSelectedJob();
     }
 
     /// <summary>

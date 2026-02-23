@@ -100,6 +100,9 @@ public class JobListViewModel : ViewModelBase
         {
             item.IsRunning = false;
             item.ExecutionProgress = 0;
+            item.IsCompletedSuccess = false;
+            item.HasExecutionError = false;
+            item.HasExecutionCancelled = false;
         }
 
         if (states == null || states.Count == 0)
@@ -127,6 +130,7 @@ public class JobListViewModel : ViewModelBase
                     target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
                     target.IsCompletedSuccess = false;
                     target.HasExecutionError = false;
+                    target.HasExecutionCancelled = false;
                     break;
 
                 case BackupStatus.Paused:
@@ -134,6 +138,7 @@ public class JobListViewModel : ViewModelBase
                     target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
                     target.IsCompletedSuccess = false;
                     target.HasExecutionError = false;
+                    target.HasExecutionCancelled = false;
                     break;
 
                 case BackupStatus.Completed:
@@ -141,6 +146,7 @@ public class JobListViewModel : ViewModelBase
                     target.ExecutionProgress = 100;
                     target.IsCompletedSuccess = true;
                     target.HasExecutionError = false;
+                    target.HasExecutionCancelled = false;
                     break;
 
                 case BackupStatus.Error:
@@ -148,13 +154,15 @@ public class JobListViewModel : ViewModelBase
                     target.ExecutionProgress = 0;
                     target.IsCompletedSuccess = false;
                     target.HasExecutionError = true;
+                    target.HasExecutionCancelled = false;
                     break;
 
                 case BackupStatus.Cancelled:
                     target.IsRunning = false;
                     target.ExecutionProgress = 0;
                     target.IsCompletedSuccess = false;
-                    target.HasExecutionError = true;
+                    target.HasExecutionError = false;
+                    target.HasExecutionCancelled = true;
                     break;
             }
         }

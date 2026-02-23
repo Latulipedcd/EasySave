@@ -162,6 +162,13 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
 
+        <Style Selector="Button.details-action">
+            <Setter Property="MinWidth" Value="110" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+
         <!-- Button variants -->
         <Style Selector="Button.primary">
             <Setter Property="Background" Value="{DynamicResource PrimaryGradientBrush}" />
@@ -432,6 +439,11 @@
             <Setter Property="BorderBrush" Value="#A95454" />
         </Style>
 
+        <Style Selector="Border.execution-state-token.cancelled">
+            <Setter Property="Background" Value="#3A2020" />
+            <Setter Property="BorderBrush" Value="#A95454" />
+        </Style>
+
         <Style Selector="TextBlock.execution-state-token-glyph">
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="Bold" />
@@ -440,6 +452,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Foreground" Value="#E7F0FA" />
         </Style>
+
 
         <Style Selector="Border.live-pill">
             <Setter Property="Background" Value="#3B8EFF22" />
