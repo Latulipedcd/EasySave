@@ -63,9 +63,9 @@
   "GuiEditorWindowTitleEdit": "Modifier le travail",
   "GuiSave": "Sauvegarder",
   "GuiCancel": "Annuler",
-  "GuiJobActionStart": "Start",
-  "GuiJobActionStop": "Stop",
-  "GuiJobActionBreak": "Break",
+  "GuiJobActionStart": "Démarrer",
+  "GuiJobActionStop": "Pause",
+  "GuiJobActionBreak": "Annuler",
 
   "GuiPickSourceTitle": "Choisir le dossier source",
   "GuiPickDestinationTitle": "Choisir le dossier destination",

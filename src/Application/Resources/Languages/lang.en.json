@@ -64,8 +64,8 @@
   "GuiSave": "Save",
   "GuiCancel": "Cancel",
   "GuiJobActionStart": "Start",
-  "GuiJobActionStop": "Stop",
-  "GuiJobActionBreak": "Break",
+  "GuiJobActionStop": "Pause",
+  "GuiJobActionBreak": "Cancel",
 
   "GuiPickSourceTitle": "Choose source folder",
   "GuiPickDestinationTitle": "Choose destination folder",
