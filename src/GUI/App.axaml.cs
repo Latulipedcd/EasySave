@@ -21,9 +21,10 @@ public partial class App : Application
             var languageService = ServiceFactory.GetLanguageService();
             var userConfigService = ServiceFactory.GetUserConfigService();
             var jobRepository = ServiceFactory.GetBackupJobRepository();
+            var jobStateReader = ServiceFactory.GetJobStateReader();
 
-            var mainViewModel = new MainViewModel(languageService, userConfigService, jobRepository, jobManagementService);
-            desktop.MainWindow = new MainWindow(new MainWindowViewModel(mainViewModel));
+            var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader);
+            desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
         }
 
         base.OnFrameworkInitializationCompleted();

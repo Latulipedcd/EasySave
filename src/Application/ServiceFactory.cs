@@ -21,6 +21,15 @@ public static class ServiceFactory
     private static IBackupService? _backupServiceInstance;
     private static IProgressWriter? _progressWriterInstance;
     private static ICopyService? _copyServiceInstance;
+    private static IJobStateReader? _jobStateReaderInstance;
+
+    /// <summary>
+    /// Gets or creates the singleton IJobStateReader instance.
+    /// </summary>
+    public static IJobStateReader GetJobStateReader()
+    {
+        return _jobStateReaderInstance ??= new JobStateFileReader();
+    }
 
     /// <summary>
     /// Gets or creates the singleton ILanguageService instance.
@@ -132,5 +141,6 @@ public static class ServiceFactory
         _backupServiceInstance = null;
         _progressWriterInstance = null;
         _copyServiceInstance = null;
+        _jobStateReaderInstance = null;
     }
 }
