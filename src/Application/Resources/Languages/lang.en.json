@@ -37,6 +37,7 @@
   "GuiLogFormatXml": "Xml",
   "GuiBusinessSoftwareLabel": "Business software to block",
   "GuiCryptoExtensionsLabel": "File extensions to encrypt (comma-separated)",
+  "GuiPriorityExtensionsLabel": "Priority file extensions (comma-separated)",
   "GuiSettingsButton": "Settings",
   "GuiSettingsMenuTitle": "Application settings",
 

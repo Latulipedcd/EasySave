@@ -56,6 +56,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string LogFormatXmlLabel => Text("GuiLogFormatXml");
     public string BusinessSoftwareLabel => Text("GuiBusinessSoftwareLabel");
     public string CryptoExtensionsLabel => Text("GuiCryptoExtensionsLabel");
+    public string PriorityExtensionsLabel => Text("GuiPriorityExtensionsLabel");
     public string SettingsButtonLabel => Text("GuiSettingsButton");
     public string SettingsMenuTitle => Text("GuiSettingsMenuTitle");
 
@@ -138,6 +139,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         get => Settings.CryptoExtensions;
         set => Settings.CryptoExtensions = value;
+    }
+
+    public string PriorityExtensions
+    {
+        get => Settings.PriorityExtensions;
+        set => Settings.PriorityExtensions = value;
     }
 
 
@@ -314,13 +321,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             Settings.BuildSettingsMenuItems(
                 LanguageLabel, LogFormatLabel, LogFormatJsonLabel, LogFormatXmlLabel,
-                BusinessSoftwareLabel, CryptoExtensionsLabel);
+                BusinessSoftwareLabel, CryptoExtensionsLabel, PriorityExtensionsLabel);
         }
         else
         {
             Settings.RefreshSettingsMenuItems(
                 LanguageLabel, LogFormatLabel, LogFormatJsonLabel, LogFormatXmlLabel,
-                BusinessSoftwareLabel, CryptoExtensionsLabel);
+                BusinessSoftwareLabel, CryptoExtensionsLabel, PriorityExtensionsLabel);
         }
     }
 

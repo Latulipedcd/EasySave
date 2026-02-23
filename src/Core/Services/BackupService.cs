@@ -143,7 +143,18 @@ public class BackupService : IBackupService
 
         executionContext.RegisterJob(job.Name, prioritySet.Count);
 
-        foreach (var file in files)
+        // Process priority files first within the current job.
+        // Without this ordering, a leading non-priority file could block forever
+        // on the cross-job priority gate while this same job still has pending
+        // priority files later in the original enumeration.
+        var filesToProcess = hasPriorityRules
+            ? files
+                .Where(f => prioritySet.Contains(f))
+                .Concat(files.Where(f => !prioritySet.Contains(f)))
+                .ToArray()
+            : files;
+
+        foreach (var file in filesToProcess)
         {
             // ── Cooperative pause ──────────────────────────────────────────────
             // Write a Paused snapshot before entering the wait loop so that UI
