@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Layout;
-using Core.Models;
 using EasySave.Presentation.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +46,7 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        var jobsToRun = vm.DisplayJobs.ToList();
+        var jobsToRun = vm.JobList.DisplayJobs.ToList();
         if (jobsToRun.Count == 0)
         {
             await vm.ExecuteAllAsync();
@@ -70,8 +69,7 @@ public partial class MainWindow : Window
 
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJobDisplayItem>()
-            .Select(item => item.Job)
-            .ToList() ?? new List<BackupJob>();
+            .ToList() ?? new List<BackupJobDisplayItem>();
 
         await vm.ExecuteSelectedAsync(selected);
     }
@@ -135,7 +133,6 @@ public partial class MainWindow : Window
 
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJobDisplayItem>()
-            .Select(item => item.Job)
             .ToList();
 
         if (selected == null || selected.Count != 1)
@@ -162,12 +159,11 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        var selected = JobsList?.SelectedItems?
+        var selectedItem = JobsList?.SelectedItems?
             .OfType<BackupJobDisplayItem>()
-            .Select(item => item.Job)
             .FirstOrDefault();
 
-        vm.SelectedJob = selected;
+        vm.SelectJob(selectedItem);
     }
 
     private void JobsList_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -215,15 +211,15 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(draggedJobName))
             return;
 
-        var draggedItem = vm.DisplayJobs.FirstOrDefault(item => item.Job.Name == draggedJobName);
+        var draggedItem = vm.JobList.DisplayJobs.FirstOrDefault(item => item.Job.Name == draggedJobName);
         if (draggedItem == null)
             return;
 
         var targetItem = GetDisplayItemFromSource(e.Source);
-        var moved = await vm.MoveJobAsync(draggedItem.Job, targetItem?.Job);
+        var moved = await vm.MoveJobAsync(draggedItem, targetItem);
         if (moved)
         {
-            var updatedItem = vm.DisplayJobs.FirstOrDefault(item => item.Job == draggedItem.Job);
+            var updatedItem = vm.JobList.DisplayJobs.FirstOrDefault(item => item.Job == draggedItem.Job);
             if (updatedItem != null && JobsList != null)
             {
                 JobsList.SelectedItems?.Clear();
@@ -260,8 +256,7 @@ public partial class MainWindow : Window
 
         var selected = JobsList?.SelectedItems?
             .OfType<BackupJobDisplayItem>()
-            .Select(item => item.Job)
-            .ToList() ?? new List<BackupJob>();
+            .ToList() ?? new List<BackupJobDisplayItem>();
 
         if (selected.Count > 0)
         {
@@ -276,10 +271,10 @@ public partial class MainWindow : Window
         await vm.DeleteSelectedJobsAsync(selected);
     }
 
-    private async Task<bool> ShowDeleteConfirmationAsync(MainWindowViewModel vm, IReadOnlyList<BackupJob> selectedJobs)
+    private async Task<bool> ShowDeleteConfirmationAsync(MainWindowViewModel vm, IReadOnlyList<BackupJobDisplayItem> selectedItems)
     {
-        var selectedNames = selectedJobs
-            .Select(job => job.Name)
+        var selectedNames = selectedItems
+            .Select(item => item.Name)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct()
             .ToList();
