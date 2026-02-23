@@ -1,3 +1,4 @@
+using Core.Enums;
 using EasySave.Application.Interfaces;
 using Log.Enums;
 
@@ -73,4 +74,33 @@ public class UserConfigService
         string cryptoPath = Path.Combine(workDir, "Resources", "CryptoSoft.exe");
         return File.Exists(cryptoPath) ? cryptoPath : null;
     }
+
+    // <summary>
+    /// Changes the log format from a string input ("Json" or "Xml").
+    /// </summary>
+    public bool ChangeStorageMode(string format)
+    {
+        if (format == "Local")
+        {
+            _userConfigService.SaveStorageMode(LogStorageMode.Local);
+            return true;
+        }
+        if (format == "Docker")
+        {
+            _userConfigService.SaveStorageMode(LogStorageMode.Docker);
+            return true;
+        }
+        if (format == "Both")
+        {
+            _userConfigService.SaveStorageMode(LogStorageMode.Both);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the saved log format, defaulting to Json if not set.
+    /// </summary>
+    public LogStorageMode GetSavedStorageMode()
+        => _userConfigService.LoadStorageMode() ?? LogStorageMode.Local;
 }

@@ -1,5 +1,6 @@
 using EasySave.Application.Interfaces;
 using Log.Enums;
+using Core.Enums;
 using System;
 using System.IO;
 using System.Text.Json;
@@ -358,6 +359,55 @@ namespace EasySave.Application.Configuration
             }
         }
 
+        public bool SaveStorageMode(LogStorageMode mode)
+        {
+
+            try
+            {
+                Directory.CreateDirectory(_configDirectoryPath);
+
+                var userConfig = LoadConfig(); // on charge l’existant
+                userConfig.StorageMode = mode;
+
+                string jsonContent = JsonSerializer.Serialize(
+                    userConfig,
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                File.WriteAllText(_configFilePath, jsonContent);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public LogStorageMode? LoadStorageMode()
+        {
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                    return null;
+
+                string json = File.ReadAllText(_configFilePath);
+
+                var config = JsonSerializer.Deserialize<UserConfig>(
+                    json,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new JsonStringEnumConverter() }
+                    });
+
+                return config?.StorageMode;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private sealed class UserConfig
         {
             public string? Language { get; set; }
@@ -373,6 +423,8 @@ namespace EasySave.Application.Configuration
             /// 0 = large-file bandwidth rule disabled.
             /// </summary>
             public long MaxParallelFileSizeKb { get; set; } = 0;
+
+            public LogStorageMode? StorageMode { get; set; }
         }
     }
 }

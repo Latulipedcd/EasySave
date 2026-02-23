@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Models;
 
 namespace Core.Interfaces;
@@ -14,5 +15,5 @@ public interface IBackupDirectoryService
     /// Records elapsed creation time and writes a log entry via <see cref="IBackupLoggerService"/>.
     /// Does nothing when the directory already exists.
     /// </summary>
-    void EnsureTargetDirectory(BackupJob job, string sourceFile, string targetPath);
+    void EnsureTargetDirectory(BackupJob job, string sourceFile, string targetPath, LogStorageMode storageMode);
 }

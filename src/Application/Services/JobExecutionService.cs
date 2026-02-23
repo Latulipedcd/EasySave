@@ -63,6 +63,7 @@ namespace EasySave.Application.Services
             _progressWriter.Clear();
 
             var logFormat = _userConfigService.LoadLogFormat() ?? LogFormat.Json;
+            var storageMode = _userConfigService.LoadStorageMode() ?? LogStorageMode.Docker;
             var businessSoftware = _userConfigService.LoadBusinessSoftware();
             var cryptoExtensions = _userConfigService.LoadCryptoSoftExtensions() ?? new List<string>();
             var cryptoPath = GetCryptoSoftPath();
@@ -94,7 +95,8 @@ namespace EasySave.Application.Services
                         cryptoPath,
                         capturedHandle.Cts.Token,
                         capturedHandle.PauseEvent,
-                        executionContext);
+                        executionContext,
+                        storageMode);
                 }
                 return await Task.WhenAll(handles.Select(h => h.ExecutionTask!));
             });

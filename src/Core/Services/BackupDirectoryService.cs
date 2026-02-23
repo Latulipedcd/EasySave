@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
 using System;
@@ -27,7 +28,7 @@ public class BackupDirectoryService : IBackupDirectoryService
     /// Otherwise creates all missing path segments, measures the elapsed time,
     /// and writes a directory-creation log entry.
     /// </summary>
-    public void EnsureTargetDirectory(BackupJob job, string sourceFile, string targetPath)
+    public void EnsureTargetDirectory(BackupJob job, string sourceFile, string targetPath, LogStorageMode storageMode)
     {
         var folderPath = Path.GetDirectoryName(targetPath)!;
         if (Directory.Exists(folderPath))
@@ -37,6 +38,6 @@ public class BackupDirectoryService : IBackupDirectoryService
         Directory.CreateDirectory(folderPath);
         sw.Stop();
 
-        _logger.LogDirectoryCreation(job.Name, sourceFile, folderPath, sw.Elapsed);
+        _logger.LogDirectoryCreation(storageMode, job.Name, sourceFile, folderPath, sw.Elapsed);
     }
 }

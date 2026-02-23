@@ -7,7 +7,7 @@ namespace Log.Interfaces
 {
     public interface ILog
     {
-        void Configure(LogFormat format);
+        void Configure(LogFormat format, string? folder = null);
         void LogBackup(Object entry);
     }
 }

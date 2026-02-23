@@ -15,18 +15,20 @@ namespace Core.Services;
 public sealed class BackupLoggerService : IBackupLoggerService
 {
     private readonly ILog _logService;
+    private readonly IDockerLoggerService _dockerLoggerService;
 
-    public BackupLoggerService(ILog logService)
+    public BackupLoggerService(ILog logService, IDockerLoggerService dockerLoggerService)
     {
         _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+        _dockerLoggerService = dockerLoggerService ?? throw new ArgumentNullException(nameof(dockerLoggerService));
     }
 
     public void Configure(LogFormat format)
         => _logService.Configure(format);
 
-    public void LogSourceNotFound(string backupName, string sourceDirectory)
+    public void LogSourceNotFound(LogStorageMode storageMode, string backupName, string sourceDirectory)
     {
-        _logService.LogBackup(new LogEntry
+        var entry = new LogEntry
         {
             BackupName = backupName,
             Source = "Path not found",
@@ -36,12 +38,18 @@ public sealed class BackupLoggerService : IBackupLoggerService
             FileSize = 0,
             WorkType = WorkType.file_transfer,
             ErrorMessage = $"Source directory does not exist: {sourceDirectory}"
-        });
+        };
+
+        if (storageMode != LogStorageMode.Docker)
+            _logService.LogBackup(entry);
+
+        if (storageMode != LogStorageMode.Local)
+            _dockerLoggerService.SendLog(entry);
     }
 
-    public void LogBusinessSoftwareBlock(string backupName, string sourceDirectory, string targetDirectory)
+    public void LogBusinessSoftwareBlock(LogStorageMode storageMode, string backupName, string sourceDirectory, string targetDirectory)
     {
-        _logService.LogBackup(new LogEntry
+        var entry = new LogEntry
         {
             BackupName = backupName,
             Source = PathHelper.ToUncPath(sourceDirectory),
@@ -51,12 +59,18 @@ public sealed class BackupLoggerService : IBackupLoggerService
             FileSize = 0,
             WorkType = WorkType.file_transfer,
             ErrorMessage = "Backup stopped due to running business software."
-        });
+        };
+        
+        if (storageMode != LogStorageMode.Docker)
+            _logService.LogBackup(entry);
+
+        if (storageMode != LogStorageMode.Local)
+            _dockerLoggerService.SendLog(entry);
     }
 
-    public void LogDirectoryCreation(string backupName, string sourceFile, string folderPath, TimeSpan duration)
+    public void LogDirectoryCreation(LogStorageMode storageMode, string backupName, string sourceFile, string folderPath, TimeSpan duration)
     {
-        _logService.LogBackup(new LogEntry
+        var entry = new LogEntry
         {
             BackupName = backupName,
             Source = PathHelper.ToUncPath(sourceFile),
@@ -65,13 +79,19 @@ public sealed class BackupLoggerService : IBackupLoggerService
             Timestamp = DateTime.Now,
             FileSize = 0,
             WorkType = WorkType.folder_creation
-        });
+        };
+
+        if (storageMode != LogStorageMode.Docker)
+            _logService.LogBackup(entry);
+
+        if (storageMode != LogStorageMode.Local)
+            _dockerLoggerService.SendLog(entry);
     }
 
-    public void LogFileOperation(string backupName, string sourceFile, string targetPath,
+    public void LogFileOperation(LogStorageMode storageMode, string backupName, string sourceFile, string targetPath,
                                  TimeSpan duration, long fileSize, bool wasEncrypted, long encryptionTimeMs)
     {
-        _logService.LogBackup(new LogEntry
+        var entry = new LogEntry
         {
             BackupName = backupName,
             Source = PathHelper.ToUncPath(sourceFile),
@@ -81,6 +101,12 @@ public sealed class BackupLoggerService : IBackupLoggerService
             FileSize = fileSize,
             WorkType = wasEncrypted ? WorkType.encryption : WorkType.file_transfer,
             EncryptionTimeMs = encryptionTimeMs
-        });
+        };
+
+        if (storageMode != LogStorageMode.Docker)
+            _logService.LogBackup(entry);
+
+        if (storageMode != LogStorageMode.Local)
+            _dockerLoggerService.SendLog(entry);
     }
 }

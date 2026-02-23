@@ -9,12 +9,12 @@ namespace Log.Factory
 {
     internal class LogWriterFactory
     {
-        public static ILogWriter Create(LogFormat format)
+        public static ILogWriter Create(LogFormat format, string folder)
         {
             return format switch
             {
-                LogFormat.Xml => new XmlLogWriter(),
-                _ => new JsonLogWriter() // JSON par défaut
+                LogFormat.Xml => new XmlLogWriter(folder),
+                _ => new JsonLogWriter(folder) // JSON par défaut
             };
         }
     }

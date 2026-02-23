@@ -10,13 +10,15 @@ namespace LogServer
         {
             try
             {
+                Console.WriteLine("début Test");
                 LogServer server = new LogServer();
                 Socket serverSocket = server.StartServer();
-
+                Console.WriteLine("Server started");
                 var client = server.AcceptConnection(serverSocket);
+                
                 server.ListenToClient(client);
 
-                server.Disconnect(client);
+                //server.Disconnect(client);
             }
             catch (Exception ex)
             {
