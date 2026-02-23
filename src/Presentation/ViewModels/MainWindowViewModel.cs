@@ -57,6 +57,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string BusinessSoftwareLabel => Text("GuiBusinessSoftwareLabel");
     public string CryptoExtensionsLabel => Text("GuiCryptoExtensionsLabel");
     public string PriorityExtensionsLabel => Text("GuiPriorityExtensionsLabel");
+    public string MaxParallelFileSizeLabel => Text("GuiMaxParallelFileSizeLabel");
     public string SettingsButtonLabel => Text("GuiSettingsButton");
     public string SettingsMenuTitle => Text("GuiSettingsMenuTitle");
 
@@ -145,6 +146,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         get => Settings.PriorityExtensions;
         set => Settings.PriorityExtensions = value;
+    }
+
+    public string MaxParallelFileSizeKb
+    {
+        get => Settings.MaxParallelFileSizeKb;
+        set => Settings.MaxParallelFileSizeKb = value;
     }
 
 
@@ -278,6 +285,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(LogFormatLabel));
         OnPropertyChanged(nameof(LogFormatJsonLabel));
         OnPropertyChanged(nameof(LogFormatXmlLabel));
+        OnPropertyChanged(nameof(MaxParallelFileSizeLabel));
         OnPropertyChanged(nameof(SettingsButtonLabel));
         OnPropertyChanged(nameof(SettingsMenuTitle));
         OnPropertyChanged(nameof(HeaderName));
@@ -321,13 +329,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             Settings.BuildSettingsMenuItems(
                 LanguageLabel, LogFormatLabel, LogFormatJsonLabel, LogFormatXmlLabel,
-                BusinessSoftwareLabel, CryptoExtensionsLabel, PriorityExtensionsLabel);
+                BusinessSoftwareLabel, CryptoExtensionsLabel, PriorityExtensionsLabel, MaxParallelFileSizeLabel);
         }
         else
         {
             Settings.RefreshSettingsMenuItems(
                 LanguageLabel, LogFormatLabel, LogFormatJsonLabel, LogFormatXmlLabel,
-                BusinessSoftwareLabel, CryptoExtensionsLabel, PriorityExtensionsLabel);
+                BusinessSoftwareLabel, CryptoExtensionsLabel, PriorityExtensionsLabel, MaxParallelFileSizeLabel);
         }
     }
 

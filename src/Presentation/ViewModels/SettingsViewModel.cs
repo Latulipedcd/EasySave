@@ -19,6 +19,7 @@ public class SettingsViewModel : ViewModelBase
     private SettingItemViewModel? _businessSoftwareSetting;
     private SettingItemViewModel? _cryptoExtensionsSetting;
     private SettingItemViewModel? _priorityExtensionsSetting;
+    private SettingItemViewModel? _maxParallelFileSizeSetting;
 
     /// <summary>
     /// Collection of supported languages (en, fr, etc.)
@@ -158,6 +159,33 @@ public class SettingsViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// File size threshold in KB for parallel transfer rules.
+    /// </summary>
+    private string _maxParallelFileSizeKb = "0";
+    public string MaxParallelFileSizeKb
+    {
+        get => _maxParallelFileSizeKb;
+        set
+        {
+            if (value == _maxParallelFileSizeKb) return;
+
+            _maxParallelFileSizeKb = value ?? string.Empty;
+            OnPropertyChanged();
+
+            if (string.IsNullOrWhiteSpace(_maxParallelFileSizeKb))
+            {
+                _userConfigManager.SaveMaxParallelFileSizeKb(0);
+            }
+            else if (long.TryParse(_maxParallelFileSizeKb, out var sizeKb))
+            {
+                _userConfigManager.SaveMaxParallelFileSizeKb(sizeKb);
+            }
+
+            _maxParallelFileSizeSetting?.SetTextValue(_maxParallelFileSizeKb);
+        }
+    }
+
+    /// <summary>
     /// Event raised when language changes (for UI text refresh)
     /// </summary>
     public event EventHandler? LanguageChanged;
@@ -180,6 +208,7 @@ public class SettingsViewModel : ViewModelBase
         _businessSoftware = _userConfigManager.LoadBusinessSoftware() ?? string.Empty;
         _cryptoExtensions = string.Join(", ", _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>());
         _priorityExtensions = string.Join(", ", _userConfigManager.LoadPriorityExtensions() ?? new List<string>());
+        _maxParallelFileSizeKb = _userConfigManager.LoadMaxParallelFileSizeKb().ToString();
 
         SettingsItems = new ObservableCollection<SettingItemViewModel>();
     }
@@ -194,7 +223,8 @@ public class SettingsViewModel : ViewModelBase
         string logFormatXmlLabel,
         string businessSoftwareLabel,
         string cryptoExtensionsLabel,
-        string priorityExtensionsLabel)
+        string priorityExtensionsLabel,
+        string maxParallelFileSizeLabel)
     {
         SettingsItems.Clear();
 
@@ -226,11 +256,17 @@ public class SettingsViewModel : ViewModelBase
             _priorityExtensions,
             value => PriorityExtensions = value);
 
+        _maxParallelFileSizeSetting = new SettingItemViewModel(
+            maxParallelFileSizeLabel,
+            _maxParallelFileSizeKb,
+            value => MaxParallelFileSizeKb = value);
+
         SettingsItems.Add(_languageSetting);
         SettingsItems.Add(_logFormatSetting);
         SettingsItems.Add(_businessSoftwareSetting);
         SettingsItems.Add(_cryptoExtensionsSetting);
         SettingsItems.Add(_priorityExtensionsSetting);
+        SettingsItems.Add(_maxParallelFileSizeSetting);
     }
 
     /// <summary>
@@ -243,7 +279,8 @@ public class SettingsViewModel : ViewModelBase
         string logFormatXmlLabel,
         string businessSoftwareLabel,
         string cryptoExtensionsLabel,
-        string priorityExtensionsLabel)
+        string priorityExtensionsLabel,
+        string maxParallelFileSizeLabel)
     {
         if (_languageSetting != null)
         {
@@ -275,6 +312,12 @@ public class SettingsViewModel : ViewModelBase
         {
             _priorityExtensionsSetting.UpdateLabel(priorityExtensionsLabel);
             _priorityExtensionsSetting.SetTextValue(_priorityExtensions);
+        }
+
+        if (_maxParallelFileSizeSetting != null)
+        {
+            _maxParallelFileSizeSetting.UpdateLabel(maxParallelFileSizeLabel);
+            _maxParallelFileSizeSetting.SetTextValue(_maxParallelFileSizeKb);
         }
 
         OnPropertyChanged(nameof(SettingsItems));
