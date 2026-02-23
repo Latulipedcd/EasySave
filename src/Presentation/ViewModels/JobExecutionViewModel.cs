@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Core.Enums;
 using EasySave.Application.Interfaces;
 using Core.Models;
@@ -18,11 +14,7 @@ public class JobExecutionViewModel : ViewModelBase
 {
     private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
-    };
+    private readonly IJobStateReader _jobStateReader;
 
     /// <summary>
     /// Current job being monitored
@@ -62,6 +54,9 @@ public class JobExecutionViewModel : ViewModelBase
                 OnPropertyChanged(nameof(JobSizeRemaining));
                 OnPropertyChanged(nameof(JobCurrentFile));
                 OnPropertyChanged(nameof(JobLastUpdate));
+                OnPropertyChanged(nameof(ShowSuccessStatusIcon));
+                OnPropertyChanged(nameof(ShowErrorStatusIcon));
+                OnPropertyChanged(nameof(ShowCancelledStatusIcon));
                 StateChanged?.Invoke(this, _jobState);
             }
         }
@@ -95,6 +90,10 @@ public class JobExecutionViewModel : ViewModelBase
          JobState.Status == BackupStatus.Error ||
          JobState.Status == BackupStatus.Cancelled);
 
+    public bool ShowSuccessStatusIcon => JobState?.Status == BackupStatus.Completed;
+    public bool ShowErrorStatusIcon => JobState?.Status == BackupStatus.Error;
+    public bool ShowCancelledStatusIcon => JobState?.Status == BackupStatus.Cancelled;
+
     // Job execution properties
     public double JobProgress => JobState?.ProgressPercentage ?? 0;
     public string JobTotalFiles => JobState?.TotalFiles.ToString() ?? "-";
@@ -117,10 +116,12 @@ public class JobExecutionViewModel : ViewModelBase
 
     public JobExecutionViewModel(
         IJobManagementService jobManagementService,
-        ILanguageService languageService)
+        ILanguageService languageService,
+        IJobStateReader jobStateReader)
     {
         _jobManagementService = jobManagementService;
         _langManager = languageService;
+        _jobStateReader = jobStateReader;
     }
 
     /// <summary>
@@ -209,7 +210,7 @@ public class JobExecutionViewModel : ViewModelBase
     /// </summary>
     public void RefreshJobState()
     {
-        var states = ReadAllStates();
+        var states = _jobStateReader.ReadAllStates();
         LatestProgressStates = states;
 
         if (MonitoredJob == null || states == null || states.Count == 0)
@@ -252,30 +253,4 @@ public class JobExecutionViewModel : ViewModelBase
         return $"{size:0.##} {suffixes[suffixIndex]}";
     }
 
-    /// <summary>
-    /// Reads all progress states from state.json.
-    /// The file contains a JSON array of BackupState objects (one per job).
-    /// Returns null if unavailable or invalid.
-    /// </summary>
-    private List<BackupState>? ReadAllStates()
-    {
-        try
-        {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var statePath = Path.Combine(appData, "EasyLog", "Progress", "state.json");
-
-            if (!File.Exists(statePath))
-                return null;
-
-            using var fs = new FileStream(statePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var reader = new StreamReader(fs);
-            var json = reader.ReadToEnd();
-            return JsonSerializer.Deserialize<List<BackupState>>(json, JsonOptions);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error reading state.json: {ex.Message}");
-            return null;
-        }
     }
-}
