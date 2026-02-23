@@ -38,6 +38,7 @@
   "GuiBusinessSoftwareLabel": "Business software to block",
   "GuiCryptoExtensionsLabel": "File extensions to encrypt (comma-separated)",
   "GuiPriorityExtensionsLabel": "Priority file extensions (comma-separated)",
+  "GuiMaxParallelFileSizeLabel": "File size not to back up in parallel (KB)",
   "GuiSettingsButton": "Settings",
   "GuiSettingsMenuTitle": "Application settings",
 

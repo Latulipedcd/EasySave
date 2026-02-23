@@ -70,7 +70,7 @@
                                                         <StackPanel Spacing="6">
                                                             <TextBlock Text="{Binding Label, Mode=OneWay}" Classes="settings-section-label" Margin="0" />
                                                             
-                                                            <!-- Text input for business software, crypto extensions and priority extensions -->
+                                                            <!-- Text input settings (business software, extensions, parallel size threshold) -->
                                                             <TextBox IsVisible="{Binding IsTextInput, Mode=OneWay}"
                                                                      Text="{Binding TextValue, Mode=TwoWay}"
                                                                      MinWidth="260"
