@@ -47,7 +47,16 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        await vm.ExecuteAllAsync();
+        var jobsToRun = vm.DisplayJobs.ToList();
+        if (jobsToRun.Count == 0)
+        {
+            await vm.ExecuteAllAsync();
+            return;
+        }
+
+        var runAllViewModel = new RunAllProgressWindowViewModel(vm, jobsToRun);
+        var runAllWindow = new RunAllProgressWindow(runAllViewModel);
+        await runAllWindow.ShowDialog(this);
     }
 
     /// <summary>

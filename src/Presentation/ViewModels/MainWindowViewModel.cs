@@ -645,11 +645,24 @@ public class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task ExecuteAllAsync()
     {
+        await ExecuteAllWithResultAsync();
+    }
+
+    /// <summary>
+    /// Exécute tous les jobs et retourne le résultat pour les vues dédiées (ex: fenêtre Run all).
+    /// </summary>
+    public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteAllWithResultAsync()
+    {
         SetStatusOnUIThread(Text("GuiStatusExecuting"));
         SetCatMessage("GuiCatMessageExecuting");
 
         var (success, results, errorMessage) = await _appViewModel.ExecuteAllJobsAsync();
+        ApplyExecuteAllResult(success, results, errorMessage);
+        return (success, results, errorMessage);
+    }
 
+    private void ApplyExecuteAllResult(bool success, List<BackupState> results, string errorMessage)
+    {
         if (!success && BackupJobs.Count == 0)
         {
             StatusMessage = errorMessage;

@@ -1,0 +1,334 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:EasySave.Presentation.ViewModels;assembly=Presentation"
+        mc:Ignorable="d"
+        d:DesignWidth="1280"
+        d:DesignHeight="820"
+        x:Class="GUI.RunAllProgressWindow"
+        x:DataType="vm:RunAllProgressWindowViewModel"
+        Title="{Binding WindowTitle}"
+        Icon="avares://EasySave/Assets/Brand/easysave-logo.png"
+        Width="1280"
+        Height="820"
+        MinWidth="1080"
+        MinHeight="700"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceDarkBrush}"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource BorderBrush}"
+                Padding="24,18">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{Binding HeaderTitle}" Classes="subtitle" />
+                <TextBlock Text="{Binding CloseHint}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="12" />
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      ColumnSpacing="12"
+                      VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding GlobalProgressLabel}"
+                               Classes="label"
+                               VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1"
+                                 Value="{Binding GlobalProgress}"
+                                 Maximum="100"
+                                 Height="8"
+                                 VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding GlobalProgress, StringFormat='{}{0:0.0}%'}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryBrush}"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1"
+              Margin="24,20,24,20"
+              ColumnDefinitions="1.7*,1*"
+              ColumnSpacing="20">
+            <Border Grid.Column="0" Classes="card" Padding="18">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding JobsTitle}"
+                               Classes="subtitle"
+                               FontSize="20" />
+
+                    <Grid Grid.Row="1"
+                          ColumnDefinitions="2.6*,Auto,Auto"
+                          ColumnSpacing="10">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding ColumnJobLabel}"
+                                   Classes="label" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding ColumnStatusLabel}"
+                                   Classes="label" />
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding ColumnProgressLabel}"
+                                   Classes="label" />
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ListBox ItemsSource="{Binding Jobs}"
+                                 SelectedItem="{Binding SelectedJob}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RunAllJobProgressItemViewModel">
+                                    <Border Classes="job-list-item-surface"
+                                            BorderThickness="1"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            Padding="10">
+                                        <Grid RowDefinitions="Auto,Auto"
+                                              ColumnDefinitions="2.6*,Auto,Auto"
+                                              ColumnSpacing="10"
+                                              RowSpacing="6">
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Text="{Binding DisplayName}"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="NoWrap"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="1"
+                                                       Text="{Binding StatusText}"
+                                                       Foreground="{Binding StatusColor}"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="2"
+                                                       Text="{Binding Progress, StringFormat='{}{0:0.0}%'}"
+                                                       FontWeight="SemiBold" />
+
+                                            <ProgressBar Grid.Row="1"
+                                                         Grid.Column="0"
+                                                         Grid.ColumnSpan="2"
+                                                         Value="{Binding Progress}"
+                                                         Maximum="100"
+                                                         Height="6" />
+                                            <TextBlock Grid.Row="1"
+                                                       Grid.Column="2"
+                                                       Text="{Binding LastUpdate}"
+                                                       TextWrapping="NoWrap"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*"
+                      RowSpacing="8">
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding CurrentJobTitle}"
+                               Classes="subtitle"
+                               Margin="0,0,0,2" />
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding CurrentJobEmpty}"
+                               IsVisible="{Binding !HasSelectedJob}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextAlignment="Center"
+                               VerticalAlignment="Center" />
+
+                    <Border Grid.Row="1"
+                            BorderThickness="0,1,0,0"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Padding="0,8,0,0"
+                            IsVisible="{Binding HasSelectedJob}">
+                        <StackPanel Spacing="4">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="10">
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding SelectedJob.DisplayName}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                                <Border Grid.Column="1"
+                                        Classes="type-pill"
+                                        HorizontalAlignment="Right">
+                                    <TextBlock Text="{Binding SelectedJob.JobType}" Classes="type-pill-text" />
+                                </Border>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="10"
+                                  IsVisible="{Binding SelectedJob.ShowExecutionDetails}">
+                                <Border Grid.Column="0"
+                                        Classes="execution-state-token success"
+                                        IsVisible="{Binding SelectedJob.IsCompletedSuccess}">
+                                    <TextBlock Text="✓" Classes="execution-state-token-glyph" />
+                                </Border>
+                                <Border Grid.Column="0"
+                                        Classes="execution-state-token error"
+                                        IsVisible="{Binding SelectedJob.HasExecutionError}">
+                                    <TextBlock Text="!" Classes="execution-state-token-glyph" />
+                                </Border>
+                                <Border Grid.Column="0"
+                                        Classes="execution-state-token cancelled"
+                                        IsVisible="{Binding SelectedJob.HasExecutionCancelled}">
+                                    <TextBlock Text="X" Classes="execution-state-token-glyph" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding SelectedJob.StatusText}"
+                                           Foreground="{Binding SelectedJob.StatusColor}"
+                                           FontWeight="SemiBold"
+                                           FontSize="13" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding SelectedJob.Progress, StringFormat='{}{0:0.0}%'}"
+                                           Foreground="{DynamicResource PrimaryBrush}"
+                                           FontWeight="SemiBold"
+                                           FontSize="13" />
+                            </Grid>
+                            <ProgressBar Value="{Binding SelectedJob.Progress}"
+                                         Maximum="100"
+                                         Height="6"
+                                         CornerRadius="3"
+                                         Foreground="{DynamicResource PrimaryBrush}"
+                                         IsVisible="{Binding SelectedJob.ShowExecutionDetails}" />
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="2"
+                                  IsVisible="{Binding HasSelectedJob}"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="8"
+                                        Margin="0,0,0,4">
+                                <Button Classes="success details-action"
+                                        Content="{Binding StartButtonLabel}"
+                                        Click="StartJob_Click"
+                                        IsEnabled="{Binding CanStartSelectedJob}" />
+                                <Button Classes="secondary details-action"
+                                        Content="{Binding PauseButtonLabel}"
+                                        Click="PauseJob_Click"
+                                        IsEnabled="{Binding CanPauseSelectedJob}" />
+                                <Button Classes="danger details-action"
+                                        Content="{Binding CancelButtonLabel}"
+                                        Click="CancelJob_Click"
+                                        IsEnabled="{Binding CanCancelSelectedJob}" />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="8">
+                                <TextBlock Grid.Column="0" Text="{Binding LabelSourceFolder}" Classes="label" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding SelectedJob.SourceDirectory}"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="8">
+                                <TextBlock Grid.Column="0" Text="{Binding LabelDestinationFolder}" Classes="label" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding SelectedJob.TargetDirectory}"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12" />
+                            </Grid>
+
+                            <Border BorderThickness="0,1,0,0"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    Padding="0,8,0,0"
+                                    IsVisible="{Binding SelectedJob.ShowExecutionDetails}">
+                                <Grid ColumnDefinitions="Auto,*,Auto,*"
+                                      RowDefinitions="Auto,Auto,Auto,Auto"
+                                      ColumnSpacing="8"
+                                      RowSpacing="6">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding JobDetailsTotalFiles}" Classes="label" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedJob.TotalFiles}" FontWeight="SemiBold" FontSize="12" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding JobDetailsFilesRemaining}" Classes="label" />
+                                    <TextBlock Grid.Row="0"
+                                               Grid.Column="3"
+                                               Text="{Binding SelectedJob.FilesRemaining}"
+                                               Foreground="{DynamicResource SuccessBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="12" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding JobDetailsTotalSize}" Classes="label" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedJob.TotalSize}" FontWeight="SemiBold" FontSize="12" />
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding JobDetailsSizeRemaining}" Classes="label" />
+                                    <TextBlock Grid.Row="1"
+                                               Grid.Column="3"
+                                               Text="{Binding SelectedJob.SizeRemaining}"
+                                               Foreground="{DynamicResource SuccessBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="12" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding JobDetailsCurrentFile}" Classes="label" />
+                                    <TextBlock Grid.Row="2"
+                                               Grid.Column="1"
+                                               Grid.ColumnSpan="3"
+                                               Text="{Binding SelectedJob.CurrentFile}"
+                                               TextWrapping="NoWrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="11"
+                                               FontFamily="Consolas" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding JobDetailsLastUpdate}" Classes="label" />
+                                    <TextBlock Grid.Row="3"
+                                               Grid.Column="1"
+                                               Grid.ColumnSpan="3"
+                                               Text="{Binding SelectedJob.LastUpdate}"
+                                               FontFamily="Consolas"
+                                               FontSize="11"
+                                               TextWrapping="NoWrap"
+                                               TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                            </Border>
+
+                            <Border BorderThickness="1"
+                                    BorderBrush="#833334"
+                                    Background="#2A1A1B"
+                                    CornerRadius="8"
+                                    Padding="10"
+                                    IsVisible="{Binding SelectedJob.HasError}">
+                                <TextBlock Text="{Binding SelectedJob.ErrorMessage}"
+                                           TextWrapping="Wrap"
+                                           Foreground="#F2B8B5" />
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource CardBrush}"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource BorderBrush}"
+                Padding="24,14">
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="14"
+                  VerticalAlignment="Center">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding SummaryMessage}"
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap" />
+                <Button Grid.Column="1"
+                        Classes="secondary"
+                        Content="{Binding CloseButtonLabel}"
+                        Click="Close_Click"
+                        MinWidth="140"
+                        HorizontalContentAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
