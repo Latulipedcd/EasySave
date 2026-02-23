@@ -10,22 +10,24 @@ namespace Core.Services;
 
 /// <summary>
 /// Executes CryptoSoft-based file encryption.
-/// The static semaphore ensures that at most one CryptoSoft process runs at a time
-/// across ALL concurrent jobs (mono-instance constraint).
+/// A named system Mutex ensures that at most one CryptoSoft process runs at a time
+/// across ALL processes on the machine (mono-instance constraint).
 /// </summary>
 public sealed class EncryptionService : IEncryptionService
 {
     private readonly ICopyService _copyService;
 
     /// <summary>
-    /// Capacity 1: only one caller may hold the slot at a time.
-    /// Static so all EncryptionService instances share the same gate.
-    /// SemaphoreSlim is used instead of lock because:
-    ///   - SemaphoreSlim.Wait(CancellationToken) can be interrupted by Stop requests.
-    ///   - The async overload (WaitAsync) allows future callers to not block a thread.
-    ///   - The C# compiler forbids await inside a lock block.
+    /// System-wide named Mutex that serialises CryptoSoft launches across all
+    /// EasySave instances (and any other process using the same name).
+    /// Named Mutex (prefixed "Global\") is visible across all Windows sessions;
+    /// a plain SemaphoreSlim would only guard within a single process instance,
+    /// allowing two EasySave instances to each spawn CryptoSoft simultaneously.
+    /// The Mutex is never disposed because it must live for the entire process lifetime.
+    /// AbandonedMutexException is caught on acquisition: it means a previous holder
+    /// crashed without releasing — we recover ownership and continue safely.
     /// </summary>
-    private static readonly SemaphoreSlim _cryptoSemaphore = new(1, 1);
+    private static readonly Mutex _cryptoMutex = new(false, @"Global\EasySave_CryptoSoft_SingleInstance");
 
     public EncryptionService(ICopyService copyService)
     {
@@ -51,9 +53,24 @@ public sealed class EncryptionService : IEncryptionService
     public bool Encrypt(string sourceFile, string targetFile, string? cryptoSoftPath,
                         CancellationToken ct, out long encryptionTimeMs)
     {
+        // Mutex.WaitOne does not accept a CancellationToken, so we poll with a
+        // short timeout interval to remain responsive to Stop requests.
+        bool acquired = false;
         try
         {
-            _cryptoSemaphore.Wait(ct);
+            while (!acquired)
+            {
+                ct.ThrowIfCancellationRequested();
+                try
+                {
+                    acquired = _cryptoMutex.WaitOne(millisecondsTimeout: 500);
+                }
+                catch (AbandonedMutexException)
+                {
+                    // Previous holder crashed without releasing; we now own the Mutex.
+                    acquired = true;
+                }
+            }
         }
         catch (OperationCanceledException)
         {
@@ -67,7 +84,10 @@ public sealed class EncryptionService : IEncryptionService
         }
         finally
         {
-            try { _cryptoSemaphore.Release(); } catch { }
+            // ReleaseMutex must be called from the same thread that acquired it.
+            // This is guaranteed here because Encrypt is fully synchronous — no
+            // await between WaitOne and ReleaseMutex.
+            try { _cryptoMutex.ReleaseMutex(); } catch { }
         }
     }
 
