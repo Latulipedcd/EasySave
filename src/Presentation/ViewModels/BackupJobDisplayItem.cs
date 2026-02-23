@@ -43,6 +43,13 @@ public class BackupJobDisplayItem : ViewModelBase
         set => SetProperty(ref _hasExecutionError, value);
     }
 
+    private bool _hasExecutionCancelled;
+    public bool HasExecutionCancelled
+    {
+        get => _hasExecutionCancelled;
+        set => SetProperty(ref _hasExecutionCancelled, value);
+    }
+
     public BackupJobDisplayItem(BackupJob job, int id)
     {
         Job = job;
@@ -52,5 +59,6 @@ public class BackupJobDisplayItem : ViewModelBase
         ExecutionProgress = 0;
         IsCompletedSuccess = false;
         HasExecutionError = false;
+        HasExecutionCancelled = false;
     }
 }

@@ -94,6 +94,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string JobDetailsSizeRemaining => Text("GuiJobDetailsSizeRemaining");
     public string JobDetailsCurrentFile => Text("GuiJobDetailsCurrentFile");
     public string JobDetailsLastUpdate => Text("GuiJobDetailsLastUpdate");
+    public string JobDetailsStartLabel => Text("GuiJobActionStart");
+    public string JobDetailsStopLabel => Text("GuiJobActionStop");
+    public string JobDetailsBreakLabel => Text("GuiJobActionBreak");
     public string CatWidgetTitle => Text("GuiCatWidgetTitle");
 
     /// <summary>
@@ -174,15 +177,25 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(SelectedJobSource));
             OnPropertyChanged(nameof(SelectedJobTarget));
             OnPropertyChanged(nameof(SelectedJobType));
+            OnPropertyChanged(nameof(CanStartSelectedJob));
+            OnPropertyChanged(nameof(CanStopSelectedJob));
+            OnPropertyChanged(nameof(CanBreakSelectedJob));
+            OnPropertyChanged(nameof(ShowSuccessStatusIcon));
+            OnPropertyChanged(nameof(ShowErrorStatusIcon));
+            OnPropertyChanged(nameof(ShowCancelledStatusIcon));
         };
         JobExecution.StateChanged += (s, state) =>
         {
             OnPropertyChanged(nameof(SelectedJobState));
             OnPropertyChanged(nameof(IsJobRunning));
+            OnPropertyChanged(nameof(IsJobPaused));
             OnPropertyChanged(nameof(ShowExecutionDetails));
             OnPropertyChanged(nameof(IsJobCompleted));
             OnPropertyChanged(nameof(JobStatusText));
             OnPropertyChanged(nameof(JobStatusColor));
+            OnPropertyChanged(nameof(ShowSuccessStatusIcon));
+            OnPropertyChanged(nameof(ShowErrorStatusIcon));
+            OnPropertyChanged(nameof(ShowCancelledStatusIcon));
             OnPropertyChanged(nameof(JobProgress));
             OnPropertyChanged(nameof(JobTotalFiles));
             OnPropertyChanged(nameof(JobFilesRemaining));
@@ -190,6 +203,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(JobSizeRemaining));
             OnPropertyChanged(nameof(JobCurrentFile));
             OnPropertyChanged(nameof(JobLastUpdate));
+            OnPropertyChanged(nameof(CanStartSelectedJob));
+            OnPropertyChanged(nameof(CanStopSelectedJob));
+            OnPropertyChanged(nameof(CanBreakSelectedJob));
         };
         JobEditor.PropertyChanged += (s, e) =>
         {
@@ -285,6 +301,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(JobDetailsSizeRemaining));
         OnPropertyChanged(nameof(JobDetailsCurrentFile));
         OnPropertyChanged(nameof(JobDetailsLastUpdate));
+        OnPropertyChanged(nameof(JobDetailsStartLabel));
+        OnPropertyChanged(nameof(JobDetailsStopLabel));
+        OnPropertyChanged(nameof(JobDetailsBreakLabel));
         OnPropertyChanged(nameof(CatWidgetTitle));
         SetDefaultCatMessage();
         OnPropertyChanged(nameof(EditorWindowTitle));
@@ -349,6 +368,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     // Délégation pour JobExecution
     public BackupState? SelectedJobState => JobExecution.JobState;
     public bool IsJobRunning => JobExecution.IsJobRunning;
+    public bool IsJobPaused => JobExecution.IsJobPaused;
     public bool ShowExecutionDetails => JobExecution.ShowExecutionDetails;
     public bool IsJobCompleted => JobExecution.IsJobCompleted;
 
@@ -356,18 +376,30 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         BackupStatus.Inactive => Text("GuiStatusInactive"),
         BackupStatus.Active => Text("GuiStatusActive"),
+        BackupStatus.Paused => Text("GuiStatusPaused"),
         BackupStatus.Completed => Text("GuiStatusCompleted"),
         BackupStatus.Error => Text("GuiStatusError"),
+        BackupStatus.Cancelled => Text("GuiStatusCancelled"),
         _ => Text("GuiStatusInactive")
     };
 
     public string JobStatusColor => SelectedJobState?.Status switch
     {
         BackupStatus.Active => "#3498db",
+        BackupStatus.Paused => "#f39c12",
         BackupStatus.Completed => "#27ae60",
         BackupStatus.Error => "#e74c3c",
+        BackupStatus.Cancelled => "#e74c3c",
         _ => "#95a5a6"
     };
+
+    public bool ShowSuccessStatusIcon => SelectedJobState?.Status == BackupStatus.Completed;
+    public bool ShowErrorStatusIcon => SelectedJobState?.Status == BackupStatus.Error;
+    public bool ShowCancelledStatusIcon => SelectedJobState?.Status == BackupStatus.Cancelled;
+
+    public bool CanStartSelectedJob => HasSelection && !IsJobRunning;
+    public bool CanStopSelectedJob => HasSelection && IsJobRunning;
+    public bool CanBreakSelectedJob => HasSelection && (IsJobRunning || IsJobPaused);
 
     public double JobProgress => JobExecution.JobProgress;
     public string JobTotalFiles => JobExecution.JobTotalFiles;
@@ -551,6 +583,61 @@ public class MainWindowViewModel : INotifyPropertyChanged
         return await JobList.MoveJobAsync(movedJob, targetJob);
     }
 
+    /// <summary>
+    /// Lance le job sélectionné (ou reprend s'il est en pause).
+    /// </summary>
+    public async Task StartSelectedJobAsync()
+    {
+        var selectedJob = SelectedJob;
+        if (!HasSelection || selectedJob == null)
+        {
+            SetStatusOnUIThread(Text("GuiErrorNoJobSelected"));
+            SetDefaultCatMessage();
+            return;
+        }
+
+        if (IsJobPaused)
+        {
+            JobExecution.ResumeJob(selectedJob.Name);
+            SetStatusOnUIThread(Text("GuiStatusJobResumed"));
+            SetCatRawMessage(Text("GuiStatusJobResumed"));
+            return;
+        }
+
+        if (IsJobRunning)
+            return;
+
+        await ExecuteSelectedAsync(new[] { selectedJob });
+    }
+
+    /// <summary>
+    /// Met en pause le job sélectionné.
+    /// </summary>
+    public void StopSelectedJob()
+    {
+        var selectedJob = SelectedJob;
+        if (!HasSelection || selectedJob == null || !IsJobRunning)
+            return;
+
+        JobExecution.PauseJob(selectedJob.Name);
+        SetStatusOnUIThread(Text("GuiStatusJobPaused"));
+        SetCatRawMessage(Text("GuiStatusJobPaused"));
+    }
+
+    /// <summary>
+    /// Annule (stoppe) le job sélectionné.
+    /// </summary>
+    public void BreakSelectedJob()
+    {
+        var selectedJob = SelectedJob;
+        if (!HasSelection || selectedJob == null || (!IsJobRunning && !IsJobPaused))
+            return;
+
+        JobExecution.StopJob(selectedJob.Name);
+        SetStatusOnUIThread(Text("GuiStatusJobCancelled"));
+        SetCatRawMessage(Text("GuiStatusJobCancelled"));
+    }
+
    
 
     /// <summary>
@@ -578,7 +665,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
 
         var completed = results.Count(r => r.Status == BackupStatus.Completed);
-        var errors = results.Count(r => r.Status == BackupStatus.Error);
+        var errors = results.Count(r => r.Status == BackupStatus.Error || r.Status == BackupStatus.Cancelled);
         SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
 
         if (errors == 0)
@@ -612,7 +699,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
 
         var completed = results.Count(r => r.Status == BackupStatus.Completed);
-        var errors = results.Count(r => r.Status == BackupStatus.Error);
+        var errors = results.Count(r => r.Status == BackupStatus.Error || r.Status == BackupStatus.Cancelled);
         SetStatusOnUIThread(TextFormat("GuiStatusExecutionSummary", results.Count, completed, errors));
 
         if (errors == 0)
