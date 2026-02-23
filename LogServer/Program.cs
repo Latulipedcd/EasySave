@@ -1,0 +1,27 @@
+﻿using System;
+using System.Net.Sockets;
+using System.Text;
+
+namespace LogServer
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                LogServer server = new LogServer();
+                Socket serverSocket = server.StartServer();
+
+                var client = server.AcceptConnection(serverSocket);
+                server.ListenToClient(client);
+
+                server.Disconnect(client);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+    }
+}

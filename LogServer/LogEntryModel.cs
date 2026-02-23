@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.Json.Serialization;
+
+namespace LogServer
+{
+    public class LogEntry
+    {
+        public required string BackupName { get; set; }
+
+        public required string Source { get; set; }
+
+        public required string Target { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public TimeSpan Duration { get; set; }
+
+        public DateTime Timestamp { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public long FileSize { get; set; }
+
+        public WorkType WorkType { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? ErrorMessage { get; set; }
+
+        public long EncryptionTimeMs { get; set; }
+    }
+}
