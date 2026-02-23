@@ -8,7 +8,7 @@ using Log.Enums;
 namespace EasySave.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel responsible for managing application settings (language, log format, business software, crypto extensions)
+/// ViewModel responsible for managing application settings (language, log format, business software, crypto extensions, priority extensions)
 /// </summary>
 public class SettingsViewModel : ViewModelBase
 {
@@ -18,6 +18,7 @@ public class SettingsViewModel : ViewModelBase
     private SettingItemViewModel? _logFormatSetting;
     private SettingItemViewModel? _businessSoftwareSetting;
     private SettingItemViewModel? _cryptoExtensionsSetting;
+    private SettingItemViewModel? _priorityExtensionsSetting;
 
     /// <summary>
     /// Collection of supported languages (en, fr, etc.)
@@ -132,6 +133,31 @@ public class SettingsViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// File extensions to prioritize during backup (comma-separated)
+    /// </summary>
+    private string _priorityExtensions = string.Empty;
+    public string PriorityExtensions
+    {
+        get => _priorityExtensions;
+        set
+        {
+            if (value == _priorityExtensions) return;
+
+            _priorityExtensions = value ?? string.Empty;
+            OnPropertyChanged();
+
+            var extensionsList = _priorityExtensions
+                .Split(',')
+                .Select(ext => ext.Trim())
+                .Where(ext => !string.IsNullOrWhiteSpace(ext))
+                .ToList();
+
+            _userConfigManager.SavePriorityExtensions(extensionsList);
+            _priorityExtensionsSetting?.SetTextValue(_priorityExtensions);
+        }
+    }
+
+    /// <summary>
     /// Event raised when language changes (for UI text refresh)
     /// </summary>
     public event EventHandler? LanguageChanged;
@@ -153,6 +179,7 @@ public class SettingsViewModel : ViewModelBase
         _selectedLogFormatIndex = _userConfigManager.LoadLogFormat() == LogFormat.Xml ? 1 : 0;
         _businessSoftware = _userConfigManager.LoadBusinessSoftware() ?? string.Empty;
         _cryptoExtensions = string.Join(", ", _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>());
+        _priorityExtensions = string.Join(", ", _userConfigManager.LoadPriorityExtensions() ?? new List<string>());
 
         SettingsItems = new ObservableCollection<SettingItemViewModel>();
     }
@@ -166,7 +193,8 @@ public class SettingsViewModel : ViewModelBase
         string logFormatJsonLabel,
         string logFormatXmlLabel,
         string businessSoftwareLabel,
-        string cryptoExtensionsLabel)
+        string cryptoExtensionsLabel,
+        string priorityExtensionsLabel)
     {
         SettingsItems.Clear();
 
@@ -193,10 +221,16 @@ public class SettingsViewModel : ViewModelBase
             _cryptoExtensions,
             value => CryptoExtensions = value);
 
+        _priorityExtensionsSetting = new SettingItemViewModel(
+            priorityExtensionsLabel,
+            _priorityExtensions,
+            value => PriorityExtensions = value);
+
         SettingsItems.Add(_languageSetting);
         SettingsItems.Add(_logFormatSetting);
         SettingsItems.Add(_businessSoftwareSetting);
         SettingsItems.Add(_cryptoExtensionsSetting);
+        SettingsItems.Add(_priorityExtensionsSetting);
     }
 
     /// <summary>
@@ -208,7 +242,8 @@ public class SettingsViewModel : ViewModelBase
         string logFormatJsonLabel,
         string logFormatXmlLabel,
         string businessSoftwareLabel,
-        string cryptoExtensionsLabel)
+        string cryptoExtensionsLabel,
+        string priorityExtensionsLabel)
     {
         if (_languageSetting != null)
         {
@@ -236,6 +271,12 @@ public class SettingsViewModel : ViewModelBase
             _cryptoExtensionsSetting.SetTextValue(_cryptoExtensions);
         }
 
+        if (_priorityExtensionsSetting != null)
+        {
+            _priorityExtensionsSetting.UpdateLabel(priorityExtensionsLabel);
+            _priorityExtensionsSetting.SetTextValue(_priorityExtensions);
+        }
+
         OnPropertyChanged(nameof(SettingsItems));
     }
 
@@ -248,6 +289,8 @@ public class SettingsViewModel : ViewModelBase
     public string? GetBusinessSoftware() => _userConfigManager.LoadBusinessSoftware();
 
     public List<string> GetCryptoExtensions() => _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>();
+
+    public List<string> GetPriorityExtensions() => _userConfigManager.LoadPriorityExtensions() ?? new List<string>();
 
     private IEnumerable<SettingOptionViewModel> GetLogFormatOptions(string jsonLabel, string xmlLabel)
     {

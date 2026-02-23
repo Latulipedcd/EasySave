@@ -37,6 +37,7 @@
   "GuiLogFormatXml": "Xml",
   "GuiBusinessSoftwareLabel": "Logiciel métier à bloquer",
   "GuiCryptoExtensionsLabel": "Extensions de fichiers à chiffrer (séparées par des virgules)",
+  "GuiPriorityExtensionsLabel": "Extensions de fichiers prioritaires (séparées par des virgules)",
   "GuiSettingsButton": "Paramètres",
   "GuiSettingsMenuTitle": "Paramètres du logiciel",
 
