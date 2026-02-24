@@ -8,19 +8,7 @@ namespace CryptoSoft
     /// </summary>
     internal class FileOperationResult
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether the operation was successful.
-        /// </summary>
         public bool Success { get; set; }
-
-        /// <summary>
-        /// Gets or sets the path to the output file if the operation succeeded.
-        /// </summary>
-        public string OutputPath { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the error message if the operation failed.
-        /// </summary>
         public string ErrorMessage { get; set; } = string.Empty;
     }
 
@@ -37,32 +25,19 @@ namespace CryptoSoft
         private const int BufferSize = 1024 * 1024;
 
         /// <summary>
-        /// Transforms a file using XOR cipher with the provided key.
-        /// This method can be used for both encryption and decryption since XOR is symmetric.
+        /// Transforms a file using XOR cipher with the provided key, writing the
+        /// encrypted bytes to <paramref name="outputStream"/>.
+        /// The caller is responsible for opening and closing the stream.
         /// </summary>
-        /// <param name="key">The encryption/decryption key as a string.</param>
-        /// <param name="outputFilePath">The path where the transformed file will be written.</param>
-        /// <returns>A <see cref="FileOperationResult"/> indicating success or failure with details.</returns>
-        /// <exception cref="IOException">Thrown when file I/O operations fail.</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when access to the file is denied.</exception>
-        internal FileOperationResult TransformFile(string key, string outputFilePath)
+        /// <param name="key">The encryption key as a string.</param>
+        /// <param name="outputStream">The stream that receives the encrypted bytes.</param>
+        internal FileOperationResult TransformFile(string key, Stream outputStream)
         {
             if (!File.Exists(FilePath))
                 return new FileOperationResult { Success = false, ErrorMessage = $"Source file not found: {FilePath}" };
 
             if (string.IsNullOrEmpty(key))
                 return new FileOperationResult { Success = false, ErrorMessage = "Key cannot be empty" };
-
-            // Validate output directory exists
-            string? outputDirectory = Path.GetDirectoryName(outputFilePath);
-            if (!string.IsNullOrEmpty(outputDirectory) && !Directory.Exists(outputDirectory))
-            {
-                return new FileOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = $"Output directory does not exist: {outputDirectory}"
-                };
-            }
 
             // Rent buffer from pool to reduce GC pressure
             byte[]? buffer = null;
@@ -72,24 +47,20 @@ namespace CryptoSoft
                 buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
 
                 using var sourceStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read);
-                using var destStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write);
 
                 int bytesRead;
                 long totalBytesProcessed = 0;
 
-                // Loop through the file until no bytes remain
+                // Loop through the file in chunks, XOR-encrypt each chunk, stream to output
                 while ((bytesRead = sourceStream.Read(buffer, 0, BufferSize)) > 0)
                 {
-                    // Process only the bytes we just read using Span for zero-allocation
                     ApplyXorCipher(buffer.AsSpan(0, bytesRead), keyBytes, totalBytesProcessed);
-
-                    // Write immediately to disk
-                    destStream.Write(buffer, 0, bytesRead);
-
+                    outputStream.Write(buffer, 0, bytesRead);
                     totalBytesProcessed += bytesRead;
                 }
 
-                return new FileOperationResult { Success = true, OutputPath = outputFilePath };
+                outputStream.Flush();
+                return new FileOperationResult { Success = true };
             }
             catch (UnauthorizedAccessException ex)
             {

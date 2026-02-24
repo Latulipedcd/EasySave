@@ -106,7 +106,9 @@ public sealed class EncryptionService : IEncryptionService
             var startInfo = new ProcessStartInfo
             {
                 FileName = cryptoSoftPath,
-                Arguments = $"\"{sourceFile}\" \"{targetFile}\" \"default-key\"",
+                // Target path is no longer passed: CryptoSoft only receives source and key.
+                // It streams the encrypted bytes to stdout; EasySave writes the target file.
+                Arguments = $"\"{sourceFile}\" \"default-key\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -121,11 +123,23 @@ public sealed class EncryptionService : IEncryptionService
                 return false;
             }
 
+            // Read stderr asynchronously to prevent the stderr pipe buffer from
+            // filling up and blocking CryptoSoft while we are draining stdout.
+            var stderrTask = process.StandardError.ReadToEndAsync();
+
+            // Stream encrypted bytes from CryptoSoft stdout → target file.
+            // This MUST happen before WaitForExit() to avoid deadlock: the stdout
+            // pipe buffer (typically 4 KB on Windows) would fill and block CryptoSoft
+            // from writing more chunks long before the file is fully encrypted.
+            using (var destStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write))
+            {
+                process.StandardOutput.BaseStream.CopyTo(destStream);
+            }
+
             process.WaitForExit();
             sw.Stop();
 
-            string stdout = process.StandardOutput.ReadToEnd();
-            string stderr = process.StandardError.ReadToEnd();
+            string stderr = stderrTask.GetAwaiter().GetResult();
 
             if (process.ExitCode == 0)
             {
@@ -136,9 +150,10 @@ public sealed class EncryptionService : IEncryptionService
             encryptionTimeMs = process.ExitCode < 0 ? process.ExitCode : -process.ExitCode;
 
             if (!string.IsNullOrEmpty(stderr))
-                Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft stderr: {stderr}");
-            if (!string.IsNullOrEmpty(stdout))
-                Console.WriteLine($"[ENCRYPTION ERROR] CryptoSoft stdout: {stdout}");
+                Console.Error.WriteLine($"[ENCRYPTION ERROR] CryptoSoft stderr: {stderr}");
+
+            // Clean up the partial target file written during a failed encryption
+            try { if (File.Exists(targetFile)) File.Delete(targetFile); } catch { }
 
             return false;
         }
@@ -146,6 +161,8 @@ public sealed class EncryptionService : IEncryptionService
         {
             sw.Stop();
             encryptionTimeMs = -99;
+            try { if (File.Exists(targetFile)) File.Delete(targetFile); } 
+            catch { } 
             return false;
         }
     }
