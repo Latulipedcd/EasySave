@@ -7,4 +7,5 @@
   <Project Path="src/GUI/GUI.csproj" Id="18b1db3a-9607-4458-9977-a5c50e2239ab" />
   <Project Path="src/Log/Log.csproj" />
   <Project Path="src/Presentation/Presentation.csproj" Id="f7a7f6de-c65c-4b81-80fc-bec66ae438b3" />
+  <Project Path="tests/EasySave.Tests/EasySave.Tests.csproj" />
 </Solution>
