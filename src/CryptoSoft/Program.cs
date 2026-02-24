@@ -15,54 +15,51 @@ namespace CryptoSoft
 
         /// <summary>
         /// Main entry point for the application.
+        /// Reads the source file, XOR-encrypts it in chunks, and streams the encrypted
+        /// bytes to stdout. The caller is responsible for writing those bytes to disk.
+        /// All diagnostic messages go to stderr so stdout remains pure binary data.
         /// </summary>
-        /// <param name="args">Command line arguments: source-file-path, target-file-path, key</param>
+        /// <param name="args">Command line arguments: source-file-path, key</param>
         static void Main(string[] args)
         {
             try
             {
-                if (args is null || args.Length < 3)
+                if (args is null || args.Length < 2)
                 {
-                    Console.WriteLine("Usage: CryptoSoft <source-file-path> <target-file-path> <key>");
-                    Console.WriteLine("Arguments:");
-                    Console.WriteLine("  source-file-path : Path to the file to transform");
-                    Console.WriteLine("  target-file-path : Path where the output will be written");
-                    Console.WriteLine("  key              : Encryption/decryption key");
+                    Console.Error.WriteLine("Usage: CryptoSoft <source-file-path> <key>");
+                    Console.Error.WriteLine("Arguments:");
+                    Console.Error.WriteLine("  source-file-path : Path to the file to transform");
+                    Console.Error.WriteLine("  key              : Encryption/decryption key");
+                    Console.Error.WriteLine("Output:");
+                    Console.Error.WriteLine("  Encrypted bytes are written to stdout.");
                     Environment.ExitCode = ExitUsageError;
                     return;
                 }
 
                 string sourceFilePath = args[0];
-                string targetFilePath = args[1];
-                string key = args[2];
+                string key = args[1];
 
                 var fileManager = new FileManager(sourceFilePath);
 
-                Console.WriteLine($"Processing file: {sourceFilePath}...");
+                Console.Error.WriteLine($"Processing file: {sourceFilePath}...");
 
-                var result = fileManager.TransformFile(key, targetFilePath);
+                // Write encrypted bytes directly to the raw stdout stream (binary, no encoding)
+                using var stdout = Console.OpenStandardOutput();
+                var result = fileManager.TransformFile(key, stdout);
 
                 if (!result.Success)
                 {
-                    Console.WriteLine($"Transformation failed: {result.ErrorMessage}");
-
-                    // Cleanup: Delete partial file if it was created during a failed attempt
-                    if (File.Exists(targetFilePath)) 
-                    {
-                        File.Delete(targetFilePath);
-                        Console.WriteLine("Partial output file has been cleaned up.");
-                    }
-
+                    Console.Error.WriteLine($"Transformation failed: {result.ErrorMessage}");
                     Environment.ExitCode = ExitOperationError;
                     return;
                 }
 
-                Console.WriteLine($"Success! Transformed file written to: {targetFilePath}");
+                Console.Error.WriteLine("Transformation complete.");
                 Environment.ExitCode = ExitSuccess;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Critical Error: {e.Message}");
+                Console.Error.WriteLine($"Critical Error: {e.Message}");
                 Environment.ExitCode = ExitOperationError;
             }
         }
