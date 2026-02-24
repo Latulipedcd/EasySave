@@ -12,6 +12,9 @@ RUN dotnet publish LogServer/LogServer.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
+
+ENV TZ=Europe/Paris
+
 COPY --from=build /app/publish .
 
 RUN mkdir /app/data
