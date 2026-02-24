@@ -39,6 +39,10 @@
   "GuiCryptoExtensionsLabel": "File extensions to encrypt (comma-separated)",
   "GuiPriorityExtensionsLabel": "Priority file extensions (comma-separated)",
   "GuiMaxParallelFileSizeLabel": "File size not to back up in parallel (KB)",
+  "GuiStorageModeLabel": "Log storage mode",
+  "GuiStorageModeLocal": "Local",
+  "GuiStorageModeDocker": "Docker",
+  "GuiStorageModeBoth": "Both",
   "GuiSettingsButton": "Settings",
   "GuiSettingsMenuTitle": "Application settings",
 

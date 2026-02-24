@@ -76,4 +76,8 @@ public class MainWindowTextsViewModel : ViewModelBase
     public string CryptoExtensionsLabel => _getText("GuiCryptoExtensionsLabel");
     public string PriorityExtensionsLabel => _getText("GuiPriorityExtensionsLabel");
     public string MaxParallelFileSizeLabel => _getText("GuiMaxParallelFileSizeLabel");
+    public string StorageModeLabel => _getText("GuiStorageModeLabel");
+    public string StorageModeLocalLabel => _getText("GuiStorageModeLocal");
+    public string StorageModeDockerLabel => _getText("GuiStorageModeDocker");
+    public string StorageModeBothLabel => _getText("GuiStorageModeBoth");
 }
