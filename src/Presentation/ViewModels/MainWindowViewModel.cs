@@ -30,6 +30,12 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowTextsViewModel Texts { get; }
 
+    /// <summary>
+    /// Raised when the ViewModel decides a RunAll progress window should be opened.
+    /// The view subscribes and calls ShowDialog; the ViewModel never touches the window.
+    /// </summary>
+    public event EventHandler<IReadOnlyList<BackupJobDisplayItem>>? RunAllWindowRequested;
+
     public string EditorWindowTitle => JobEditor.IsEditing
         ? Text("GuiEditorWindowTitleEdit")
         : Text("GuiEditorWindowTitleNew");
@@ -271,6 +277,22 @@ public class MainWindowViewModel : ViewModelBase
         return await JobList.MoveJobAsync(movedItem.Job, targetItem?.Job);
     }
 
+    /// <summary>
+    /// Builds the ViewModel for the delete confirmation dialog.
+    /// Keeps name extraction and message formatting out of the view.
+    /// </summary>
+    public DeleteConfirmationViewModel CreateDeleteConfirmationViewModel(
+        IReadOnlyList<BackupJobDisplayItem> selectedItems)
+    {
+        var names = selectedItems
+            .Select(i => i.Name)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct()
+            .ToList();
+
+        return new DeleteConfirmationViewModel(names, Text);
+    }
+
     public async Task StartSelectedJobAsync()
     {
         var selectedJob = SelectedJob;
@@ -322,6 +344,22 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public async Task ExecuteAllAsync() => await ExecuteAllWithResultAsync();
+
+    /// <summary>
+    /// Decides whether to run jobs directly (empty list) or signal the view to open
+    /// the RunAll progress window. Moves the empty-list guard out of the code-behind.
+    /// </summary>
+    public async Task InitiateRunAllAsync()
+    {
+        var jobsToRun = JobList.DisplayJobs.ToList();
+        if (jobsToRun.Count == 0)
+        {
+            await ExecuteAllAsync();
+            return;
+        }
+
+        RunAllWindowRequested?.Invoke(this, jobsToRun);
+    }
 
     public async Task<(bool success, List<BackupState> results, string errorMessage)> ExecuteAllWithResultAsync()
     {
