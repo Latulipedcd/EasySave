@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:EasySave.Presentation.ViewModels;assembly=Presentation"
+        mc:Ignorable="d"
+        x:Class="GUI.DeleteConfirmationWindow"
+        x:DataType="vm:DeleteConfirmationViewModel"
+        Title="{Binding Title}"
+        Width="520" Height="310"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Border Classes="card" Margin="14">
+        <StackPanel Spacing="14">
+
+            <TextBlock Text="{Binding Message}"
+                       Classes="subtitle"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Stretch"/>
+
+            <TextBlock Text="{Binding JobsLabel}" Classes="label"/>
+
+            <Border BorderBrush="Gray" BorderThickness="1"
+                    CornerRadius="8" Padding="10" MaxHeight="130">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <TextBlock Text="{Binding JobNamesText}" TextWrapping="Wrap"/>
+                </ScrollViewer>
+            </Border>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="10">
+                <Button Content="{Binding CancelLabel}"
+                        MinWidth="100"
+                        Classes="secondary"
+                        Click="Cancel_Click"/>
+                <Button Content="{Binding ConfirmLabel}"
+                        MinWidth="100"
+                        Classes="danger"
+                        Click="Confirm_Click"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+
+</Window>
