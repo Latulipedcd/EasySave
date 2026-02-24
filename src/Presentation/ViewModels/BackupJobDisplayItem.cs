@@ -7,12 +7,16 @@ namespace EasySave.Presentation.ViewModels;
 /// </summary>
 public class BackupJobDisplayItem : ViewModelBase
 {
+    private const int MaxDisplayedPathLength = 55;
+
     public BackupJob Job { get; }
     public int Id { get; }
     public string DisplayName { get; }
     public string Name => Job.Name;
     public string SourceDirectory => Job.SourceDirectory;
     public string TargetDirectory => Job.TargetDirectory;
+    public string ShortSourceDirectory => TruncatePath(SourceDirectory);
+    public string ShortTargetDirectory => TruncatePath(TargetDirectory);
     public string Type => Job.Type.ToString();
 
     private bool _isRunning;
@@ -60,5 +64,13 @@ public class BackupJobDisplayItem : ViewModelBase
         IsCompletedSuccess = false;
         HasExecutionError = false;
         HasExecutionCancelled = false;
+    }
+
+    private static string TruncatePath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path.Length <= MaxDisplayedPathLength)
+            return path;
+
+        return $"{path[..(MaxDisplayedPathLength - 1)]}…";
     }
 }
