@@ -20,7 +20,6 @@ namespace LogServer
 
                     server.ListenToClient(client);
                 }
-                server.Disconnect(client);
             }
             catch (Exception ex)
             {
