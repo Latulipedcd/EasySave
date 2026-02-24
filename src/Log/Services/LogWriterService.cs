@@ -24,9 +24,9 @@ namespace Log.Services
             Converters = { new JsonStringEnumConverter() }
         };
 
-        public JsonLogWriter(string folder)
+        public JsonLogWriter()
         {
-            _folder = folder;
+            _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasyLog", "Logs");
             Directory.CreateDirectory(_folder);
             _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.json";
             _path = Path.Combine(_folder, _fileName);
@@ -83,9 +83,9 @@ namespace Log.Services
         string _path;
         private static readonly object _fileLock = new();
 
-        public XmlLogWriter(string folder)
+        public XmlLogWriter()
         {
-            _folder = folder;
+            _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasyLog", "Logs");
             Directory.CreateDirectory(_folder);
             _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.xml";
             _path = Path.Combine(_folder, _fileName);

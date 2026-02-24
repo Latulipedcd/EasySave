@@ -14,10 +14,13 @@ namespace LogServer
                 LogServer server = new LogServer();
                 Socket serverSocket = server.StartServer();
                 Console.WriteLine("Server started");
-                var client = server.AcceptConnection(serverSocket);
-                
-                server.ListenToClient(client);
 
+                while (true)
+                {
+                    var client = server.AcceptConnection(serverSocket);
+
+                    server.ListenToClient(client);
+                }
                 //server.Disconnect(client);
             }
             catch (Exception ex)

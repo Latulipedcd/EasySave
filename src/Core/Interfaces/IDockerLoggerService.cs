@@ -1,4 +1,5 @@
 ﻿using Core.Models;
+using Log.Enums;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -12,7 +13,7 @@ namespace Core.Interfaces
     {
         public void Connect();
 
-        public void SendLog(LogEntry entry);
+        public void SendLog(LogFormat format, LogEntry entry);
 
         //public void Close();
     }

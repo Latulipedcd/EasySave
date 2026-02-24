@@ -15,15 +15,15 @@ public interface IBackupLoggerService
     void Configure(LogFormat format);
 
     /// <summary>Logs a failed start because the source directory does not exist.</summary>
-    void LogSourceNotFound(LogStorageMode storageMode, string backupName, string sourceDirectory);
+    void LogSourceNotFound(LogFormat format, LogStorageMode storageMode, string backupName, string sourceDirectory);
 
     /// <summary>Logs a backup blocked because the configured business software is running.</summary>
-    void LogBusinessSoftwareBlock(LogStorageMode storageMode, string backupName, string sourceDirectory, string targetDirectory);
+    void LogBusinessSoftwareBlock(LogFormat format, LogStorageMode storageMode, string backupName, string sourceDirectory, string targetDirectory);
 
     /// <summary>Logs the creation of a target subdirectory.</summary>
-    void LogDirectoryCreation(LogStorageMode storageMode, string backupName, string sourceFile, string folderPath, TimeSpan duration);
+    void LogDirectoryCreation(LogFormat format, LogStorageMode storageMode, string backupName, string sourceFile, string folderPath, TimeSpan duration);
 
     /// <summary>Logs a completed file transfer (copy or encryption).</summary>
-    void LogFileOperation(LogStorageMode storageMode, string backupName, string sourceFile, string targetPath,
+    void LogFileOperation(LogFormat format, LogStorageMode storageMode, string backupName, string sourceFile, string targetPath,
                           TimeSpan duration, long fileSize, bool wasEncrypted, long encryptionTimeMs);
 }

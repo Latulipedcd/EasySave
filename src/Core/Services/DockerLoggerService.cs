@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using Core.Interfaces;
+using Log.Enums;
 
 namespace Core.Services
 {
@@ -47,11 +48,17 @@ namespace Core.Services
         }
         
 
-        public void SendLog(LogEntry entry)
+        public void SendLog(LogFormat format, LogEntry entry)
         {
             if (!_isConnected) { Connect(); }
 
-            string json = JsonSerializer.Serialize(entry);
+            var logMessage = new Dictionary<string, object>
+            {
+                { "Format", format },
+                { "Entry", entry }
+            };
+
+            string json = JsonSerializer.Serialize(logMessage);
             string message = json + "<|EOM|>";
             byte[] data = Encoding.UTF8.GetBytes(message);
 

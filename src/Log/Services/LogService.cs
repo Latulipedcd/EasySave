@@ -30,12 +30,12 @@ namespace Log.Services
 
         private LogService()
         {
-            _writer = LogWriterFactory.Create(LogFormat.Json, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasyLog", "Logs")); // Json by default for retrocompatibility
+            _writer = LogWriterFactory.Create(LogFormat.Json); // Json by default for retrocompatibility
         }
 
-        public void Configure(LogFormat format, string? folder = null)
+        public void Configure(LogFormat format)
         {
-            _writer = LogWriterFactory.Create(format, folder ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasyLog", "Logs"));
+            _writer = LogWriterFactory.Create(format);
         }
 
         public void LogBackup(Object entry)

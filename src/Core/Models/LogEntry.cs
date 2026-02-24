@@ -29,5 +29,7 @@ namespace Core.Models
 
         public long EncryptionTimeMs { get; set; }
 
+        public string? UserName { get; set; }
+
     }
 }

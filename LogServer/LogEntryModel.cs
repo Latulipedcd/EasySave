@@ -27,5 +27,7 @@ namespace LogServer
         public string? ErrorMessage { get; set; }
 
         public long EncryptionTimeMs { get; set; }
+
+        public string? UserName { get; set; }
     }
 }

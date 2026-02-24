@@ -1,5 +1,6 @@
 using Core.Models;
 using Core.Enums;
+using Log.Enums;
 
 namespace Core.Interfaces;
 
@@ -14,7 +15,7 @@ public interface IBackupValidationService
     /// Returns <c>true</c> if <see cref="BackupJob.SourceDirectory"/> does not exist on disk.
     /// Logs the missing-source event when returning <c>true</c>.
     /// </summary>
-    bool IsSourceDirectoryMissing(BackupJob job, LogStorageMode storageMode);
+    bool IsSourceDirectoryMissing(BackupJob job, LogStorageMode storageMode, LogFormat format);
 
     /// <summary>
     /// Returns <c>true</c> if the named business software is currently running,
@@ -22,5 +23,5 @@ public interface IBackupValidationService
     /// Always returns <c>false</c> when <paramref name="businessSoftware"/> is <c>null</c>.
     /// Logs the blocking event when returning <c>true</c>.
     /// </summary>
-    bool IsBlockedByBusinessSoftware(BackupJob job, string? businessSoftware, LogStorageMode storageMode);
+    bool IsBlockedByBusinessSoftware(BackupJob job, string? businessSoftware, LogStorageMode storageMode, LogFormat format);
 }

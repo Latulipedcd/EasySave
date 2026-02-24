@@ -16,7 +16,7 @@ namespace LogServer
         {
             Console.WriteLine("Test start");
             _logService = LogService.Instance;
-            _logService.Configure(LogFormat.Json, "./logs/EasyLog");
+            //_logService.Configure(LogFormat.Json, "./logs/EasyLog");
 
             IPAddress ipAddress = IPAddress.Any;
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, 11_000);
@@ -39,31 +39,59 @@ namespace LogServer
         public void ListenToClient(Socket client)
         {
             try
-            {
+            {           
+                Console.WriteLine("Test listen");
+                StringBuilder sb = new StringBuilder();
+                byte[] buffer = new byte[4096];
+                string eom = "<|EOM|>";
 
-                while (true) {
-                    Console.WriteLine("Test listen");
-                    byte[] buffer = new byte[4096];
-                    int received = client.Receive(buffer, SocketFlags.None);
+                while (true)
+                {
+                    int received = client.Receive(buffer);
 
-                    string response = Encoding.UTF8.GetString(buffer, 0, received);
-
-                    var eom = "<|EOM|>";
-                    if (response.Contains(eom))
+                    if (received == 0)
                     {
-                        string cleanJson = response.Replace(eom, "");
+                        Console.WriteLine("Client déconnecté");
+                        break;
+                    }
 
-                        LogEntry entry = JsonSerializer.Deserialize<LogEntry>(cleanJson);
+                    sb.Append(Encoding.UTF8.GetString(buffer, 0, received));
 
-                        client.Send(Encoding.UTF8.GetBytes(response.ToUpper()));
+                    string content = sb.ToString();
 
-                        if (entry != null)
+                    int eomIndex;
+                    while ((eomIndex = content.IndexOf(eom)) >= 0)
+                    {
+                        string json = content.Substring(0, eomIndex);
+                        content = content.Substring(eomIndex + eom.Length);
+
+                        try
                         {
-                            _logService.LogBackup(entry);
-                            Console.WriteLine("Log écrit.");
+                            using JsonDocument doc = JsonDocument.Parse(json);
+
+                            JsonElement root = doc.RootElement;
+
+                            LogFormat format = root.GetProperty("Format").Deserialize<LogFormat>();
+
+                            LogEntry entry = root.GetProperty("Entry").Deserialize<LogEntry>();
+
+                            if (entry != null)
+                            {
+                                _logService.Configure(format);
+                                _logService.LogBackup(entry);
+                                Console.WriteLine("Log écrit.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("JSON error: " + ex.Message);
                         }
                     }
+
+                    sb.Clear();
+                    sb.Append(content);
                 }
+                
             }
             catch (SocketException e)
             {
