@@ -106,12 +106,16 @@ public class MainWindowViewModel : ViewModelBase
             Settings.BuildSettingsMenuItems(
                 Texts.LanguageLabel, Texts.LogFormatLabel,
                 Texts.LogFormatJsonLabel, Texts.LogFormatXmlLabel,
+                Texts.StorageModeLabel, Texts.StorageModeLocalLabel,
+                Texts.StorageModeDockerLabel, Texts.StorageModeBothLabel,
                 Texts.BusinessSoftwareLabel, Texts.CryptoExtensionsLabel,
                 Texts.PriorityExtensionsLabel, Texts.MaxParallelFileSizeLabel);
         else
             Settings.RefreshSettingsMenuItems(
                 Texts.LanguageLabel, Texts.LogFormatLabel,
                 Texts.LogFormatJsonLabel, Texts.LogFormatXmlLabel,
+                Texts.StorageModeLabel, Texts.StorageModeLocalLabel,
+                Texts.StorageModeDockerLabel, Texts.StorageModeBothLabel,
                 Texts.BusinessSoftwareLabel, Texts.CryptoExtensionsLabel,
                 Texts.PriorityExtensionsLabel, Texts.MaxParallelFileSizeLabel);
     }

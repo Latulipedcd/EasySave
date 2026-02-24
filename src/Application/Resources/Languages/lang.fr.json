@@ -39,6 +39,10 @@
   "GuiCryptoExtensionsLabel": "Extensions de fichiers à chiffrer (séparées par des virgules)",
   "GuiPriorityExtensionsLabel": "Extensions de fichiers prioritaires (séparées par des virgules)",
   "GuiMaxParallelFileSizeLabel": "Taille des fichiers à ne pas sauvegarder en parallèle (KB)",
+  "GuiStorageModeLabel": "Mode de stockage des logs",
+  "GuiStorageModeLocal": "Local",
+  "GuiStorageModeDocker": "Docker",
+  "GuiStorageModeBoth": "Les deux",
   "GuiSettingsButton": "Paramètres",
   "GuiSettingsMenuTitle": "Paramètres du logiciel",
 

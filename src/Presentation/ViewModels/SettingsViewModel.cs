@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Core.Enums;
 using EasySave.Application.Interfaces;
 using Log.Enums;
 
@@ -16,6 +17,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly IUserConfigService _userConfigManager;
     private SettingItemViewModel? _languageSetting;
     private SettingItemViewModel? _logFormatSetting;
+    private SettingItemViewModel? _storageModeSetting;
     private SettingItemViewModel? _businessSoftwareSetting;
     private SettingItemViewModel? _cryptoExtensionsSetting;
     private SettingItemViewModel? _priorityExtensionsSetting;
@@ -85,6 +87,23 @@ public class SettingsViewModel : ViewModelBase
             var format = value == 1 ? LogFormat.Xml : LogFormat.Json;
             _userConfigManager.SaveLogFormat(format);
             _logFormatSetting?.SetSelectedValue(value == 1 ? "Xml" : "Json");
+        }
+    }
+
+    private LogStorageMode _storageMode = LogStorageMode.Local;
+    public LogStorageMode StorageMode
+    {
+        get => _storageMode;
+        set
+        {
+            if (value == _storageMode)
+                return;
+
+            _storageMode = value;
+            OnPropertyChanged();
+
+            _userConfigManager.SaveStorageMode(_storageMode);
+            _storageModeSetting?.SetSelectedValue(_storageMode.ToString());
         }
     }
 
@@ -205,6 +224,7 @@ public class SettingsViewModel : ViewModelBase
         SupportedLanguages = new ObservableCollection<string>(_langManager.GetSupportedLanguages());
         _selectedLanguageCode = _langManager.CurrentCultureCode;
         _selectedLogFormatIndex = _userConfigManager.LoadLogFormat() == LogFormat.Xml ? 1 : 0;
+        _storageMode = _userConfigManager.LoadStorageMode() ?? LogStorageMode.Local;
         _businessSoftware = _userConfigManager.LoadBusinessSoftware() ?? string.Empty;
         _cryptoExtensions = string.Join(", ", _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>());
         _priorityExtensions = string.Join(", ", _userConfigManager.LoadPriorityExtensions() ?? new List<string>());
@@ -221,6 +241,10 @@ public class SettingsViewModel : ViewModelBase
         string logFormatLabel,
         string logFormatJsonLabel,
         string logFormatXmlLabel,
+        string storageModeLabel,
+        string storageModeLocalLabel,
+        string storageModeDockerLabel,
+        string storageModeBothLabel,
         string businessSoftwareLabel,
         string cryptoExtensionsLabel,
         string priorityExtensionsLabel,
@@ -240,6 +264,12 @@ public class SettingsViewModel : ViewModelBase
             SelectedLogFormatIndex == 1 ? "Xml" : "Json",
             value => SelectedLogFormatIndex =
                 string.Equals(value, "Xml", StringComparison.OrdinalIgnoreCase) ? 1 : 0);
+
+        _storageModeSetting = new SettingItemViewModel(
+            storageModeLabel,
+            GetStorageModeOptions(storageModeLocalLabel, storageModeDockerLabel, storageModeBothLabel),
+            StorageMode.ToString(),
+            value => StorageMode = ParseStorageMode(value));
 
         _businessSoftwareSetting = new SettingItemViewModel(
             businessSoftwareLabel,
@@ -263,6 +293,7 @@ public class SettingsViewModel : ViewModelBase
 
         SettingsItems.Add(_languageSetting);
         SettingsItems.Add(_logFormatSetting);
+        SettingsItems.Add(_storageModeSetting);
         SettingsItems.Add(_businessSoftwareSetting);
         SettingsItems.Add(_cryptoExtensionsSetting);
         SettingsItems.Add(_priorityExtensionsSetting);
@@ -277,6 +308,10 @@ public class SettingsViewModel : ViewModelBase
         string logFormatLabel,
         string logFormatJsonLabel,
         string logFormatXmlLabel,
+        string storageModeLabel,
+        string storageModeLocalLabel,
+        string storageModeDockerLabel,
+        string storageModeBothLabel,
         string businessSoftwareLabel,
         string cryptoExtensionsLabel,
         string priorityExtensionsLabel,
@@ -294,6 +329,14 @@ public class SettingsViewModel : ViewModelBase
             _logFormatSetting.ReplaceOptions(
                 GetLogFormatOptions(logFormatJsonLabel, logFormatXmlLabel),
                 SelectedLogFormatIndex == 1 ? "Xml" : "Json");
+        }
+
+        if (_storageModeSetting != null)
+        {
+            _storageModeSetting.UpdateLabel(storageModeLabel);
+            _storageModeSetting.ReplaceOptions(
+                GetStorageModeOptions(storageModeLocalLabel, storageModeDockerLabel, storageModeBothLabel),
+                StorageMode.ToString());
         }
 
         if (_businessSoftwareSetting != null)
@@ -335,9 +378,23 @@ public class SettingsViewModel : ViewModelBase
 
     public List<string> GetPriorityExtensions() => _userConfigManager.LoadPriorityExtensions() ?? new List<string>();
 
+    public LogStorageMode GetStorageMode() => _userConfigManager.LoadStorageMode() ?? LogStorageMode.Local;
+
     private IEnumerable<SettingOptionViewModel> GetLogFormatOptions(string jsonLabel, string xmlLabel)
     {
         yield return new SettingOptionViewModel("Json", jsonLabel);
         yield return new SettingOptionViewModel("Xml", xmlLabel);
     }
+
+    private IEnumerable<SettingOptionViewModel> GetStorageModeOptions(string localLabel, string dockerLabel, string bothLabel)
+    {
+        yield return new SettingOptionViewModel(LogStorageMode.Local.ToString(), localLabel);
+        yield return new SettingOptionViewModel(LogStorageMode.Docker.ToString(), dockerLabel);
+        yield return new SettingOptionViewModel(LogStorageMode.Both.ToString(), bothLabel);
+    }
+
+    private static LogStorageMode ParseStorageMode(string value)
+        => Enum.TryParse<LogStorageMode>(value, ignoreCase: true, out var parsed)
+            ? parsed
+            : LogStorageMode.Local;
 }
