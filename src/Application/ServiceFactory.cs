@@ -1,10 +1,11 @@
 using Core.Interfaces;
-using EasySave.Application.Interfaces;
-using Core.Services;
 using Core.Repository;
+using Core.Services;
 using EasySave.Application.Configuration;
+using EasySave.Application.Interfaces;
 using EasySave.Application.Services;
 using Log.Services;
+using System.Net;
 
 namespace EasySave.Application;
 
@@ -83,7 +84,8 @@ public static class ServiceFactory
 
         var copyService      = GetCopyService();
         var encryptionService = new EncryptionService(copyService);
-        var operationLogger  = new BackupLoggerService(LogService.Instance);
+        var dockerLogger     = new DockerLoggerService();
+        var operationLogger  = new BackupLoggerService(LogService.Instance, dockerLogger);
 
         _backupServiceInstance = new BackupService(
             new BackupValidationService(new BusinessSoftwareMonitor(), operationLogger),
@@ -91,7 +93,8 @@ public static class ServiceFactory
             new BackupDirectoryService(operationLogger),
             new FileTransferService(encryptionService, copyService),
             new BackupFileFilter(),
-            operationLogger);
+            operationLogger,
+            dockerLogger);
 
         return _backupServiceInstance;
     }

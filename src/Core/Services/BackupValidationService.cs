@@ -1,5 +1,7 @@
+using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
+using Log.Enums;
 using System;
 using System.IO;
 
@@ -27,12 +29,12 @@ public class BackupValidationService : IBackupValidationService
     /// Checks whether the job's source directory is present on disk.
     /// Logs the missing-source event before returning <c>true</c>.
     /// </summary>
-    public bool IsSourceDirectoryMissing(BackupJob job)
+    public bool IsSourceDirectoryMissing(BackupJob job, LogStorageMode storageMode, LogFormat format)
     {
         if (Directory.Exists(job.SourceDirectory))
             return false;
 
-        _logger.LogSourceNotFound(job.Name, job.SourceDirectory);
+        _logger.LogSourceNotFound(format, storageMode, job.Name, job.SourceDirectory);
         return true;
     }
 
@@ -41,12 +43,12 @@ public class BackupValidationService : IBackupValidationService
     /// Short-circuits to <c>false</c> when <paramref name="businessSoftware"/> is <c>null</c>.
     /// Logs the blocking event before returning <c>true</c>.
     /// </summary>
-    public bool IsBlockedByBusinessSoftware(BackupJob job, string? businessSoftware)
+    public bool IsBlockedByBusinessSoftware(BackupJob job, string? businessSoftware, LogStorageMode storageMode, LogFormat format)
     {
         if (businessSoftware == null || !_businessSoftwareMonitor.IsBusinessSoftwareRunning(businessSoftware))
             return false;
 
-        _logger.LogBusinessSoftwareBlock(job.Name, job.SourceDirectory, job.TargetDirectory);
+        _logger.LogBusinessSoftwareBlock(format, storageMode, job.Name, job.SourceDirectory, job.TargetDirectory);
         return true;
     }
 }

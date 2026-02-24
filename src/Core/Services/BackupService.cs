@@ -29,6 +29,7 @@ public class BackupService : IBackupService
     private readonly IFileTransferService _transferService;
     private readonly IBackupFileFilter _fileFilter;
     private readonly IBackupLoggerService _logger;
+    private readonly IDockerLoggerService _dockerLogger;
 
     public BackupService(
         IBackupValidationService preflightChecker,
@@ -36,7 +37,8 @@ public class BackupService : IBackupService
         IBackupDirectoryService directoryService,
         IFileTransferService transferService,
         IBackupFileFilter fileFilter,
-        IBackupLoggerService logger)
+        IBackupLoggerService logger,
+        IDockerLoggerService dockerLogger)
     {
         _preflightChecker = preflightChecker ?? throw new ArgumentNullException(nameof(preflightChecker));
         _stateService     = stateService     ?? throw new ArgumentNullException(nameof(stateService));
@@ -44,6 +46,7 @@ public class BackupService : IBackupService
         _transferService  = transferService  ?? throw new ArgumentNullException(nameof(transferService));
         _fileFilter       = fileFilter       ?? throw new ArgumentNullException(nameof(fileFilter));
         _logger           = logger           ?? throw new ArgumentNullException(nameof(logger));
+        _dockerLogger     = dockerLogger     ?? throw new ArgumentNullException(nameof(dockerLogger));
     }
 
     // ── Public entry points ──────────────────────────────────────────────────
@@ -56,14 +59,14 @@ public class BackupService : IBackupService
     /// Does not support pause or cancellation; use <see cref="ExecuteBackupAsync"/> for that.
     /// </summary>
     public BackupState ExecuteBackup(BackupJob job, LogFormat format, string? businessSoftware,
-                                     List<string> cryptoSoftExtensions, string? cryptoSoftPath)
+                                     List<string> cryptoSoftExtensions, string? cryptoSoftPath, LogStorageMode storageMode)
     {
         _logger.Configure(format);
 
-        if (_preflightChecker.IsSourceDirectoryMissing(job))
+        if (_preflightChecker.IsSourceDirectoryMissing(job, storageMode, format))
             return _stateService.CreateError(job, $"Source directory does not exist: {job.SourceDirectory}");
 
-        if (_preflightChecker.IsBlockedByBusinessSoftware(job, businessSoftware))
+        if (_preflightChecker.IsBlockedByBusinessSoftware(job, businessSoftware, storageMode, format))
             return _stateService.CreateError(job, "Backup stopped due to running business software.");
 
         var (state, files) = _stateService.Initialize(job);
@@ -73,7 +76,7 @@ public class BackupService : IBackupService
             var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
             var targetPath   = Path.Combine(job.TargetDirectory, relativePath);
 
-            _directoryService.EnsureTargetDirectory(job, file, targetPath);
+            _directoryService.EnsureTargetDirectory(job, file, targetPath, storageMode, format);
 
             if (!_fileFilter.ShouldProcess(job, file, targetPath))
             {
@@ -90,7 +93,7 @@ public class BackupService : IBackupService
             if (!success)
                 state.Status = BackupStatus.Error;
 
-            _logger.LogFileOperation(job.Name, file, targetPath, duration, fileSize, wasEncrypted, encryptionTimeMs);
+            _logger.LogFileOperation(format, storageMode, job.Name, file, targetPath, duration, fileSize, wasEncrypted, encryptionTimeMs);
 
             state.FilesRemaining--;
             state.BytesRemaining   -= fileSize;
@@ -121,11 +124,12 @@ public class BackupService : IBackupService
         List<string> cryptoSoftExtensions, string? cryptoSoftPath,
         CancellationToken cancellationToken,
         ManualResetEventSlim pauseEvent,
-        SharedExecutionContext executionContext)
+        SharedExecutionContext executionContext,
+       LogStorageMode storageMode)
     {
         _logger.Configure(format);
 
-        if (_preflightChecker.IsSourceDirectoryMissing(job))
+        if (_preflightChecker.IsSourceDirectoryMissing(job, storageMode, format))
         {
             executionContext.UnregisterJob(job.Name);
             return _stateService.CreateError(job, $"Source directory does not exist: {job.SourceDirectory}");
@@ -232,7 +236,7 @@ public class BackupService : IBackupService
                 var relativePath = Path.GetRelativePath(job.SourceDirectory, file);
                 var targetPath   = Path.Combine(job.TargetDirectory, relativePath);
 
-                _directoryService.EnsureTargetDirectory(job, file, targetPath);
+                _directoryService.EnsureTargetDirectory(job, file, targetPath, storageMode, format);
 
                 if (!_fileFilter.ShouldProcess(job, file, targetPath))
                 {
@@ -248,7 +252,7 @@ public class BackupService : IBackupService
                 if (!success)
                     state.Status = BackupStatus.Error;
 
-                _logger.LogFileOperation(job.Name, file, targetPath, duration, fileSize, wasEncrypted, encryptionTimeMs);
+                _logger.LogFileOperation(format, storageMode, job.Name, file, targetPath, duration, fileSize, wasEncrypted, encryptionTimeMs);
 
                 state.FilesRemaining--;
                 state.BytesRemaining   -= fileSize;

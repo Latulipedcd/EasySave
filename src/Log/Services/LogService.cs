@@ -13,6 +13,8 @@ namespace Log.Services
 
         private ILogWriter _writer;
 
+        //private string _folder;
+
         public static LogService Instance
         {
             get

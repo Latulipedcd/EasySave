@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="LogServer/LogServer.csproj" Id="be35f8af-a52a-44f6-94f8-c66e4a1fafab" />
   <Project Path="src/Application/Application.csproj" />
   <Project Path="src/Console/Console.csproj" />
   <Project Path="src/Core/Core.csproj" />

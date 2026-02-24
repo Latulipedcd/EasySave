@@ -1,21 +1,20 @@
-﻿using Core.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace Core.Models
+namespace LogServer
 {
     public class LogEntry
     {
         public required string BackupName { get; set; }
-     
+
         public required string Source { get; set; }
-        
+
         public required string Target { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public TimeSpan Duration { get; set; }  
+        public TimeSpan Duration { get; set; }
 
         public DateTime Timestamp { get; set; }
 
@@ -30,6 +29,5 @@ namespace Core.Models
         public long EncryptionTimeMs { get; set; }
 
         public string? UserName { get; set; }
-
     }
 }

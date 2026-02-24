@@ -26,8 +26,7 @@ namespace Log.Services
 
         public JsonLogWriter()
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _folder = Path.Combine(appData, "EasyLog", "Logs");
+            _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasyLog", "Logs");
             Directory.CreateDirectory(_folder);
             _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.json";
             _path = Path.Combine(_folder, _fileName);
@@ -86,8 +85,7 @@ namespace Log.Services
 
         public XmlLogWriter()
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _folder = Path.Combine(appData, "EasyLog", "Logs");
+            _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasyLog", "Logs");
             Directory.CreateDirectory(_folder);
             _fileName = $"log-{DateTime.Now:yyyy-MM-dd}.xml";
             _path = Path.Combine(_folder, _fileName);

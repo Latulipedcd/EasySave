@@ -1,3 +1,4 @@
+using Core.Enums;
 using Log.Enums;
 using System.Collections.Generic;
 
@@ -30,4 +31,8 @@ public interface IUserConfigService
     /// </summary>
     long LoadMaxParallelFileSizeKb();
     bool SaveMaxParallelFileSizeKb(long sizeKb);
+
+    public bool SaveStorageMode(LogStorageMode mode);
+    public LogStorageMode? LoadStorageMode();
+
 }
