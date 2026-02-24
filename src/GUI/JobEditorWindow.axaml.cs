@@ -35,6 +35,9 @@ public partial class JobEditorWindow : Window
         _viewModel = viewModel;
         _isEditMode = isEditMode;
         DataContext = _viewModel;
+
+        if (!_isEditMode)
+            _viewModel.ClearSelectionForEdit();
     }
 
     /// <summary>

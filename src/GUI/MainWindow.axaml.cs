@@ -119,7 +119,10 @@ public partial class MainWindow : Window
         vm.ClearSelectionForEdit();
 
         var editorWindow = new JobEditorWindow(vm, isEditMode: false);
-        await editorWindow.ShowDialog<bool>(this);
+        var result = await editorWindow.ShowDialog<bool>(this);
+
+        if (!result)
+            vm.ClearSelectionForEdit();
     }
 
     /// <summary>
