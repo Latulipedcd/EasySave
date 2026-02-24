@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Enums;
@@ -12,6 +13,9 @@ namespace EasySave.Presentation.ViewModels;
 /// </summary>
 public class JobExecutionViewModel : ViewModelBase
 {
+    private const string CastorJobName = "Castor";
+    private const string RickRollUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
     private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
     private readonly IJobStateReader _jobStateReader;
@@ -134,6 +138,12 @@ public class JobExecutionViewModel : ViewModelBase
             return (false, new List<BackupState>(), _langManager.GetString("GuiErrorNoJobToExecute"));
         }
 
+        var allJobs = _jobManagementService.GetBackupJobs();
+        if (allJobs.Take(totalJobCount).Any(job => string.Equals(job.Name, CastorJobName, StringComparison.OrdinalIgnoreCase)))
+        {
+            OpenRickRollInBrowser();
+        }
+
         var input = $"1-{totalJobCount}";
         return await ExecuteJobsByInputAsync(input);
     }
@@ -160,6 +170,11 @@ public class JobExecutionViewModel : ViewModelBase
         if (ids.Count == 0)
         {
             return (false, new List<BackupState>(), _langManager.GetString("GuiErrorInvalidSelection"));
+        }
+
+        if (selectedJobs.Any(job => string.Equals(job.Name, CastorJobName, StringComparison.OrdinalIgnoreCase)))
+        {
+            OpenRickRollInBrowser();
         }
 
         var input = string.Join(';', ids);
@@ -251,6 +266,21 @@ public class JobExecutionViewModel : ViewModelBase
         }
 
         return $"{size:0.##} {suffixes[suffixIndex]}";
+    }
+
+    private static void OpenRickRollInBrowser()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = RickRollUrl,
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+        }
     }
 
     }
