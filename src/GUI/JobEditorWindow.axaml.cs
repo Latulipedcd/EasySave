@@ -88,7 +88,7 @@ public partial class JobEditorWindow : Window
         var folder = result.FirstOrDefault();
         var path = folder?.Path.LocalPath;
         if (!string.IsNullOrWhiteSpace(path))
-            _viewModel.NewJobSourceDirectory = path;
+            _viewModel.JobEditor.SourceDirectory = path;
     }
 
     /// <summary>
@@ -106,6 +106,6 @@ public partial class JobEditorWindow : Window
         var folder = result.FirstOrDefault();
         var path = folder?.Path.LocalPath;
         if (!string.IsNullOrWhiteSpace(path))
-            _viewModel.NewJobTargetDirectory = path;
+            _viewModel.JobEditor.TargetDirectory = path;
     }
 }
