@@ -14,9 +14,7 @@ namespace LogServer
 
         public Socket StartServer()
         {
-            Console.WriteLine("Test start");
             _logService = LogService.Instance;
-            //_logService.Configure(LogFormat.Json, "./logs/EasyLog");
 
             IPAddress ipAddress = IPAddress.Any;
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, 11_000);
@@ -31,16 +29,13 @@ namespace LogServer
 
         public Socket AcceptConnection(Socket socket)
         {
-                Console.WriteLine("Test avant accept");
                 return socket.Accept();
-                Console.WriteLine("Test après accept");
         }
 
         public void ListenToClient(Socket client)
         {
             try
             {           
-                Console.WriteLine("Test listen");
                 StringBuilder sb = new StringBuilder();
                 byte[] buffer = new byte[4096];
                 string eom = "<|EOM|>";
@@ -51,7 +46,6 @@ namespace LogServer
 
                     if (received == 0)
                     {
-                        Console.WriteLine("Client déconnecté");
                         break;
                     }
 
@@ -79,7 +73,6 @@ namespace LogServer
                             {
                                 _logService.Configure(format);
                                 _logService.LogBackup(entry);
-                                Console.WriteLine("Log écrit.");
                             }
                         }
                         catch (Exception ex)

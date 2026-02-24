@@ -97,7 +97,7 @@ public sealed class BackupLoggerService : IBackupLoggerService
     {
         var entry = new LogEntry
         {
-            BackupName = storageMode.ToString(),
+            BackupName = backupName,
             Source = PathHelper.ToUncPath(sourceFile),
             Target = PathHelper.ToUncPath(targetPath),
             Duration = duration,

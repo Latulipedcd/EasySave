@@ -63,7 +63,7 @@ namespace EasySave.Application.Services
             _progressWriter.Clear();
 
             var logFormat = _userConfigService.LoadLogFormat() ?? LogFormat.Json;
-            var storageMode = _userConfigService.LoadStorageMode() ?? LogStorageMode.Docker;
+            var storageMode = _userConfigService.LoadStorageMode() ?? LogStorageMode.Local;
             var businessSoftware = _userConfigService.LoadBusinessSoftware();
             var cryptoExtensions = _userConfigService.LoadCryptoSoftExtensions() ?? new List<string>();
             var cryptoPath = GetCryptoSoftPath();
