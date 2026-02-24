@@ -211,13 +211,13 @@
                                                            TextTrimming="CharacterEllipsis"
                                                            FontWeight="SemiBold" />
                                                 <TextBlock Grid.Column="1"
-                                                           Text="{Binding SourceDirectory}"
+                                                           Text="{Binding ShortSourceDirectory}"
                                                            TextWrapping="NoWrap"
                                                            TextTrimming="CharacterEllipsis"
                                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                                            FontSize="13" />
                                                 <TextBlock Grid.Column="2"
-                                                           Text="{Binding TargetDirectory}"
+                                                           Text="{Binding ShortTargetDirectory}"
                                                            TextWrapping="NoWrap"
                                                            TextTrimming="CharacterEllipsis"
                                                            Foreground="{DynamicResource TextSecondaryBrush}"
