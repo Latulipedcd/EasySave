@@ -149,5 +149,6 @@
   "GuiCatMessageExecutedWithErrors": "Execution completed with {0} error(s).",
   "GuiCatMessageActionFailed": "Action failed: {0}",
   "GuiCatMessageNoJobToRun": "No job available to execute.",
-  "GuiCatMessageInvalidSelection": "Invalid selection, check chosen jobs."
+  "GuiCatMessageInvalidSelection": "Invalid selection, check chosen jobs.",
+  "GuiCatMessageCryptoSoftNotFound": "Meow! The encryption app (CryptoSoft) was not found."
 }

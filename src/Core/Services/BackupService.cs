@@ -91,7 +91,11 @@ public class BackupService : IBackupService
                                 out bool wasEncrypted, out long encryptionTimeMs, out TimeSpan duration);
 
             if (!success)
+            {
                 state.Status = BackupStatus.Error;
+                if (wasEncrypted && encryptionTimeMs == -1)
+                    state.ErrorMessage = BackupState.CryptoSoftNotFoundError;
+            }
 
             _logger.LogFileOperation(format, storageMode, job.Name, file, targetPath, duration, fileSize, wasEncrypted, encryptionTimeMs);
 
@@ -250,7 +254,11 @@ public class BackupService : IBackupService
                                    out bool wasEncrypted, out long encryptionTimeMs, out TimeSpan duration);
 
                 if (!success)
+                {
                     state.Status = BackupStatus.Error;
+                    if (wasEncrypted && encryptionTimeMs == -1)
+                        state.ErrorMessage = BackupState.CryptoSoftNotFoundError;
+                }
 
                 _logger.LogFileOperation(format, storageMode, job.Name, file, targetPath, duration, fileSize, wasEncrypted, encryptionTimeMs);
 
