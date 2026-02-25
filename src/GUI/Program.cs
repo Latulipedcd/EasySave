@@ -1,7 +1,9 @@
 using Avalonia;
 using EasySave.Application;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace GUI;
 
@@ -11,6 +13,9 @@ namespace GUI;
 /// </summary>
 class Program
 {
+    private const int ExitSuccess = 0;
+    private const int ExitFailure = 1;
+
     /// <summary>
     /// Point d'entrée principal de l'application
     /// [STAThread] requis pour Windows pour la compatibilité COM et les dialogues système
@@ -21,13 +26,13 @@ class Program
     {
         TryInstallCliCommand();
 
-        if (args.Length > 0)
+        if (TryBuildCommandInput(args, out string commandInput))
         {
-            return ExecuteFromCommandLine(args);
+            return ExecuteFromCommandLine(commandInput);
         }
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-        return 0;
+        return ExitSuccess;
     }
 
     /// <summary>
@@ -40,43 +45,69 @@ class Program
             .WithInterFont()            // Police Inter par défaut pour une typographie moderne
             .LogToTrace();              // Journalisation des messages de debug vers Trace
 
-    private static int ExecuteFromCommandLine(string[] args)
+    private static bool TryBuildCommandInput(string[] args, out string commandInput)
     {
-        if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
+        commandInput = string.Empty;
+
+        if (args is null || args.Length == 0)
         {
-            var langService = ServiceFactory.GetLanguageService();
-            var langServiceManager = ServiceFactory.CreateLanguageService();
-            langServiceManager.TryLoadSavedLanguage();
-            Console.WriteLine(langService.GetString("ErrorInvalidOption"));
-            return 1;
+            return false;
         }
 
-        string command = args[0];
-        var languageService = ServiceFactory.GetLanguageService();
-        var languageServiceManager = ServiceFactory.CreateLanguageService();
-        var jobManagementService = ServiceFactory.CreateJobManagementService();
-
-        languageServiceManager.TryLoadSavedLanguage();
-
-        if (string.IsNullOrWhiteSpace(command))
+        var jobTokens = new List<string>();
+        foreach (var rawArg in args)
         {
-            Console.WriteLine(languageService.GetString("ErrorInvalidOption"));
-            return 1;
+            if (string.IsNullOrWhiteSpace(rawArg))
+            {
+                continue;
+            }
+
+            jobTokens.Add(rawArg.Trim());
         }
 
-        bool success = jobManagementService.ExecuteBackupJobs(command, out var results, out string errorMessage);
-        if (!success)
+        if (jobTokens.Count == 0)
         {
-            Console.WriteLine(errorMessage);
-            return 1;
+            return false;
         }
 
-        foreach (var state in results)
-        {
-            Console.WriteLine($"{state.Job.Name} : {state.Status}");
-        }
+        // `EasySave 1 3` becomes `1;3`
+        commandInput = string.Join(';', jobTokens);
+        return true;
+    }
 
-        return 0;
+    private static int ExecuteFromCommandLine(string commandInput)
+    {
+        try
+        {
+            var languageServiceManager = ServiceFactory.CreateLanguageService();
+            var jobManagementService = ServiceFactory.CreateJobManagementService();
+            languageServiceManager.TryLoadSavedLanguage();
+
+            Console.WriteLine($"EasySave: running jobs {commandInput}...");
+
+            bool success = jobManagementService.ExecuteBackupJobs(commandInput, out _, out string errorMessage);
+            if (!success)
+            {
+                if (string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    Console.WriteLine("EasySave: backup failed.");
+                }
+                else
+                {
+                    Console.WriteLine($"EasySave: backup failed - {errorMessage}");
+                }
+
+                return ExitFailure;
+            }
+
+            Console.WriteLine("EasySave: backup completed.");
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"EasySave: backup failed ({ex.Message}).");
+            return ExitFailure;
+        }
     }
 
     private static void TryInstallCliCommand()
@@ -86,9 +117,18 @@ class Program
             return;
         }
 
+        if (IsRunningFromCliInstallFolder())
+        {
+            return;
+        }
+
         try
         {
-            string scriptPath = "scripts\\install-easysave-cli.cmd";
+            string scriptPath = Path.Combine(Environment.CurrentDirectory, "scripts", "install-easysave-cli.cmd");
+            if (!File.Exists(scriptPath))
+            {
+                return;
+            }
 
             Process.Start(new ProcessStartInfo
             {
@@ -104,4 +144,20 @@ class Program
             // Do not block app startup if installation fails.
         }
     }
+
+    private static bool IsRunningFromCliInstallFolder()
+    {
+        string installFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "EasySave",
+            "bin");
+
+        string currentBaseFolder = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string normalizedInstallFolder = Path.GetFullPath(installFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        return string.Equals(currentBaseFolder, normalizedInstallFolder, StringComparison.OrdinalIgnoreCase);
+    }
+
 }
