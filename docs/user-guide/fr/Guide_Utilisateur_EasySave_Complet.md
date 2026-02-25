@@ -3,306 +3,182 @@
 | Champ | Valeur |
 |---|---|
 | Produit | EasySave |
-| Portee | GUI + mode commande |
-| Version doc | 2.0 |
+| Public | Utilisateurs finaux (version executable) |
+| Portee | EasySave.exe + dossier Resources |
+| Version doc | 2.1 |
 | Derniere mise a jour | 25/02/2026 |
 
-## 1. Objectif
+## 1. Ce que contient votre dossier EasySave
 
-EasySave est une application de sauvegarde qui permet de:
+Votre package utilisateur doit contenir au minimum:
 
-- gerer des jobs (creation, modification, suppression, reordonnancement)
-- executer un ou plusieurs jobs en parallele
-- suivre l'etat des jobs en temps reel
-- controler l'execution (`Start`, `Pause`, `Cancel`)
-- appliquer des regles avancees (priorites d'extensions, seuil gros fichiers)
-- chiffrer certains fichiers via CryptoSoft
-- produire des logs locaux, Docker, ou les deux
+- `EasySave.exe`
+- `Resources\Languages\`
+- `Resources\CryptoSoft.exe`
+
+Ce guide est ecrit pour ce mode d'utilisation (pas pour un depot source).
 
 ## 2. Demarrage
 
-## 2.1 Prerequis
+## 2.1 Lancement standard (interface graphique)
 
-- .NET SDK 10.x
-- Windows recommande
+Double-cliquer sur:
 
-Verifier:
+- `EasySave.exe`
 
-```bash
-dotnet --version
+L'application ouvre la fenetre principale avec:
+
+- la liste des jobs
+- les boutons d'action (`New job`, `Edit job`, `Run selection`, `Run all`, `Delete selection`)
+- le panneau de details
+- le menu `Settings`
+
+## 2.2 Lancement en mode commande (facultatif)
+
+Depuis un terminal ouvert dans le dossier de l'application:
+
+```bat
+EasySave.exe "1-3"
+EasySave.exe "1;3;5"
 ```
 
-## 2.2 Lancer l'application
+Formats de selection:
 
-GUI:
+- `1-3`: plage d'IDs
+- `1;3;5`: IDs explicites
 
-```bash
-dotnet run --project src/GUI/GUI.csproj
-```
+## 3. Workflow utilisateur
 
-Console interactive:
+1. Creer un job (`New job`)
+2. Renseigner nom, source, destination, type
+3. Sauvegarder
+4. Selectionner un ou plusieurs jobs
+5. Lancer (`Run selection` ou `Run all`)
+6. Suivre et piloter (`Start`, `Pause`, `Cancel`)
 
-```bash
-dotnet run --project src/Console/Console.csproj
-```
+Pour un guide visuel illustre:
 
-Mode commande (argument unique):
-
-```bash
-dotnet run --project src/GUI/GUI.csproj -- "1-3"
-dotnet run --project src/GUI/GUI.csproj -- "1;3;5"
-```
-
-Formats acceptes:
-
-- `1-3` pour une plage
-- `1;3;5` pour une selection explicite
-
-## 3. Interface GUI
-
-## 3.1 Ecran principal
-
-- Zone gauche: liste des jobs + actions globales
-- Zone droite: details du job selectionne
-- Barre haute: bouton `Settings` (parametres persistants)
-- Widget assistant: retour contextuel pendant les actions
-
-## 3.2 Actions principales
-
-- `New job`
-- `Edit job` (selection unique)
-- `Run selection`
-- `Run all`
-- `Delete selection`
-
-La liste est reordonnable en glisser-deposer.
-
-## 3.3 Fenetre "Run all"
-
-Quand `Run all` est lance:
-
-- une fenetre de suivi dediee s'ouvre
-- progression globale + progression par job
-- controle par job: `Start`, `Pause`, `Cancel`
-- fermeture avec confirmation: peut annuler tous les jobs en cours
+- HTML FR: `docs/user-guide/fr/Guide_Utilisateur_EasySave_GUI.html`
+- PDF FR: `docs/user-guide/fr/Guide_Utilisateur_EasySave_GUI.pdf`
 
 ## 4. Gestion des jobs
 
 ## 4.1 Creation
 
-Champs obligatoires:
+Champs:
 
-- `Name`
-- `Source folder`
-- `Destination folder`
+- `Name` (obligatoire, unique)
+- `Source folder` (obligatoire)
+- `Destination folder` (obligatoire)
 - `Type` (`Full` ou `Differential`)
-
-Contraintes:
-
-- nom non vide
-- nom unique
 
 ## 4.2 Modification
 
-- selectionner un seul job
+- selectionner exactement un job
 - ouvrir `Edit job`
-- sauvegarder les changements
+- modifier puis sauvegarder
 
 ## 4.3 Suppression
 
 - selection simple ou multiple
-- confirmation de suppression
-- recharge automatique de la liste
+- confirmer la suppression
 
-## 5. Comportements de sauvegarde
-
-## 5.1 Types de sauvegarde
+## 5. Comportement de sauvegarde
 
 | Type | Regle |
 |---|---|
-| Full | Copie tous les fichiers source vers destination |
-| Differential | Copie seulement les fichiers absents ou plus recents que la destination |
+| Full | Copie tous les fichiers de la source |
+| Differential | Copie les fichiers absents ou plus recents que la destination |
 
-## 5.2 Execution parallele
+Execution:
 
-- les jobs selectionnes sont executes en parallele
-- chaque job peut etre controle individuellement
-- le suivi s'appuie sur `state.json`
+- jobs en parallele
+- controle runtime par job
+- suivi live via `state.json`
 
-## 5.3 Statuts de job
+Statuts possibles:
 
-| Statut | Signification |
-|---|---|
-| Inactive | Job non demarre |
-| Active | Job en cours |
-| Paused | Job suspendu (manuel ou logiciel metier) |
-| Completed | Job termine |
-| Error | Echec pendant execution |
-| Cancelled | Annulation demandee par utilisateur |
+- `Inactive`, `Active`, `Paused`, `Completed`, `Error`, `Cancelled`
 
-## 5.4 Pause et reprise
+## 6. Parametres (Settings)
 
-Deux causes de pause existent:
-
-- pause manuelle (action utilisateur)
-- pause logicielle metier (processus surveille actif)
-
-Un job reprend seulement quand les deux causes sont levees.
-
-## 6. Parametres (complet)
-
-Les parametres sont persistes dans:
+Les parametres sont sauvegardes dans:
 
 - `%APPDATA%\EasySave\userdata\userconfig.json`
 
-| Parametre GUI | Valeurs | Defaut | Effet |
-|---|---|---|---|
-| Language | `en`, `fr` | `en` | Change les textes UI |
-| Log format | `Json`, `Xml` | `Json` | Format des logs locaux et/ou Docker |
-| Log storage mode | `Local`, `Docker`, `Both` | `Local` | Cible de sortie des logs |
-| Business software to block | Nom de processus (sans `.exe`) | vide | Met en pause les jobs quand le processus tourne |
-| File extensions to encrypt | Liste CSV (`.txt, .pdf`) | vide | Fichiers traites via CryptoSoft |
-| Priority file extensions | Liste CSV (`.sql, .docx`) | vide | Priorite inter-jobs: ces extensions passent avant les autres |
-| File size not to back up in parallel (KB) | Entier >= 0 | `0` | Si > 0, les fichiers plus gros sont serialises (un a la fois) |
+| Parametre | Valeurs | Effet |
+|---|---|---|
+| Language | `en`, `fr` | Langue interface |
+| Log format | `Json`, `Xml` | Format des logs |
+| Log storage mode | `Local`, `Docker`, `Both` | Cible des logs |
+| Business software to block | nom de process (sans `.exe`) | Pause automatique si process detecte |
+| File extensions to encrypt | liste libre separee par virgules | Chiffrement via CryptoSoft |
+| Priority file extensions | liste libre separee par virgules | Traitement prioritaire inter-jobs |
+| File size not to back up in parallel (KB) | entier >= 0 | Gros fichiers serialises au-dessus du seuil |
 
-Notes:
+Important sur les extensions:
 
-- les extensions sont traitees de maniere insensible a la casse
-- un point initial est accepte ou ajoute automatiquement (`txt` => `.txt`)
-- valeur `0` pour le seuil de taille = regle desactivee
+- ce n'est pas un CSV strict (pas de guillemets/format special)
+- c'est une saisie texte simple, ex: `.txt, txt, .log`
+- casse ignoree (`.TXT` = `.txt`)
 
-## 7. Chiffrement CryptoSoft
+## 7. CryptoSoft (version utilisateur)
 
-## 7.1 Principe
+Chemin a verifier:
 
-Pour chaque fichier:
+- `Resources\CryptoSoft.exe`
 
-1. EasySave verifie si l'extension est dans la liste a chiffrer
-2. si oui, EasySave lance CryptoSoft
-3. sinon, copie standard
+Comportement:
 
-## 7.2 Emplacements
+1. si extension correspondante: tentative de chiffrement
+2. sinon: copie normale
+3. si CryptoSoft absent: fallback en copie normale
 
-Source dans le depot:
-
-- `src/Application/Resources/CryptoSoft.exe`
-
-Chemin attendu au runtime:
-
-- `<dossier de sortie application>\Resources\CryptoSoft.exe`
-
-## 7.3 Fallback
-
-Si `CryptoSoft.exe` est introuvable:
-
-- EasySave bascule en copie standard
-- la sauvegarde continue
-
-## 8. Logs, etat, fichiers persistants
+## 8. Fichiers utiles
 
 | Element | Chemin Windows par defaut | Utilisation |
 |---|---|---|
-| Jobs | `%APPDATA%\EasySave\Jobs\jobs.json` | Liste des jobs |
 | Config utilisateur | `%APPDATA%\EasySave\userdata\userconfig.json` | Parametres persistants |
-| Etat live | `%APPDATA%\EasyLog\Progress\state.json` | Suivi en temps reel |
-| Logs locaux | `%APPDATA%\EasyLog\Logs\log-YYYY-MM-DD.json|xml` | Journal d'execution |
+| Jobs | `%APPDATA%\EasySave\Jobs\jobs.json` | Definition des jobs |
+| Etat live | `%APPDATA%\EasyLog\Progress\state.json` | Suivi execution |
+| Logs locaux | `%APPDATA%\EasyLog\Logs\log-YYYY-MM-DD.json|xml` | Historique execution |
 
-## 8.1 Contenu utile des logs
+## 9. Depannage rapide
 
-Champs clefs:
-
-- `BackupName`
-- `Source`, `Target`
-- `WorkType` (`file_transfer`, `folder_creation`, `encryption`)
-- `FileSize`
-- `Duration`
-- `EncryptionTimeMs`
-- `ErrorMessage`
-- `UserName`
-
-## 8.2 Modes de stockage des logs
-
-| Mode | Comportement |
-|---|---|
-| Local | Ecriture fichier locale uniquement |
-| Docker | Envoi TCP vers serveur de logs uniquement |
-| Both | Ecriture locale + envoi Docker |
-
-## 9. Mode Docker (logs)
-
-EasySave envoie les logs Docker vers:
-
-- `127.0.0.1:11000`
-
-Demarrer le serveur de logs:
-
-```bash
-dotnet run --project LogServer/LogServer.csproj
-```
-
-Si le mode est `Docker` seulement et que le serveur n'est pas lance:
-
-- pas de logs locaux
-- pertes possibles de traces d'execution
-
-## 10. Commande globale `EasySave`
-
-Au demarrage sous Windows, l'application tente d'installer un shim CLI.
-
-Scripts manuels:
-
-```bat
-scripts\install-easysave-cli.cmd
-scripts\uninstall-easysave-cli.cmd
-```
-
-Si la commande globale n'est pas disponible, utiliser `dotnet run --project ... -- "<selection>"`.
-
-## 11. Depannage (runbook)
-
-## 11.1 Chiffrement non applique
+## 9.1 Chiffrement non applique
 
 Verifier:
 
-1. extensions de chiffrement configurees
-2. presence runtime de `Resources\CryptoSoft.exe`
+1. presence de `Resources\CryptoSoft.exe`
+2. extensions configurees dans Settings
 3. logs (`WorkType`, `EncryptionTimeMs`)
 
-## 11.2 Jobs bloques en pause
+## 9.2 Jobs bloques en pause
 
 Verifier:
 
-1. processus metier surveille encore actif
+1. process metier encore actif
 2. pause manuelle non levee
-3. action `Start` relancee apres correction
+3. reprise via `Start`
 
-## 11.3 Aucun log Docker
-
-Verifier:
-
-1. mode de stockage = `Docker` ou `Both`
-2. `LogServer` lance
-3. port `11000` en ecoute
-
-## 11.4 Erreurs de source introuvable
+## 9.3 Pas de logs Docker
 
 Verifier:
 
-1. existence du dossier source
-2. droits d'acces lecture
-3. log d'erreur dans les journaux
+1. mode `Docker` ou `Both`
+2. serveur de logs actif sur `127.0.0.1:11000`
 
-## 12. Bonnes pratiques
+## 10. Bonnes pratiques
 
-- Utiliser des noms de jobs stables et explicites.
-- Commencer avec `Local` pour valider les logs, puis activer `Both`.
-- Definir des extensions prioritaires seulement si necessaire.
-- Garder `MaxParallelFileSizeKb = 0` tant qu'aucune contrainte memoire n'est observee.
-- Tester d'abord sur un jeu de donnees reduit avant execution massive.
+- noms de jobs courts et explicites
+- tester un petit jeu de donnees avant un gros run
+- commencer en logs `Local`, puis passer en `Both` si besoin Docker
+- n'activer les extensions prioritaires qu'en cas de besoin reel
 
-## 13. Documentation associee
+## 11. Documentation associee
 
-- Guide complet EN: `docs/user-guide/en/EasySave_User_Guide_Full.md`
-- Guide synthese: `docs/user-guide/USER_GUIDE_ONE_PAGE.md`
+- Full guide EN: `docs/user-guide/en/EasySave_User_Guide_Full.md`
+- Guide synthese FR: `docs/user-guide/USER_GUIDE_ONE_PAGE.md`
+- Guide synthese EN: `docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md`
 - Guide debug: `docs/debug/DEBUG_GUIDE.md`
-- Guide tests unitaires: `docs/testing/UNIT_TESTS.md`
+- Guide tests: `docs/testing/UNIT_TESTS.md`

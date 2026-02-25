@@ -3,304 +3,182 @@
 | Field | Value |
 |---|---|
 | Product | EasySave |
-| Scope | GUI + command mode |
-| Doc version | 2.0 |
+| Audience | End users (executable package) |
+| Scope | `EasySave.exe` + `Resources` folder |
+| Doc version | 2.1 |
 | Last update | February 25, 2026 |
 
-## 1. Purpose
+## 1. What your EasySave folder should contain
 
-EasySave is a backup application that supports:
+Your user package should include at least:
 
-- job management (create, edit, delete, reorder)
-- parallel execution of one or more jobs
-- live execution monitoring
-- runtime controls (`Start`, `Pause`, `Cancel`)
-- advanced rules (priority extensions, large-file threshold)
-- extension-based CryptoSoft encryption
-- local, Docker, or dual log routing
+- `EasySave.exe`
+- `Resources\Languages\`
+- `Resources\CryptoSoft.exe`
 
-## 2. Getting Started
+This guide is written for that executable package (not for source repository usage).
 
-## 2.1 Requirements
+## 2. Starting EasySave
 
-- .NET SDK 10.x
-- Windows recommended
+## 2.1 Standard launch (GUI)
 
-Check:
+Double-click:
 
-```bash
-dotnet --version
-```
+- `EasySave.exe`
 
-## 2.2 Launching
+The main window provides:
 
-GUI:
+- jobs list
+- action buttons (`New job`, `Edit job`, `Run selection`, `Run all`, `Delete selection`)
+- job details panel
+- `Settings` menu
 
-```bash
-dotnet run --project src/GUI/GUI.csproj
-```
+## 2.2 Command launch (optional)
 
-Console interactive mode:
+From a terminal opened in the application folder:
 
-```bash
-dotnet run --project src/Console/Console.csproj
-```
-
-Command mode (single argument):
-
-```bash
-dotnet run --project src/GUI/GUI.csproj -- "1-3"
-dotnet run --project src/GUI/GUI.csproj -- "1;3;5"
+```bat
+EasySave.exe "1-3"
+EasySave.exe "1;3;5"
 ```
 
 Accepted selection formats:
 
-- `1-3` for ranges
-- `1;3;5` for explicit job IDs
+- `1-3`: range
+- `1;3;5`: explicit IDs
 
-## 3. GUI Overview
+## 3. User Workflow
 
-## 3.1 Main window
+1. Create a job (`New job`)
+2. Fill name, source, destination, type
+3. Save
+4. Select one or more jobs
+5. Run (`Run selection` or `Run all`)
+6. Monitor and control (`Start`, `Pause`, `Cancel`)
 
-- Left side: jobs list and global actions
-- Right side: selected job details and runtime actions
-- Top area: `Settings` menu
-- Assistant widget: contextual runtime feedback
+For a visual illustrated walkthrough:
 
-## 3.2 Main actions
+- EN HTML: `docs/user-guide/en/EasySave_GUI_User_Guide.html`
+- EN PDF: `docs/user-guide/en/EasySave_GUI_User_Guide.pdf`
 
-- `New job`
-- `Edit job` (single selection)
-- `Run selection`
-- `Run all`
-- `Delete selection`
-
-Jobs can be reordered by drag-and-drop.
-
-## 3.3 Run-all monitor window
-
-When `Run all` starts:
-
-- a dedicated monitor window opens
-- global and per-job progress are displayed
-- per-job actions are available (`Start`, `Pause`, `Cancel`)
-- close requires confirmation and can cancel all running jobs
-
-## 4. Job Lifecycle
+## 4. Job Management
 
 ## 4.1 Create
 
 Required fields:
 
-- `Name`
-- `Source folder`
-- `Destination folder`
+- `Name` (required, unique)
+- `Source folder` (required)
+- `Destination folder` (required)
 - `Type` (`Full` or `Differential`)
-
-Validation:
-
-- non-empty name
-- unique name
 
 ## 4.2 Edit
 
 - select exactly one job
 - click `Edit job`
-- update values and save
+- modify values and save
 
 ## 4.3 Delete
 
-- select one or multiple jobs
+- single or multi-selection
 - confirm deletion
-- job list refreshes automatically
 
 ## 5. Backup Behavior
 
-## 5.1 Backup types
-
 | Type | Rule |
 |---|---|
-| Full | Copies all source files to destination |
-| Differential | Copies only files missing at destination or newer than destination copies |
+| Full | Copies all files from source |
+| Differential | Copies only files missing or newer than destination |
 
-## 5.2 Parallel execution
+Execution:
 
-- selected jobs run concurrently
-- each job can be controlled independently
-- live status is backed by `state.json`
+- selected jobs run in parallel
+- per-job runtime control is available
+- live monitoring relies on `state.json`
 
-## 5.3 Job statuses
+Possible statuses:
 
-| Status | Meaning |
-|---|---|
-| Inactive | Not started |
-| Active | Running |
-| Paused | Suspended (manual or business software) |
-| Completed | Finished successfully |
-| Error | Failed during execution |
-| Cancelled | Stopped by user action |
+- `Inactive`, `Active`, `Paused`, `Completed`, `Error`, `Cancelled`
 
-## 5.4 Pause/Resume semantics
-
-A job can be paused by:
-
-- manual action
-- business software monitoring
-
-A paused job resumes only when both pause causes are cleared.
-
-## 6. Settings (Complete Reference)
+## 6. Settings Reference
 
 Settings are persisted in:
 
 - `%APPDATA%\EasySave\userdata\userconfig.json`
 
-| GUI setting | Values | Default | Effect |
-|---|---|---|---|
-| Language | `en`, `fr` | `en` | UI localization |
-| Log format | `Json`, `Xml` | `Json` | Log encoding format |
-| Log storage mode | `Local`, `Docker`, `Both` | `Local` | Log destination |
-| Business software to block | Process name (without `.exe`) | empty | Pauses jobs while process is running |
-| File extensions to encrypt | CSV list (`.txt, .pdf`) | empty | Matching files go through CryptoSoft |
-| Priority file extensions | CSV list (`.sql, .docx`) | empty | Cross-job priority gate for these extensions |
-| File size not to back up in parallel (KB) | Integer >= 0 | `0` | Files above threshold are serialized (one at a time) |
+| Setting | Values | Effect |
+|---|---|---|
+| Language | `en`, `fr` | UI language |
+| Log format | `Json`, `Xml` | Log format |
+| Log storage mode | `Local`, `Docker`, `Both` | Log destination |
+| Business software to block | process name (without `.exe`) | Auto-pause when process is detected |
+| File extensions to encrypt | free list separated by commas | CryptoSoft encryption on matching files |
+| Priority file extensions | free list separated by commas | Priority gate across parallel jobs |
+| File size not to back up in parallel (KB) | integer >= 0 | Files above threshold are serialized |
 
-Notes:
+Important note about extensions:
 
-- extension matching is case-insensitive
-- leading dot is optional (`txt` becomes `.txt`)
-- threshold `0` disables the large-file rule
+- this is not strict CSV formatting
+- this is plain text list separated by commas, for example: `.txt, txt, .log`
+- case-insensitive matching
 
-## 7. CryptoSoft Encryption
+## 7. CryptoSoft (User Package)
 
-## 7.1 Flow
+Path to verify:
 
-For each file:
+- `Resources\CryptoSoft.exe`
 
-1. extension is checked against encryption extension list
-2. if matched, EasySave attempts CryptoSoft execution
-3. otherwise, standard copy is used
+Behavior:
 
-## 7.2 Locations
+1. if file extension matches, EasySave attempts encryption
+2. otherwise, normal copy
+3. if CryptoSoft is missing, EasySave falls back to normal copy
 
-Repository source:
-
-- `src/Application/Resources/CryptoSoft.exe`
-
-Expected runtime location:
-
-- `<application output folder>\Resources\CryptoSoft.exe`
-
-## 7.3 Fallback behavior
-
-If `CryptoSoft.exe` is missing:
-
-- EasySave falls back to plain copy
-- backup execution continues
-
-## 8. Logs, State, and Persistent Files
+## 8. Important Runtime Files
 
 | Item | Default Windows path | Usage |
 |---|---|---|
+| User config | `%APPDATA%\EasySave\userdata\userconfig.json` | Persisted settings |
 | Jobs | `%APPDATA%\EasySave\Jobs\jobs.json` | Job definitions |
-| User config | `%APPDATA%\EasySave\userdata\userconfig.json` | Saved settings |
-| Live state | `%APPDATA%\EasyLog\Progress\state.json` | Real-time monitoring |
-| Local logs | `%APPDATA%\EasyLog\Logs\log-YYYY-MM-DD.json|xml` | Execution trace |
+| Live state | `%APPDATA%\EasyLog\Progress\state.json` | Execution monitoring |
+| Local logs | `%APPDATA%\EasyLog\Logs\log-YYYY-MM-DD.json|xml` | Execution history |
 
-## 8.1 Key log fields
+## 9. Quick Troubleshooting
 
-- `BackupName`
-- `Source`, `Target`
-- `WorkType` (`file_transfer`, `folder_creation`, `encryption`)
-- `FileSize`
-- `Duration`
-- `EncryptionTimeMs`
-- `ErrorMessage`
-- `UserName`
-
-## 8.2 Log storage modes
-
-| Mode | Behavior |
-|---|---|
-| Local | Writes local file logs only |
-| Docker | Sends logs to TCP log server only |
-| Both | Writes local logs and sends Docker logs |
-
-## 9. Docker Logging Mode
-
-EasySave Docker logging target:
-
-- `127.0.0.1:11000`
-
-Start log server:
-
-```bash
-dotnet run --project LogServer/LogServer.csproj
-```
-
-If mode is `Docker` only and server is down:
-
-- no local logs are produced
-- traceability is reduced
-
-## 10. Global `EasySave` Command
-
-On Windows startup, EasySave attempts to install a CLI shim command.
-
-Manual scripts:
-
-```bat
-scripts\install-easysave-cli.cmd
-scripts\uninstall-easysave-cli.cmd
-```
-
-If global command is unavailable, use `dotnet run --project ... -- "<selection>"`.
-
-## 11. Troubleshooting Runbook
-
-## 11.1 Encryption not applied
+## 9.1 Encryption not applied
 
 Check:
 
-1. encryption extensions configured
-2. runtime presence of `Resources\CryptoSoft.exe`
+1. `Resources\CryptoSoft.exe` exists
+2. encryption extensions are configured
 3. logs (`WorkType`, `EncryptionTimeMs`)
 
-## 11.2 Jobs remain paused
+## 9.2 Jobs remain paused
 
 Check:
 
 1. monitored business process still running
 2. manual pause not cleared
-3. `Start` action retried after condition removal
+3. restart with `Start`
 
-## 11.3 No Docker logs
+## 9.3 No Docker logs
 
 Check:
 
 1. storage mode is `Docker` or `Both`
-2. `LogServer` is running
-3. port `11000` is listening
+2. log server is reachable on `127.0.0.1:11000`
 
-## 11.4 Source not found errors
+## 10. Best Practices
 
-Check:
+- Keep job names short and explicit.
+- Test on a small dataset before large runs.
+- Start with `Local` logs, then use `Both` if Docker logging is needed.
+- Enable priority extensions only when needed.
 
-1. source folder exists at execution time
-2. read permissions are valid
-3. corresponding error log entry
-
-## 12. Best Practices
-
-- Use stable, explicit job names.
-- Start with `Local` log mode, then switch to `Both` for deployment.
-- Configure priority extensions only when clearly needed.
-- Keep `MaxParallelFileSizeKb = 0` unless memory pressure requires throttling.
-- Validate new rules on a small dataset first.
-
-## 13. Related Documentation
+## 11. Related Documentation
 
 - Full FR guide: `docs/user-guide/fr/Guide_Utilisateur_EasySave_Complet.md`
-- One-page summary: `docs/user-guide/USER_GUIDE_ONE_PAGE.md`
+- One-page FR summary: `docs/user-guide/USER_GUIDE_ONE_PAGE.md`
+- One-page EN summary: `docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md`
 - Debug guide: `docs/debug/DEBUG_GUIDE.md`
-- Unit tests guide: `docs/testing/UNIT_TESTS.md`
+- Unit test guide: `docs/testing/UNIT_TESTS.md`

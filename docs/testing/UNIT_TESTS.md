@@ -5,7 +5,7 @@
 | Projet de tests | `EasySave.Tests` |
 | Cible | `net10.0` |
 | Framework | xUnit + Moq + coverlet.collector |
-| Derniere mise a jour | 25/02/2026 |
+| Derniere mise a jour | 25/02/2026 (commandes verifiees) |
 
 ## 1. Objectif
 
@@ -15,6 +15,11 @@ Ce guide explique:
 - comment les lancer
 - comment mesurer la couverture
 - comment ajouter des tests de qualite homogène
+
+Important:
+
+- si vous utilisez uniquement la version utilisateur (`EasySave.exe`), les tests unitaires ne sont pas executables
+- les commandes ci-dessous sont destinees au package source/equipe QA
 
 ## 2. Perimetre actuel
 
@@ -47,6 +52,12 @@ Execution du seul projet de tests:
 ```bash
 dotnet test EasySave.Tests/EasySave.Tests.csproj
 ```
+
+Verification effectuee le 25/02/2026:
+
+- `dotnet test EasySave.Tests/EasySave.Tests.csproj` -> OK
+- `dotnet test EasySave.slnx` -> OK
+- 38 tests passes, 0 echec
 
 ## 4. Execution avec couverture
 

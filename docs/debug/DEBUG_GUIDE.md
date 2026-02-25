@@ -2,8 +2,8 @@
 
 | Champ | Valeur |
 |---|---|
-| Portee | Diagnostic runtime GUI/CLI |
-| Version doc | 2.0 |
+| Portee | Diagnostic runtime package utilisateur (.exe) |
+| Version doc | 2.1 |
 | Derniere mise a jour | 25/02/2026 |
 
 ## 1. Objectif
@@ -16,6 +16,11 @@ Ce guide fournit une procedure de diagnostic operationnelle pour:
 - pauses inattendues des jobs
 - comportements lies aux nouveaux parametres (priorites, seuil gros fichiers)
 
+Hypothese de ce guide:
+
+- vous disposez d'un dossier utilisateur avec `EasySave.exe` et `Resources\`
+- vous n'etes pas dans un depot source
+
 ## 2. Checklist de triage (2 minutes)
 
 1. Identifier le mode d'execution (GUI, console, commande).
@@ -26,22 +31,13 @@ Ce guide fournit une procedure de diagnostic operationnelle pour:
 
 ## 3. Emplacement de CryptoSoft
 
-## 3.1 Source dans le depot
-
-- `src/Application/Resources/CryptoSoft.exe`
-
-## 3.2 Chemin attendu au runtime
+## 3.1 Chemin attendu au runtime
 
 EasySave cherche CryptoSoft ici:
 
-- `<AppDomain.BaseDirectory>\Resources\CryptoSoft.exe`
+- `Resources\CryptoSoft.exe`
 
-Exemples:
-
-- `src/GUI/bin/Debug/net10.0/Resources/CryptoSoft.exe`
-- `<dossier publication>\Resources\CryptoSoft.exe`
-
-## 3.3 Commandes de verification
+## 3.2 Commandes de verification
 
 Lister les copies de CryptoSoft:
 
@@ -55,7 +51,7 @@ Verifier la copie runtime depuis le dossier courant:
 Test-Path .\Resources\CryptoSoft.exe
 ```
 
-## 3.4 Comportement si absent
+## 3.3 Comportement si absent
 
 Si CryptoSoft est absent:
 
@@ -122,9 +118,7 @@ Le logger Docker envoie vers:
 
 ## 5.2 Demarrage serveur de logs
 
-```bash
-dotnet run --project LogServer/LogServer.csproj
-```
+Lancer l'executable du serveur de logs (si fourni avec votre package).
 
 ## 5.3 Verification port
 

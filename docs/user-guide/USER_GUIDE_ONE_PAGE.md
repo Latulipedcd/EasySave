@@ -1,17 +1,16 @@
-# EasySave - Guide Synthese (1 page)
+# EasySave - Guide Synthese (1 page, FR)
 
 ## 1. Lancement
 
-```bash
-dotnet build EasySave.slnx -c Release
-dotnet run --project src/GUI/GUI.csproj
-```
+Dans le dossier de l'application:
 
-Mode commande (argument unique):
+- double-cliquer `EasySave.exe`
 
-```bash
-dotnet run --project src/GUI/GUI.csproj -- "1-3"
-dotnet run --project src/GUI/GUI.csproj -- "1;3;5"
+Mode commande (facultatif):
+
+```bat
+EasySave.exe "1-3"
+EasySave.exe "1;3;5"
 ```
 
 ## 2. Workflow express
@@ -21,12 +20,17 @@ dotnet run --project src/GUI/GUI.csproj -- "1;3;5"
 3. `Save`
 4. Selectionner des jobs
 5. `Run selection` ou `Run all`
-6. Piloter l'execution avec `Start`, `Pause`, `Cancel`
+6. Piloter avec `Start`, `Pause`, `Cancel`
+
+Pour un guide visuel:
+
+- `docs/user-guide/fr/Guide_Utilisateur_EasySave_GUI.html`
+- `docs/user-guide/fr/Guide_Utilisateur_EasySave_GUI.pdf`
 
 ## 3. Types de sauvegarde
 
 - `Full`: copie tous les fichiers
-- `Differential`: copie uniquement les fichiers absents ou plus recents
+- `Differential`: copie les fichiers absents ou plus recents
 
 ## 4. Parametres critiques
 
@@ -35,43 +39,34 @@ dotnet run --project src/GUI/GUI.csproj -- "1;3;5"
 | Language | `en`, `fr` | Langue UI |
 | Log format | `Json`, `Xml` | Format de log |
 | Log storage mode | `Local`, `Docker`, `Both` | Destination des logs |
-| Business software to block | Nom de processus | Pause automatique si processus actif |
-| File extensions to encrypt | CSV | Fichiers chiffres via CryptoSoft |
-| Priority file extensions | CSV | Priorite inter-jobs |
-| File size not to back up in parallel (KB) | Entier >= 0 | Seuil de serialisation des gros fichiers |
+| Business software to block | Nom de process | Pause auto si process actif |
+| File extensions to encrypt | liste libre separee par virgules | Chiffrement via CryptoSoft |
+| Priority file extensions | liste libre separee par virgules | Priorite inter-jobs |
+| File size not to back up in parallel (KB) | entier >= 0 | Seuil de serialisation gros fichiers |
 
-## 5. Chemins a connaitre (Windows)
+Note extensions:
 
-- Jobs: `%APPDATA%\EasySave\Jobs\jobs.json`
+- saisie texte simple, pas CSV strict
+- exemple: `.txt, txt, .log`
+
+## 5. Chemins utiles (Windows)
+
 - Config: `%APPDATA%\EasySave\userdata\userconfig.json`
+- Jobs: `%APPDATA%\EasySave\Jobs\jobs.json`
 - Etat live: `%APPDATA%\EasyLog\Progress\state.json`
 - Logs locaux: `%APPDATA%\EasyLog\Logs\log-YYYY-MM-DD.json|xml`
-- CryptoSoft source: `src/Application/Resources/CryptoSoft.exe`
-- CryptoSoft runtime attendu: `<output>\Resources\CryptoSoft.exe`
+- CryptoSoft (version utilisateur): `Resources\CryptoSoft.exe`
 
 ## 6. Depannage express
 
-- Chiffrement absent: verifier extensions + presence runtime de CryptoSoft.
-- Pas de logs Docker: verifier mode `Docker/Both` + serveur `LogServer`.
-- Jobs bloques en pause: verifier logiciel metier + lever la pause manuelle.
+- Chiffrement absent: verifier `Resources\CryptoSoft.exe` + extensions.
+- Jobs bloques en pause: verifier process metier + lever pause manuelle.
+- Pas de logs Docker: verifier mode `Docker/Both` + serveur de logs actif.
 
-## 7. Commandes utiles
-
-Lancer serveur de logs:
-
-```bash
-dotnet run --project LogServer/LogServer.csproj
-```
-
-Lancer tests unitaires:
-
-```bash
-dotnet test EasySave.slnx
-```
-
-## 8. Documentation complete
+## 7. Autres documents
 
 - Guide complet FR: `docs/user-guide/fr/Guide_Utilisateur_EasySave_Complet.md`
 - Full guide EN: `docs/user-guide/en/EasySave_User_Guide_Full.md`
+- One-page EN: `docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md`
 - Guide debug: `docs/debug/DEBUG_GUIDE.md`
-- Guide tests unitaires: `docs/testing/UNIT_TESTS.md`
+- Guide tests: `docs/testing/UNIT_TESTS.md`
