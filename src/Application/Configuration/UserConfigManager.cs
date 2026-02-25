@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace EasySave.Application.Configuration
 {
-    public class UserConfigManager : IUserConfigService
+    public class UserConfigManager : IUserConfigRepository
     {
         private readonly string _configDirectoryPath;
         private readonly string _configFilePath;

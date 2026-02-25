@@ -10,11 +10,11 @@ namespace EasySave.Application.Services;
 public class LanguageService
 {
     private readonly ILanguageService _languageService;
-    private readonly IUserConfigService _userConfigService;
+    private readonly IUserConfigRepository _userConfigService;
 
     public LanguageService(
         ILanguageService languageService,
-        IUserConfigService userConfigService)
+        IUserConfigRepository userConfigService)
     {
         _languageService = languageService ?? throw new ArgumentNullException(nameof(languageService));
         _userConfigService = userConfigService ?? throw new ArgumentNullException(nameof(userConfigService));
