@@ -24,23 +24,16 @@ echo [2/4] Publishing EasySave GUI to "%INSTALL_DIR%"
 dotnet publish "%REPO_ROOT%\src\GUI\GUI.csproj" -c Release -o "%INSTALL_DIR%"
 if errorlevel 1 goto :error
 
-if not exist "%INSTALL_DIR%\EasySave.exe" (
-    echo EasySave.exe was not generated.
+if not exist "%INSTALL_DIR%\EasySave.dll" (
+    echo EasySave.dll was not generated.
     goto :error
 )
 
-echo [3/5] Publishing EasySave GUI to "%GUI_DIR%"
-dotnet publish "%REPO_ROOT%\src\GUI\GUI.csproj" -c Release -o "%GUI_DIR%"
-if errorlevel 1 goto :error
-
-if not exist "%GUI_DIR%\EasySave.exe" (
-    echo EasySave.exe was not generated.
-    goto :error
-)
+if exist "%INSTALL_DIR%\EasySave.exe" del /Q "%INSTALL_DIR%\EasySave.exe"
 
 (
     echo @echo off
-    echo dotnet "%%~dp0GUI.dll" %%*
+    echo dotnet "%%~dp0EasySave.dll" %%*
 ) > "%INSTALL_DIR%\EasySave.cmd"
 if errorlevel 1 goto :error
 
@@ -55,6 +48,7 @@ echo [4/4] Done
 echo Open a new terminal and run:
 echo   EasySave 1-3
 echo   EasySave "1;3"
+echo   EasySave 1 3
 exit /b 0
 
 :error
