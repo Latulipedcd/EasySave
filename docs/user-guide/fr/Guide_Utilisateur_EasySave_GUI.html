@@ -89,10 +89,21 @@
       border: 1px solid #86efac;
     }
 
+    .logo-shell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(20, 33, 61, 0.86) 0%, rgba(11, 110, 79, 0.78) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 8px 18px rgba(17, 33, 67, 0.22);
+    }
+
     .logo {
-      height: 64px;
+      height: 56px;
       object-fit: contain;
-      filter: drop-shadow(0 5px 10px rgba(17, 33, 67, 0.1));
+      filter: drop-shadow(0 4px 8px rgba(17, 33, 67, 0.16));
     }
 
     .title {
@@ -486,10 +497,15 @@
 </head>
 <body>
   <main class="document">
+    <section class="section keep">
+      <p><strong>Documentation mise a jour :</strong> Pour le guide complet le plus recent, voir <a href="./Guide_Utilisateur_EasySave_Complet.md">Guide_Utilisateur_EasySave_Complet.md</a>. Pour la synthese 1 page, voir <a href="./USER_GUIDE_ONE_PAGE.md">USER_GUIDE_ONE_PAGE.md</a>.</p>
+    </section>
     <section class="cover">
       <div class="cover-top">
         <div class="cover-mark">Guide Officiel</div>
-        <img class="logo" src="../../../src/GUI/Assets/Brand/easysave-full-logo.png" alt="EasySave" />
+        <div class="logo-shell">
+          <img class="logo" src="../../../src/GUI/Assets/Brand/easysave-full-logo.png" alt="EasySave" />
+        </div>
       </div>
       <h1 class="title">EasySave</h1>
       <p class="subtitle">Guide Utilisateur - Interface Graphique (GUI)</p>
@@ -516,7 +532,7 @@
         <li>Supprimer un ou plusieurs travaux</li>
         <li>Executer les sauvegardes</li>
         <li>Comprendre les types de sauvegarde</li>
-        <li>Parametres (langue, logs, logiciel metier, chiffrement)</li>
+        <li>Parametres (langue, logs, mode stockage, logiciel metier, chiffrement, priorites, seuil parallele)</li>
         <li>Ou trouver les fichiers importants</li>
         <li>Comment fonctionne EasySave</li>
         <li>Depannage rapide</li>
@@ -646,11 +662,11 @@
         </article>
         <article class="quick-card">
           <h3 class="quick-title">Executer tout</h3>
-          <p class="quick-text">Lance toute la liste de jobs en une seule action.</p>
+          <p class="quick-text">Lance toute la liste et ouvre la fenetre dediee de suivi global.</p>
         </article>
         <article class="quick-card">
           <h3 class="quick-title">Suivi d'execution</h3>
-          <p class="quick-text">Progression, tailles, statut et fichier courant visibles en direct.</p>
+          <p class="quick-text">Progression, tailles, statut, fichier courant et controles runtime visibles en direct.</p>
         </article>
       </div>
     </section>
@@ -676,12 +692,15 @@
     </section>
 
     <section class="section keep">
-      <h2>9. Parametres (langue, logs, logiciel metier, chiffrement)</h2>
+      <h2>9. Parametres (complet)</h2>
       <ul>
         <li><strong>Langue</strong>: change les textes de l'interface.</li>
         <li><strong>Format des logs</strong>: JSON ou XML pour les prochaines executions.</li>
+        <li><strong>Mode de stockage des logs</strong>: <code>Local</code>, <code>Docker</code>, ou <code>Both</code>.</li>
         <li><strong>Logiciel metier a bloquer</strong>: nom du processus sans <code>.exe</code>.</li>
         <li><strong>Extensions a chiffrer</strong>: extensions separees par virgules (ex: .txt, .pdf, .docx).</li>
+        <li><strong>Extensions prioritaires</strong>: liste CSV traitee avant les autres en execution parallele.</li>
+        <li><strong>Taille des fichiers a ne pas sauvegarder en parallele (KB)</strong>: au-dessus du seuil, execution serialisee; <code>0</code> desactive la regle.</li>
       </ul>
     </section>
 
@@ -699,7 +718,7 @@
           <tr>
             <td>Configuration utilisateur</td>
             <td><span class="path">%APPDATA%\EasySave\userdata\userconfig.json</span></td>
-            <td>Langue, format de logs, logiciel metier, extensions a chiffrer.</td>
+            <td>Langue, format de logs, mode de stockage, logiciel metier, extensions de chiffrement, extensions prioritaires, seuil de taille parallele.</td>
           </tr>
           <tr>
             <td>Liste des travaux</td>
@@ -754,6 +773,14 @@
         <article class="warn-card">
           <h3>Blocage logiciel metier</h3>
           <p>Verifier le nom du processus configure (sans .exe) ou fermer ce logiciel.</p>
+        </article>
+        <article class="warn-card">
+          <h3>Jobs bloques en pause</h3>
+          <p>Lever la pause manuelle et verifier que le processus metier surveille n'est plus actif.</p>
+        </article>
+        <article class="warn-card">
+          <h3>Pas de logs Docker</h3>
+          <p>Passer le mode en Docker/Both et verifier que LogServer ecoute sur le port 11000.</p>
         </article>
       </div>
       <p class="closing">Fin du guide utilisateur EasySave</p>
