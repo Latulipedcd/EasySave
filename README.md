@@ -11,8 +11,8 @@ EasySave is a .NET 10 backup application with:
 
 - Full user guide (EN, Markdown): [docs/user-guide/en/EasySave_User_Guide_Full.md](docs/user-guide/en/EasySave_User_Guide_Full.md)
 - Guide utilisateur complet (FR, Markdown): [docs/user-guide/fr/Guide_Utilisateur_EasySave_Complet.md](docs/user-guide/fr/Guide_Utilisateur_EasySave_Complet.md)
-- One-page summary (FR): [docs/user-guide/USER_GUIDE_ONE_PAGE.md](docs/user-guide/USER_GUIDE_ONE_PAGE.md)
-- One-page summary (EN): [docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md](docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md)
+- One-page summary (FR): [docs/user-guide/fr/USER_GUIDE_ONE_PAGE.md](docs/user-guide/fr/USER_GUIDE_ONE_PAGE.md)
+- One-page summary (EN): [docs/user-guide/en/USER_GUIDE_ONE_PAGE_EN.md](docs/user-guide/en/USER_GUIDE_ONE_PAGE_EN.md)
 - Guide de debug (FR): [docs/debug/DEBUG_GUIDE.md](docs/debug/DEBUG_GUIDE.md)
 - Guide des tests unitaires (FR): [docs/testing/UNIT_TESTS.md](docs/testing/UNIT_TESTS.md)
 - Legacy printable guides (HTML/PDF):

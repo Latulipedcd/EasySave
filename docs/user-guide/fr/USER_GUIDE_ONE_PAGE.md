@@ -67,6 +67,6 @@ Note extensions:
 
 - Guide complet FR: `docs/user-guide/fr/Guide_Utilisateur_EasySave_Complet.md`
 - Full guide EN: `docs/user-guide/en/EasySave_User_Guide_Full.md`
-- One-page EN: `docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md`
+- One-page EN: `docs/user-guide/en/USER_GUIDE_ONE_PAGE_EN.md`
 - Guide debug: `docs/debug/DEBUG_GUIDE.md`
 - Guide tests: `docs/testing/UNIT_TESTS.md`

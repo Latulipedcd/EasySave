@@ -178,7 +178,7 @@ Check:
 ## 11. Related Documentation
 
 - Full FR guide: `docs/user-guide/fr/Guide_Utilisateur_EasySave_Complet.md`
-- One-page FR summary: `docs/user-guide/USER_GUIDE_ONE_PAGE.md`
-- One-page EN summary: `docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md`
+- One-page FR summary: `docs/user-guide/fr/USER_GUIDE_ONE_PAGE.md`
+- One-page EN summary: `docs/user-guide/en/USER_GUIDE_ONE_PAGE_EN.md`
 - Debug guide: `docs/debug/DEBUG_GUIDE.md`
 - Unit test guide: `docs/testing/UNIT_TESTS.md`

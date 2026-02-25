@@ -178,7 +178,7 @@ Verifier:
 ## 11. Documentation associee
 
 - Full guide EN: `docs/user-guide/en/EasySave_User_Guide_Full.md`
-- Guide synthese FR: `docs/user-guide/USER_GUIDE_ONE_PAGE.md`
-- Guide synthese EN: `docs/user-guide/USER_GUIDE_ONE_PAGE_EN.md`
+- Guide synthese FR: `docs/user-guide/fr/USER_GUIDE_ONE_PAGE.md`
+- Guide synthese EN: `docs/user-guide/en/USER_GUIDE_ONE_PAGE_EN.md`
 - Guide debug: `docs/debug/DEBUG_GUIDE.md`
 - Guide tests: `docs/testing/UNIT_TESTS.md`
