@@ -50,19 +50,26 @@ namespace Core.Services
 
         public void SendLog(LogFormat format, LogEntry entry)
         {
-            if (!_isConnected) { Connect(); }
-
-            var logMessage = new Dictionary<string, object>
+            try
             {
-                { "Format", format },
-                { "Entry", entry }
-            };
+                if (!_isConnected) { Connect(); }
 
-            string json = JsonSerializer.Serialize(logMessage);
-            string message = json + "<|EOM|>";
-            byte[] data = Encoding.UTF8.GetBytes(message);
+                var logMessage = new Dictionary<string, object>
+                {
+                    { "Format", format },
+                    { "Entry", entry }
+                };
 
-            _socket.Send(data);
+                string json = JsonSerializer.Serialize(logMessage);
+                string message = json + "<|EOM|>";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+
+                _socket.Send(data);
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("Failed to send log: " + ex.Message);
+            }
         }
 
         //public void Close()
