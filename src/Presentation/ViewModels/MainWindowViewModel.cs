@@ -393,6 +393,8 @@ public class MainWindowViewModel : ViewModelBase
 
         if (errors == 0)
             SetCatMessage("GuiCatMessageExecutedSuccess", completed);
+        else if (results.Any(r => r.ErrorMessage == BackupState.CryptoSoftNotFoundError))
+            SetCatMessage("GuiCatMessageCryptoSoftNotFound");
         else
             SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
     }
@@ -425,6 +427,8 @@ public class MainWindowViewModel : ViewModelBase
 
         if (errors == 0)
             SetCatMessage("GuiCatMessageExecutedSuccess", completed);
+        else if (results.Any(r => r.ErrorMessage == BackupState.CryptoSoftNotFoundError))
+            SetCatMessage("GuiCatMessageCryptoSoftNotFound");
         else
             SetCatMessage("GuiCatMessageExecutedWithErrors", errors);
     }

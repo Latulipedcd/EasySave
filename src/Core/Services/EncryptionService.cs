@@ -97,7 +97,7 @@ public sealed class EncryptionService : IEncryptionService
         if (string.IsNullOrEmpty(cryptoSoftPath) || !File.Exists(cryptoSoftPath))
         {
             encryptionTimeMs = -1;
-            return _copyService.CopyFiles(sourceFile, targetFile);
+            return false;
         }
 
         var sw = Stopwatch.StartNew();

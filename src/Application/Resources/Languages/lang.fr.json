@@ -149,5 +149,6 @@
   "GuiCatMessageExecutedWithErrors": "Execution terminée avec {0} erreur(s).",
   "GuiCatMessageActionFailed": "Oups, action echouee: {0}",
   "GuiCatMessageNoJobToRun": "Aucun travail a executer.",
-  "GuiCatMessageInvalidSelection": "Sélection invalide, vérifie les travaux choisis."
+  "GuiCatMessageInvalidSelection": "Sélection invalide, vérifie les travaux choisis.",
+  "GuiCatMessageCryptoSoftNotFound": "Miaou ! L'application de chiffrement (CryptoSoft) est introuvable."
 }

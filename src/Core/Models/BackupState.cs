@@ -8,6 +8,7 @@ namespace Core.Models
 {
     public class BackupState
     {
+        public const string CryptoSoftNotFoundError = "CryptoSoftNotFound";
         public BackupJob Job { get; set; }
 
 
