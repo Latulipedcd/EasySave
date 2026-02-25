@@ -13,8 +13,8 @@ namespace EasySave.Presentation.ViewModels;
 /// </summary>
 public class SettingsViewModel : ViewModelBase
 {
-    private readonly ILanguageService _langManager;
-    private readonly IUserConfigService _userConfigManager;
+    private readonly ILanguageService _languageService;
+    private readonly IUserConfigRepository _userConfigRepository;
     private SettingItemViewModel? _languageSetting;
     private SettingItemViewModel? _logFormatSetting;
     private SettingItemViewModel? _storageModeSetting;
@@ -52,7 +52,7 @@ public class SettingsViewModel : ViewModelBase
                 return;
 
             // Attempt to change language
-            var ok = _langManager.LoadLanguage(value);
+            var ok = _languageService.LoadLanguage(value);
             if (!ok)
             {
                 // Rollback if failure
@@ -62,7 +62,7 @@ public class SettingsViewModel : ViewModelBase
                 return;
             }
 
-            _userConfigManager.SaveLanguage(_langManager.CurrentCultureCode);
+            _userConfigRepository.SaveLanguage(_languageService.CurrentCultureCode);
             _languageSetting?.SetSelectedValue(_selectedLanguageCode);
             // Trigger event for UI text refresh
             LanguageChanged?.Invoke(this, EventArgs.Empty);
@@ -85,7 +85,7 @@ public class SettingsViewModel : ViewModelBase
             OnPropertyChanged();
 
             var format = value == 1 ? LogFormat.Xml : LogFormat.Json;
-            _userConfigManager.SaveLogFormat(format);
+            _userConfigRepository.SaveLogFormat(format);
             _logFormatSetting?.SetSelectedValue(value == 1 ? "Xml" : "Json");
         }
     }
@@ -102,7 +102,7 @@ public class SettingsViewModel : ViewModelBase
             _storageMode = value;
             OnPropertyChanged();
 
-            _userConfigManager.SaveStorageMode(_storageMode);
+            _userConfigRepository.SaveStorageMode(_storageMode);
             _storageModeSetting?.SetSelectedValue(_storageMode.ToString());
         }
     }
@@ -121,7 +121,7 @@ public class SettingsViewModel : ViewModelBase
             _businessSoftware = value ?? string.Empty;
             OnPropertyChanged();
 
-            _userConfigManager.SaveBusinessSoftware(_businessSoftware);
+            _userConfigRepository.SaveBusinessSoftware(_businessSoftware);
             _businessSoftwareSetting?.SetTextValue(_businessSoftware);
         }
     }
@@ -147,7 +147,7 @@ public class SettingsViewModel : ViewModelBase
                 .Where(ext => !string.IsNullOrWhiteSpace(ext))
                 .ToList();
 
-            _userConfigManager.SaveCryptoSoftExtensions(extensionsList);
+            _userConfigRepository.SaveCryptoSoftExtensions(extensionsList);
             _cryptoExtensionsSetting?.SetTextValue(_cryptoExtensions);
         }
     }
@@ -172,7 +172,7 @@ public class SettingsViewModel : ViewModelBase
                 .Where(ext => !string.IsNullOrWhiteSpace(ext))
                 .ToList();
 
-            _userConfigManager.SavePriorityExtensions(extensionsList);
+            _userConfigRepository.SavePriorityExtensions(extensionsList);
             _priorityExtensionsSetting?.SetTextValue(_priorityExtensions);
         }
     }
@@ -193,11 +193,11 @@ public class SettingsViewModel : ViewModelBase
 
             if (string.IsNullOrWhiteSpace(_maxParallelFileSizeKb))
             {
-                _userConfigManager.SaveMaxParallelFileSizeKb(0);
+                _userConfigRepository.SaveMaxParallelFileSizeKb(0);
             }
             else if (long.TryParse(_maxParallelFileSizeKb, out var sizeKb))
             {
-                _userConfigManager.SaveMaxParallelFileSizeKb(sizeKb);
+                _userConfigRepository.SaveMaxParallelFileSizeKb(sizeKb);
             }
 
             _maxParallelFileSizeSetting?.SetTextValue(_maxParallelFileSizeKb);
@@ -209,26 +209,26 @@ public class SettingsViewModel : ViewModelBase
     /// </summary>
     public event EventHandler? LanguageChanged;
 
-    public SettingsViewModel(ILanguageService languageService, IUserConfigService userConfigService)
+    public SettingsViewModel(ILanguageService languageService, IUserConfigRepository userConfigRepository)
     {
-        _langManager = languageService;
-        _userConfigManager = userConfigService;
+        _languageService = languageService;
+        _userConfigRepository = userConfigRepository;
 
         // Load saved settings
-        var savedLanguage = _userConfigManager.LoadLanguage();
+        var savedLanguage = _userConfigRepository.LoadLanguage();
         if (!string.IsNullOrWhiteSpace(savedLanguage))
         {
-            _langManager.LoadLanguage(savedLanguage);
+            _languageService.LoadLanguage(savedLanguage);
         }
 
-        SupportedLanguages = new ObservableCollection<string>(_langManager.GetSupportedLanguages());
-        _selectedLanguageCode = _langManager.CurrentCultureCode;
-        _selectedLogFormatIndex = _userConfigManager.LoadLogFormat() == LogFormat.Xml ? 1 : 0;
-        _storageMode = _userConfigManager.LoadStorageMode() ?? LogStorageMode.Local;
-        _businessSoftware = _userConfigManager.LoadBusinessSoftware() ?? string.Empty;
-        _cryptoExtensions = string.Join(", ", _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>());
-        _priorityExtensions = string.Join(", ", _userConfigManager.LoadPriorityExtensions() ?? new List<string>());
-        _maxParallelFileSizeKb = _userConfigManager.LoadMaxParallelFileSizeKb().ToString();
+        SupportedLanguages = new ObservableCollection<string>(_languageService.GetSupportedLanguages());
+        _selectedLanguageCode = _languageService.CurrentCultureCode;
+        _selectedLogFormatIndex = _userConfigRepository.LoadLogFormat() == LogFormat.Xml ? 1 : 0;
+        _storageMode = _userConfigRepository.LoadStorageMode() ?? LogStorageMode.Local;
+        _businessSoftware = _userConfigRepository.LoadBusinessSoftware() ?? string.Empty;
+        _cryptoExtensions = string.Join(", ", _userConfigRepository.LoadCryptoSoftExtensions() ?? new List<string>());
+        _priorityExtensions = string.Join(", ", _userConfigRepository.LoadPriorityExtensions() ?? new List<string>());
+        _maxParallelFileSizeKb = _userConfigRepository.LoadMaxParallelFileSizeKb().ToString();
 
         SettingsItems = new ObservableCollection<SettingItemViewModel>();
     }
@@ -366,19 +366,19 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(SettingsItems));
     }
 
-    public string CurrentLanguageCode => _langManager.CurrentCultureCode;
+    public string CurrentLanguageCode => _languageService.CurrentCultureCode;
 
-    public string GetText(string key) => _langManager.GetString(key);
+    public string GetText(string key) => _languageService.GetString(key);
 
-    public LogFormat GetLogFormat() => _userConfigManager.LoadLogFormat() ?? LogFormat.Json;
+    public LogFormat GetLogFormat() => _userConfigRepository.LoadLogFormat() ?? LogFormat.Json;
 
-    public string? GetBusinessSoftware() => _userConfigManager.LoadBusinessSoftware();
+    public string? GetBusinessSoftware() => _userConfigRepository.LoadBusinessSoftware();
 
-    public List<string> GetCryptoExtensions() => _userConfigManager.LoadCryptoSoftExtensions() ?? new List<string>();
+    public List<string> GetCryptoExtensions() => _userConfigRepository.LoadCryptoSoftExtensions() ?? new List<string>();
 
-    public List<string> GetPriorityExtensions() => _userConfigManager.LoadPriorityExtensions() ?? new List<string>();
+    public List<string> GetPriorityExtensions() => _userConfigRepository.LoadPriorityExtensions() ?? new List<string>();
 
-    public LogStorageMode GetStorageMode() => _userConfigManager.LoadStorageMode() ?? LogStorageMode.Local;
+    public LogStorageMode GetStorageMode() => _userConfigRepository.LoadStorageMode() ?? LogStorageMode.Local;
 
     private IEnumerable<SettingOptionViewModel> GetLogFormatOptions(string jsonLabel, string xmlLabel)
     {

@@ -17,7 +17,7 @@ namespace EasySave.Application;
 public static class ServiceFactory
 {
     private static ILanguageService? _languageServiceInstance;
-    private static IUserConfigService? _userConfigServiceInstance;
+    private static IUserConfigRepository? _userConfigServiceInstance;
     private static IBackupJobRepository? _backupJobRepositoryInstance;
     private static IBackupService? _backupServiceInstance;
     private static IProgressWriter? _progressWriterInstance;
@@ -43,7 +43,7 @@ public static class ServiceFactory
     /// <summary>
     /// Gets or creates the singleton IUserConfigService instance.
     /// </summary>
-    public static IUserConfigService GetUserConfigService()
+    public static IUserConfigRepository GetUserConfigService()
     {
         return _userConfigServiceInstance ??= new UserConfigManager();
     }

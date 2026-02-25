@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace EasySave.Application.Interfaces;
 
-public interface IUserConfigService
+public interface IUserConfigRepository
 {
     string? LoadLanguage();
     bool SaveLanguage(string cultureCode);

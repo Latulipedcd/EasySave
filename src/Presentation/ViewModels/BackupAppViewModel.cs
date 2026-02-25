@@ -21,7 +21,7 @@ public class BackupAppViewModel
 
     public BackupAppViewModel(
         ILanguageService languageService,
-        IUserConfigService userConfigService,
+        IUserConfigRepository userConfigService,
         IBackupJobRepository jobRepository,
         IJobManagementService jobManagementService,
         IJobStateReader jobStateReader)

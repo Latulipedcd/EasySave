@@ -19,7 +19,7 @@ namespace EasySave.Application.Services
     /// </summary>
     public class JobExecutionService : IJobExecutionService
     {
-        private readonly IUserConfigService _userConfigService;
+        private readonly IUserConfigRepository _userConfigService;
         private readonly IBackupJobRepository _backupJobRepository;
         private readonly IBackupService _backupService;
         private readonly IProgressWriter _progressWriter;
@@ -30,7 +30,7 @@ namespace EasySave.Application.Services
         private CancellationTokenSource? _monitorCts;
 
         public JobExecutionService(
-            IUserConfigService userConfigService,
+            IUserConfigRepository userConfigService,
             IBackupJobRepository backupJobRepository,
             IBackupService backupService,
             IProgressWriter progressWriter,

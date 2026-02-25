@@ -10,9 +10,9 @@ namespace EasySave.Application.Services;
 /// </summary>
 public class UserConfigService
 {
-    private readonly IUserConfigService _userConfigService;
+    private readonly IUserConfigRepository _userConfigService;
 
-    public UserConfigService(IUserConfigService userConfigService)
+    public UserConfigService(IUserConfigRepository userConfigService)
     {
         _userConfigService = userConfigService ?? throw new ArgumentNullException(nameof(userConfigService));
     }

@@ -21,7 +21,7 @@ namespace EasySave.Application.Services;
 public class JobManagementService : IJobManagementService
 {
     private readonly ILanguageService _languageService;
-    private readonly IUserConfigService _userConfigService;
+    private readonly IUserConfigRepository _userConfigService;
     private readonly IBackupJobRepository _backupJobRepository;
     private readonly IBackupService _backupService;
     private readonly IBusinessSoftwareMonitor _businessSoftwareMonitor;
@@ -34,7 +34,7 @@ public class JobManagementService : IJobManagementService
     /// </summary>
     public JobManagementService(
         ILanguageService languageService,
-        IUserConfigService userConfigService,
+        IUserConfigRepository userConfigService,
         IBackupJobRepository backupJobRepository,
         IBackupService backupService,
         IBusinessSoftwareMonitor businessSoftwareMonitor,
