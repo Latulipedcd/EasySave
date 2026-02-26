@@ -16,7 +16,7 @@ namespace Core.Services
     /// Tracks all running job states and persists the full collection as an array.
     /// Thread-safe for concurrent access from parallel backup jobs.
     /// </summary>
-    public class ProgressJsonWriter : IProgressWriter, IProgressSnapshotSource
+    public class ProgressJsonWriter : IProgressWriter
     {
         private readonly string _path;
         private readonly ConcurrentDictionary<string, BackupState> _states = new();
@@ -58,14 +58,6 @@ namespace Core.Services
         {
             _states.Clear();
             WriteAllStatesToFile();
-        }
-
-        public IReadOnlyList<BackupState> GetStatesSnapshot()
-        {
-            lock (_writeLock)
-            {
-                return _states.Values.ToList();
-            }
         }
 
         private void WriteAllStatesToFile()

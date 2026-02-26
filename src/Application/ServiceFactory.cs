@@ -62,7 +62,9 @@ public static class ServiceFactory
     /// </summary>
     public static IProgressWriter GetProgressWriter()
     {
-        return _progressWriterInstance ??= new ProgressJsonWriter();
+        // Wrap the JSON writer with an in-memory snapshot for in-process UIs.
+        // Core remains responsible only for persistence (state.json).
+        return _progressWriterInstance ??= new InMemoryProgressWriter(new ProgressJsonWriter());
     }
 
     /// <summary>
@@ -71,13 +73,8 @@ public static class ServiceFactory
     /// </summary>
     public static IJobProgressSnapshotSource? GetJobProgressSnapshotSource()
     {
-        if (_jobProgressSnapshotSourceInstance != null)
-            return _jobProgressSnapshotSourceInstance;
-
-        if (GetProgressWriter() is IProgressSnapshotSource snapshotSource)
-            _jobProgressSnapshotSourceInstance = new JobProgressSnapshotSourceAdapter(snapshotSource);
-
-        return _jobProgressSnapshotSourceInstance;
+        // When GetProgressWriter() returns InMemoryProgressWriter, it also implements IJobProgressSnapshotSource.
+        return _jobProgressSnapshotSourceInstance ??= GetProgressWriter() as IJobProgressSnapshotSource;
     }
 
     /// <summary>
