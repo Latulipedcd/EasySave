@@ -1,8 +1,8 @@
-﻿using Core.Interfaces;
+using Core.Enums;
+using Core.Interfaces;
 using Core.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace Core.Repository
@@ -94,7 +94,6 @@ namespace Core.Repository
             SaveJobs(orderedJobs);
         }
 
-
         /// <summary>
         /// Ensures the storage directory and file exist, creating them if necessary.
         /// </summary>
@@ -104,7 +103,50 @@ namespace Core.Repository
                 Directory.CreateDirectory(_storage.JobsDirectory);
 
             if (!File.Exists(_storage.JobsFilePath))
-                File.WriteAllText(_storage.JobsFilePath, "[]");
+            {
+                SaveJobs(new List<BackupJob> { BuildDefaultCastorJob() });
+                return;
+            }
+
+            try
+            {
+                var existingJobs = LoadJobs();
+                if (existingJobs.Count == 0)
+                    SaveJobs(new List<BackupJob> { BuildDefaultCastorJob() });
+            }
+            catch (JsonException)
+            {
+                SaveJobs(new List<BackupJob> { BuildDefaultCastorJob() });
+            }
+        }
+
+        private static BackupJob BuildDefaultCastorJob()
+        {
+            string demoRootDirectory = ResolveDemoRootDirectory();
+            string sourceDirectory = Path.Combine(demoRootDirectory, "Source");
+            string targetDirectory = Path.Combine(demoRootDirectory, "Backup");
+
+            Directory.CreateDirectory(sourceDirectory);
+            Directory.CreateDirectory(targetDirectory);
+
+            string sampleFilePath = Path.Combine(sourceDirectory, "example.txt");
+            if (!File.Exists(sampleFilePath))
+                File.WriteAllText(sampleFilePath, "EasySave sample file for the default castor job.");
+
+            return new BackupJob("castor", sourceDirectory, targetDirectory, BackupType.Full);
+        }
+
+        private static string ResolveDemoRootDirectory()
+        {
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (!string.IsNullOrWhiteSpace(documentsPath))
+                return Path.Combine(documentsPath, "EasySaveDemo");
+
+            string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (!string.IsNullOrWhiteSpace(userProfilePath))
+                return Path.Combine(userProfilePath, "EasySaveDemo");
+
+            return Path.Combine(Path.GetTempPath(), "EasySaveDemo");
         }
 
         /// <summary>
