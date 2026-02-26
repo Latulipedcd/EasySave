@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -27,7 +28,17 @@ public partial class App : Application
 
             var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
-            CastorCatLauncher.ConfigureInAppPopupLauncher(CastorSurprisePopupService.Show);
+            CatSpeedLauncher.ConfigureCatSpeedPopup(CatSpeedPopupService.Show);
+
+            bool disablePrewarm = string.Equals(
+                Environment.GetEnvironmentVariable("EASYSAVE_DISABLE_VLC_PREWARM"),
+                "1",
+                StringComparison.Ordinal);
+
+            if (!disablePrewarm)
+            {
+                CatSpeedPopupService.Prewarm();
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

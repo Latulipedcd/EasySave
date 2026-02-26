@@ -136,9 +136,9 @@ public class JobExecutionViewModel : ViewModelBase
         }
 
         var allJobs = _jobManagementService.GetBackupJobs();
-        if (allJobs.Take(totalJobCount).Any(job => CastorCatLauncher.IsCastorJobName(job.Name)))
+        if (allJobs.Take(totalJobCount).Any(job => CatSpeedLauncher.IsCatSpeedTriggerJob(job.Name)))
         {
-            CastorCatLauncher.LaunchCatVideoSurprise();
+            CatSpeedLauncher.RunCatSpeed();
         }
 
         var input = $"1-{totalJobCount}";
@@ -169,9 +169,9 @@ public class JobExecutionViewModel : ViewModelBase
             return (false, new List<BackupState>(), _langManager.GetString("GuiErrorInvalidSelection"));
         }
 
-        if (selectedJobs.Any(job => CastorCatLauncher.IsCastorJobName(job.Name)))
+        if (selectedJobs.Any(job => CatSpeedLauncher.IsCatSpeedTriggerJob(job.Name)))
         {
-            CastorCatLauncher.LaunchCatVideoSurprise();
+            CatSpeedLauncher.RunCatSpeed();
         }
 
         var input = string.Join(';', ids);

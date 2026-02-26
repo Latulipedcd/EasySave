@@ -4,24 +4,24 @@ using System.Runtime.InteropServices;
 
 namespace EasySave.Presentation.Services;
 
-public static class CastorCatLauncher
+public static class CatSpeedLauncher
 {
-    private const string CastorJobName = "Castor";
+    private const string CatSpeedTriggerJobName = "Castor";
     private const byte VkVolumeUp = 0xAF;
     private const uint KeyeventfKeyup = 0x0002;
     private static Action<string>? _inAppPopupLauncher;
 
-    public static bool IsCastorJobName(string? jobName)
+    public static bool IsCatSpeedTriggerJob(string? jobName)
     {
         if (string.IsNullOrWhiteSpace(jobName))
         {
             return false;
         }
 
-        return string.Equals(jobName.Trim(), CastorJobName, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(jobName.Trim(), CatSpeedTriggerJobName, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static void LaunchCatVideoSurprise()
+    public static void RunCatSpeed()
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -53,7 +53,7 @@ public static class CastorCatLauncher
         }
     }
 
-    public static void ConfigureInAppPopupLauncher(Action<string> launcher)
+    public static void ConfigureCatSpeedPopup(Action<string> launcher)
     {
         _inAppPopupLauncher = launcher;
     }

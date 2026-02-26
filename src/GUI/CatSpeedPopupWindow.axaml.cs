@@ -7,7 +7,7 @@ using LibVLCSharp.Shared;
 
 namespace GUI;
 
-public partial class CastorPopupWindow : Window
+public partial class CatSpeedPopupWindow : Window
 {
     private readonly LibVLC _libVlc;
     private readonly string _videoPath;
@@ -16,7 +16,7 @@ public partial class CastorPopupWindow : Window
     private bool _isClosing;
     private bool _isStarted;
 
-    public CastorPopupWindow(LibVLC libVlc, string videoPath)
+    public CatSpeedPopupWindow(LibVLC libVlc, string videoPath)
     {
         _libVlc = libVlc;
         _videoPath = videoPath;

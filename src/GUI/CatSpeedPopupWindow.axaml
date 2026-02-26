@@ -1,13 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
-        x:Class="GUI.CastorPopupWindow"
+        x:Class="GUI.CatSpeedPopupWindow"
         Background="Black"
         CanResize="False"
         SystemDecorations="None"
         WindowState="FullScreen"
         Topmost="True"
-        Title="Castor">
+        Title="CatSpeed">
   <Grid Background="Black">
     <vlc:VideoView x:Name="PlayerView"
                    HorizontalAlignment="Stretch"
