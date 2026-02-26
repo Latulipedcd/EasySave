@@ -19,7 +19,10 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="LibVLCSharp" Version="3.9.6" />
+    <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.6" />
     <PackageReference Include="Lottie" Version="11.3.0.2" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +32,12 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Assets\Animations\cat.mp4">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+        x:Class="GUI.Features.CatSpeed.CatSpeedPopupWindow"
+        Background="Black"
+        CanResize="False"
+        SystemDecorations="None"
+        WindowState="FullScreen"
+        Topmost="True"
+        Title="CatSpeed">
+  <Grid Background="Black">
+    <vlc:VideoView x:Name="PlayerView"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch" />
+    <Button x:Name="CloseButton"
+            Content="Fermer"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Margin="16"
+            MinWidth="100"
+            Click="CloseButton_Click" />
+  </Grid>
+</Window>

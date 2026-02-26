@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Enums;
 using Core.Interfaces;
 using EasySave.Application.Interfaces;
 using Core.Models;
+using EasySave.Presentation.Features.CatSpeed;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -14,9 +14,6 @@ namespace EasySave.Presentation.ViewModels;
 /// </summary>
 public class JobExecutionViewModel : ViewModelBase
 {
-    private const string CastorJobName = "Castor";
-    private const string RickRollUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
     private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
     private readonly IJobStateReader _jobStateReader;
@@ -143,9 +140,9 @@ public class JobExecutionViewModel : ViewModelBase
         }
 
         var allJobs = _jobManagementService.GetBackupJobs();
-        if (allJobs.Take(totalJobCount).Any(job => string.Equals(job.Name, CastorJobName, StringComparison.OrdinalIgnoreCase)))
+        if (allJobs.Take(totalJobCount).Any(job => CatSpeedFeature.IsTriggerJob(job.Name)))
         {
-            OpenRickRollInBrowser();
+            CatSpeedFeature.Run();
         }
 
         var input = $"1-{totalJobCount}";
@@ -176,9 +173,9 @@ public class JobExecutionViewModel : ViewModelBase
             return (false, new List<BackupState>(), _langManager.GetString("GuiErrorInvalidSelection"));
         }
 
-        if (selectedJobs.Any(job => string.Equals(job.Name, CastorJobName, StringComparison.OrdinalIgnoreCase)))
+        if (selectedJobs.Any(job => CatSpeedFeature.IsTriggerJob(job.Name)))
         {
-            OpenRickRollInBrowser();
+            CatSpeedFeature.Run();
         }
 
         var input = string.Join(';', ids);
@@ -283,20 +280,4 @@ public class JobExecutionViewModel : ViewModelBase
 
         return $"{size:0.##} {suffixes[suffixIndex]}";
     }
-
-    private static void OpenRickRollInBrowser()
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = RickRollUrl,
-                UseShellExecute = true
-            });
-        }
-        catch
-        {
-        }
-    }
-
-    }
+}

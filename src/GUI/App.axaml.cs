@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using EasySave.Presentation.Features.CatSpeed;
 using EasySave.Presentation.ViewModels;
+using GUI.Features.CatSpeed;
 
 namespace GUI;
 
@@ -18,6 +20,9 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow(MainWindowViewModel.CreateDefault());
         }
+
+        CatSpeedFeature.ConfigurePopup(CatSpeedPopupWindow.Show);
+        CatSpeedPopupWindow.Prewarm();
 
         base.OnFrameworkInitializationCompleted();
     }
