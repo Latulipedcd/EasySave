@@ -150,5 +150,7 @@
   "GuiCatMessageActionFailed": "Action failed: {0}",
   "GuiCatMessageNoJobToRun": "No job available to execute.",
   "GuiCatMessageInvalidSelection": "Invalid selection, check chosen jobs.",
-  "GuiCatMessageCryptoSoftNotFound": "Meow! The encryption app (CryptoSoft) was not found."
+  "GuiCatMessageCryptoSoftNotFound": "Meow! The encryption app (CryptoSoft) was not found.",
+  "GuiErrorDockerConnection": "Docker server unreachable. Logs are being saved locally. Please contact technical support.",
+  "GuiErrorDockerSend": "Unable to send logs to Docker. Logs are being saved locally. Please contact technical support."
 }

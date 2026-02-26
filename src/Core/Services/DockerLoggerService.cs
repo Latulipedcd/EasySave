@@ -18,6 +18,7 @@ namespace Core.Services
         private bool _isConnected;
 
         public event Action? ServerUnavailable;
+        public static event Action<string>? ServerError;
 
         public DockerLoggerService()
         {
@@ -45,7 +46,7 @@ namespace Core.Services
             }
             catch (SocketException ex)
             {
-                Console.WriteLine("Connection failed: " + ex.Message);
+                ServerError?.Invoke($"Connection failed.");
                 ServerUnavailable?.Invoke();
             }
         }
@@ -71,7 +72,7 @@ namespace Core.Services
             }
             catch (SocketException ex)
             {
-                Console.WriteLine("Failed to send log: " + ex.Message);
+                ServerError?.Invoke($"Failed to send log.");
                 _isConnected = false;
                 ServerUnavailable?.Invoke();
             }
