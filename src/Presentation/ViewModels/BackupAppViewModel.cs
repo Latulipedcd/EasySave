@@ -26,12 +26,13 @@ public class BackupAppViewModel
         IJobManagementService jobManagementService,
         IJobStateReader jobStateReader,
         IDockerLoggerService dockerLoggerService)
+        IJobProgressSnapshotSource? progressSnapshotSource = null)
     {
         _langManager = languageService;
         Settings = new SettingsViewModel(languageService, userConfigService, dockerLoggerService);
         JobEditor = new JobEditorViewModel();
         JobList = new JobListViewModel(jobRepository, languageService);
-        JobExecution = new JobExecutionViewModel(jobManagementService, languageService, jobStateReader);
+        JobExecution = new JobExecutionViewModel(jobManagementService, languageService, jobStateReader, progressSnapshotSource);
     }
 
     public string GetText(string key) => _langManager.GetString(key);

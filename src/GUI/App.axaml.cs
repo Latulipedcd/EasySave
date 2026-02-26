@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using EasySave.Application;
 using EasySave.Presentation.ViewModels;
 
 namespace GUI;
@@ -26,6 +25,7 @@ public partial class App : Application
 
             var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader, dockerLoggerService);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
+            desktop.MainWindow = new MainWindow(MainWindowViewModel.CreateDefault());
         }
 
         base.OnFrameworkInitializationCompleted();
