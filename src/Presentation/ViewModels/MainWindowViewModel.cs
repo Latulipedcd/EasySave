@@ -107,6 +107,7 @@ public class MainWindowViewModel : ViewModelBase
         var userConfigService = ServiceFactory.GetUserConfigService();
         var jobRepository = ServiceFactory.GetBackupJobRepository();
         var jobStateReader = ServiceFactory.GetJobStateReader();
+        var dockerLoggerService = ServiceFactory.GetDockerLoggerService();
         var progressSnapshotSource = ServiceFactory.GetJobProgressSnapshotSource();
 
         var appViewModel = new BackupAppViewModel(
@@ -115,6 +116,7 @@ public class MainWindowViewModel : ViewModelBase
             jobRepository,
             jobManagementService,
             jobStateReader,
+            dockerLoggerService,
             progressSnapshotSource);
 
         return new MainWindowViewModel(appViewModel);
