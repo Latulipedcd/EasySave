@@ -34,7 +34,7 @@ namespace Core.Services
         public ProgressJsonWriter()
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var folder = Path.Combine(appData, "EasyLog", "Progress");
+            var folder = Path.Combine(appData, "EasySave", "Progress");
             Directory.CreateDirectory(folder);
             _path = Path.Combine(folder, "state.json");
         }

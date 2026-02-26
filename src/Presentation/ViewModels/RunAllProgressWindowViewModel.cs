@@ -74,9 +74,13 @@ public class RunAllProgressWindowViewModel : ViewModelBase
 
     public bool HasSelectedJob => SelectedJob != null;
     public bool CanStartSelectedJob => IsRunning && SelectedJob?.Status == BackupStatus.Paused;
-    public bool CanPauseSelectedJob => IsRunning && SelectedJob?.Status == BackupStatus.Active;
+    public bool CanPauseSelectedJob => IsRunning && SelectedJob != null
+        && (SelectedJob.Status == BackupStatus.Active || SelectedJob.Status == BackupStatus.Error);
+
     public bool CanCancelSelectedJob => IsRunning && SelectedJob != null
-        && (SelectedJob.Status == BackupStatus.Active || SelectedJob.Status == BackupStatus.Paused);
+        && (SelectedJob.Status == BackupStatus.Active ||
+            SelectedJob.Status == BackupStatus.Paused ||
+            SelectedJob.Status == BackupStatus.Error);
 
     private bool _isRunning;
     public bool IsRunning

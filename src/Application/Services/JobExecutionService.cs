@@ -60,7 +60,20 @@ namespace EasySave.Application.Services
             if (jobsToExecute == null)
                 return (false, new List<BackupState>(), errorMessage);
 
-            _progressWriter.Clear();
+            var alreadyRunningJobNames = jobsToExecute
+                .Select(j => j.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Where(name => _runningJobs.ContainsKey(name))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToList();
+
+            if (alreadyRunningJobNames.Count > 0)
+            {
+                var template = _languageService.GetString("GuiErrorJobAlreadyRunning");
+                var message = string.Format(template, string.Join(", ", alreadyRunningJobNames));
+                return (false, new List<BackupState>(), message);
+            }
 
             var logFormat = _userConfigService.LoadLogFormat() ?? LogFormat.Json;
             var storageMode = _userConfigService.LoadStorageMode() ?? LogStorageMode.Local;
@@ -71,44 +84,64 @@ namespace EasySave.Application.Services
             var maxParallelFileSizeKb = _userConfigService.LoadMaxParallelFileSizeKb();
 
             var handles = new List<JobExecutionHandle>();
+            var shouldClearProgress = _runningJobs.IsEmpty;
+
             foreach (var job in jobsToExecute)
             {
                 var handle = new JobExecutionHandle(job.Name);
-                _runningJobs[job.Name] = handle;
+                if (!_runningJobs.TryAdd(job.Name, handle))
+                {
+                    handle.Dispose();
+                    foreach (var reservedHandle in handles)
+                    {
+                        _runningJobs.TryRemove(reservedHandle.JobName, out _);
+                        reservedHandle.Dispose();
+                    }
+
+                    var template = _languageService.GetString("GuiErrorJobAlreadyRunning");
+                    return (false, new List<BackupState>(), string.Format(template, job.Name));
+                }
+
                 handles.Add(handle);
             }
 
-            StartBusinessSoftwareMonitor(businessSoftware);
+            if (shouldClearProgress)
+                _progressWriter.Clear();
 
+            StartBusinessSoftwareMonitor(businessSoftware);
             using var executionContext = new SharedExecutionContext(priorityExtensions, maxParallelFileSizeKb);
 
-            var results = await Task.Run(async () =>
+            try
             {
                 for (int i = 0; i < handles.Count; i++)
                 {
                     var capturedJob = jobsToExecute[i];
                     var capturedHandle = handles[i];
-                    capturedHandle.ExecutionTask = _backupService.ExecuteBackupAsync(
-                        capturedJob,
-                        logFormat,
-                        cryptoExtensions,
-                        cryptoPath,
-                        capturedHandle.Cts.Token,
-                        capturedHandle.PauseEvent,
-                        executionContext,
-                        storageMode);
+                    capturedHandle.ExecutionTask = Task.Run(async () =>
+                        await _backupService.ExecuteBackupAsync(
+                            capturedJob,
+                            logFormat,
+                            cryptoExtensions,
+                            cryptoPath,
+                            capturedHandle.Cts.Token,
+                            capturedHandle.PauseEvent,
+                            executionContext,
+                            storageMode).ConfigureAwait(false),
+                        capturedHandle.Cts.Token);
                 }
-                return await Task.WhenAll(handles.Select(h => h.ExecutionTask!));
-            });
 
-            StopBusinessSoftwareMonitor();
-            foreach (var handle in handles)
-            {
-                _runningJobs.TryRemove(handle.JobName, out _);
-                handle.Dispose();
+                var results = await Task.WhenAll(handles.Select(h => h.ExecutionTask!));
+                return (true, results.ToList(), string.Empty);
             }
-
-            return (true, results.ToList(), string.Empty);
+            finally
+            {
+                StopBusinessSoftwareMonitor();
+                foreach (var handle in handles)
+                {
+                    _runningJobs.TryRemove(handle.JobName, out _);
+                    handle.Dispose();
+                }
+            }
         }
 
         public void PauseJob(string jobName)

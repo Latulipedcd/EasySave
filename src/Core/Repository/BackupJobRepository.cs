@@ -1,8 +1,8 @@
-﻿using Core.Interfaces;
+using Core.Enums;
+using Core.Interfaces;
 using Core.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace Core.Repository
@@ -94,7 +94,6 @@ namespace Core.Repository
             SaveJobs(orderedJobs);
         }
 
-
         /// <summary>
         /// Ensures the storage directory and file exist, creating them if necessary.
         /// </summary>
@@ -104,7 +103,27 @@ namespace Core.Repository
                 Directory.CreateDirectory(_storage.JobsDirectory);
 
             if (!File.Exists(_storage.JobsFilePath))
-                File.WriteAllText(_storage.JobsFilePath, "[]");
+            {
+                SaveJobs(new List<BackupJob> { BuildDefaultCastorJob() });
+                return;
+            }
+
+            try
+            {
+                var existingJobs = LoadJobs();
+                if (existingJobs.Count == 0)
+                    SaveJobs(new List<BackupJob> { BuildDefaultCastorJob() });
+            }
+            catch (JsonException)
+            {
+                SaveJobs(new List<BackupJob> { BuildDefaultCastorJob() });
+            }
+        }
+
+        private static BackupJob BuildDefaultCastorJob()
+        {
+            const string path = "Test";
+            return new BackupJob("castor", path, path, BackupType.Full);
         }
 
         /// <summary>

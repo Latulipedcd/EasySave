@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Enums;
+using Core.Interfaces;
 using EasySave.Application.Interfaces;
 using Core.Models;
 using EasySave.Presentation.Features.CatSpeed;
@@ -16,6 +17,7 @@ public class JobExecutionViewModel : ViewModelBase
     private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
     private readonly IJobStateReader _jobStateReader;
+    private readonly IJobProgressSnapshotSource? _progressSnapshotSource;
 
     /// <summary>
     /// Current job being monitored
@@ -66,7 +68,8 @@ public class JobExecutionViewModel : ViewModelBase
     /// <summary>
     /// Indicates if the job is currently running
     /// </summary>
-    public bool IsJobRunning => JobState != null && JobState.Status == BackupStatus.Active;
+    public bool IsJobRunning => JobState != null &&
+        (JobState.Status == BackupStatus.Active || JobState.Status == BackupStatus.Error);
 
     /// <summary>
     /// Indicates if the job is currently paused
@@ -84,11 +87,10 @@ public class JobExecutionViewModel : ViewModelBase
          JobState.Status == BackupStatus.Cancelled);
 
     /// <summary>
-    /// Indicates if job has completed (success, error, or cancelled)
+    /// Indicates if job has completed (success or cancelled)
     /// </summary>
     public bool IsJobCompleted => JobState != null &&
         (JobState.Status == BackupStatus.Completed ||
-         JobState.Status == BackupStatus.Error ||
          JobState.Status == BackupStatus.Cancelled);
 
     public bool ShowSuccessStatusIcon => JobState?.Status == BackupStatus.Completed;
@@ -118,11 +120,13 @@ public class JobExecutionViewModel : ViewModelBase
     public JobExecutionViewModel(
         IJobManagementService jobManagementService,
         ILanguageService languageService,
-        IJobStateReader jobStateReader)
+        IJobStateReader jobStateReader,
+        IJobProgressSnapshotSource? progressSnapshotSource = null)
     {
         _jobManagementService = jobManagementService;
         _langManager = languageService;
         _jobStateReader = jobStateReader;
+        _progressSnapshotSource = progressSnapshotSource;
     }
 
     /// <summary>
@@ -222,7 +226,19 @@ public class JobExecutionViewModel : ViewModelBase
     /// </summary>
     public void RefreshJobState()
     {
-        var states = _jobStateReader.ReadAllStates();
+        List<BackupState>? states;
+
+        if (_progressSnapshotSource != null)
+        {
+            // In-process GUI: avoid file polling, read the in-memory snapshot.
+            states = _progressSnapshotSource.GetStatesSnapshot().ToList();
+        }
+        else
+        {
+            // Fallback for external monitors / legacy wiring.
+            states = _jobStateReader.ReadAllStates();
+        }
+
         LatestProgressStates = states;
 
         if (MonitoredJob == null || states == null || states.Count == 0)

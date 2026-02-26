@@ -4,6 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Enums;
 using Core.Models;
+using Core.Services;
+using EasySave.Application;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -82,6 +84,8 @@ public class MainWindowViewModel : ViewModelBase
 
         RefreshLocalizedTexts();
 
+        DockerLoggerService.ServerError += OnDockerServerError;
+
         _uiContext = SynchronizationContext.Current;
         _stateRefreshTimer = new System.Timers.Timer(500);
         _stateRefreshTimer.Elapsed += OnRefreshTimerTick;
@@ -90,6 +94,30 @@ public class MainWindowViewModel : ViewModelBase
 
         _appViewModel.RefreshJobState();
         _appViewModel.RefreshJobListExecutionState();
+    }
+
+    /// <summary>
+    /// Creates a fully-wired instance for the GUI composition root.
+    /// Keeps GUI project free from direct calls to Application's ServiceFactory.
+    /// </summary>
+    public static MainWindowViewModel CreateDefault()
+    {
+        var jobManagementService = ServiceFactory.CreateJobManagementService();
+        var languageService = ServiceFactory.GetLanguageService();
+        var userConfigService = ServiceFactory.GetUserConfigService();
+        var jobRepository = ServiceFactory.GetBackupJobRepository();
+        var jobStateReader = ServiceFactory.GetJobStateReader();
+        var progressSnapshotSource = ServiceFactory.GetJobProgressSnapshotSource();
+
+        var appViewModel = new BackupAppViewModel(
+            languageService,
+            userConfigService,
+            jobRepository,
+            jobManagementService,
+            jobStateReader,
+            progressSnapshotSource);
+
+        return new MainWindowViewModel(appViewModel);
     }
 
     private void OnRefreshTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
@@ -448,5 +476,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         SetStatusOnUIThread(message);
         SetCatRawMessage(message);
+    }
+
+    private void OnDockerServerError(string technicalMessage)
+    {
+        var msg = TextFormat("GuiErrorDockerConnection", technicalMessage);
+        SetStatus(msg);
+        SetCatMessage("GuiCatMessageActionFailed", msg);
     }
 }
