@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Core.Enums;
 using EasySave.Application.Interfaces;
 using Core.Models;
+using Core.Interfaces;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -19,6 +20,7 @@ public class JobExecutionViewModel : ViewModelBase
     private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
     private readonly IJobStateReader _jobStateReader;
+    private readonly IProgressSnapshotSource? _progressSnapshotSource;
 
     /// <summary>
     /// Current job being monitored
@@ -121,11 +123,13 @@ public class JobExecutionViewModel : ViewModelBase
     public JobExecutionViewModel(
         IJobManagementService jobManagementService,
         ILanguageService languageService,
-        IJobStateReader jobStateReader)
+        IJobStateReader jobStateReader,
+        IProgressSnapshotSource? progressSnapshotSource = null)
     {
         _jobManagementService = jobManagementService;
         _langManager = languageService;
         _jobStateReader = jobStateReader;
+        _progressSnapshotSource = progressSnapshotSource;
     }
 
     /// <summary>
@@ -225,7 +229,19 @@ public class JobExecutionViewModel : ViewModelBase
     /// </summary>
     public void RefreshJobState()
     {
-        var states = _jobStateReader.ReadAllStates();
+        List<BackupState>? states;
+
+        if (_progressSnapshotSource != null)
+        {
+            // In-process GUI: avoid file polling, read the in-memory snapshot.
+            states = _progressSnapshotSource.GetStatesSnapshot().ToList();
+        }
+        else
+        {
+            // Fallback for external monitors / legacy wiring.
+            states = _jobStateReader.ReadAllStates();
+        }
+
         LatestProgressStates = states;
 
         if (MonitoredJob == null || states == null || states.Count == 0)

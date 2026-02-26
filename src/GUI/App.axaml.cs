@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Core.Interfaces;
 using EasySave.Application;
 using EasySave.Presentation.ViewModels;
 
@@ -22,8 +23,15 @@ public partial class App : Application
             var userConfigService = ServiceFactory.GetUserConfigService();
             var jobRepository = ServiceFactory.GetBackupJobRepository();
             var jobStateReader = ServiceFactory.GetJobStateReader();
+            var progressSnapshotSource = ServiceFactory.GetProgressWriter() as IProgressSnapshotSource;
 
-            var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader);
+            var appViewModel = new BackupAppViewModel(
+                languageService,
+                userConfigService,
+                jobRepository,
+                jobManagementService,
+                jobStateReader,
+                progressSnapshotSource);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
         }
 

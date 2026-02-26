@@ -24,7 +24,7 @@ public class JobStateFileReader : IJobStateReader
         try
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var statePath = Path.Combine(appData, "EasyLog", "Progress", "state.json");
+            var statePath = Path.Combine(appData, "EasySave", "Progress", "state.json");
 
             if (!File.Exists(statePath))
                 return null;
