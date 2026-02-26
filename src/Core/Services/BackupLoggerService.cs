@@ -16,19 +16,39 @@ public sealed class BackupLoggerService : IBackupLoggerService
 {
     private readonly ILog _logService;
     private readonly IDockerLoggerService _dockerLoggerService;
+    private bool _dockerFailed = false;
 
     public BackupLoggerService(ILog logService, IDockerLoggerService dockerLoggerService)
     {
         _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _dockerLoggerService = dockerLoggerService ?? throw new ArgumentNullException(nameof(dockerLoggerService));
+
+        _dockerLoggerService.ServerUnavailable += OnDockerServerUnavailable;
+    }
+
+    private void OnDockerServerUnavailable()
+    {
+        _dockerFailed = true;
     }
 
     public void Configure(LogFormat format)
         => _logService.Configure(format);
 
+    private void WriteLog(LogFormat format, LogStorageMode storageMode, LogEntry entry)
+    {
+        bool shouldWriteLocal = storageMode != LogStorageMode.Docker || _dockerFailed;
+        bool shouldWriteDocker = storageMode != LogStorageMode.Local && !_dockerFailed;
+
+        if (shouldWriteLocal)
+            _logService.LogBackup(entry);
+
+        if (shouldWriteDocker)
+            _dockerLoggerService.SendLog(format, entry);
+    }
+
     public void LogSourceNotFound(LogFormat format, LogStorageMode storageMode, string backupName, string sourceDirectory)
     {
-        
+
         var entry = new LogEntry
         {
             BackupName = backupName,
@@ -42,11 +62,7 @@ public sealed class BackupLoggerService : IBackupLoggerService
             UserName = Environment.UserName
         };
 
-        if (storageMode != LogStorageMode.Docker)
-            _logService.LogBackup(entry);
-
-        if (storageMode != LogStorageMode.Local)
-            _dockerLoggerService.SendLog(format, entry);
+        WriteLog(format, storageMode, entry);
     }
 
     public void LogBusinessSoftwareBlock(LogFormat format, LogStorageMode storageMode, string backupName, string sourceDirectory, string targetDirectory)
@@ -63,12 +79,8 @@ public sealed class BackupLoggerService : IBackupLoggerService
             ErrorMessage = "Backup stopped due to running business software.",
             UserName = Environment.UserName
         };
-        
-        if (storageMode != LogStorageMode.Docker)
-            _logService.LogBackup(entry);
 
-        if (storageMode != LogStorageMode.Local)
-            _dockerLoggerService.SendLog(format, entry);
+        WriteLog(format, storageMode, entry);
     }
 
     public void LogDirectoryCreation(LogFormat format, LogStorageMode storageMode, string backupName, string sourceFile, string folderPath, TimeSpan duration)
@@ -85,11 +97,7 @@ public sealed class BackupLoggerService : IBackupLoggerService
             UserName = Environment.UserName
         };
 
-        if (storageMode != LogStorageMode.Docker)
-            _logService.LogBackup(entry);
-
-        if (storageMode != LogStorageMode.Local)
-            _dockerLoggerService.SendLog(format, entry);
+        WriteLog(format, storageMode, entry);
     }
 
     public void LogFileOperation(LogFormat format, LogStorageMode storageMode, string backupName, string sourceFile, string targetPath,
@@ -108,10 +116,6 @@ public sealed class BackupLoggerService : IBackupLoggerService
             UserName = Environment.UserName
         };
 
-        if (storageMode != LogStorageMode.Docker)
-            _logService.LogBackup(entry);
-
-        if (storageMode != LogStorageMode.Local)
-            _dockerLoggerService.SendLog(format, entry);
+        WriteLog(format, storageMode, entry);
     }
 }

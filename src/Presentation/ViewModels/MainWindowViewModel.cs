@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Enums;
 using Core.Models;
+using Core.Services;
 using EasySave.Application;
 
 namespace EasySave.Presentation.ViewModels;
@@ -82,6 +83,8 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         RefreshLocalizedTexts();
+
+        DockerLoggerService.ServerError += OnDockerServerError;
 
         _uiContext = SynchronizationContext.Current;
         _stateRefreshTimer = new System.Timers.Timer(500);
@@ -473,5 +476,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         SetStatusOnUIThread(message);
         SetCatRawMessage(message);
+    }
+
+    private void OnDockerServerError(string technicalMessage)
+    {
+        var msg = TextFormat("GuiErrorDockerConnection", technicalMessage);
+        SetStatus(msg);
+        SetCatMessage("GuiCatMessageActionFailed", msg);
     }
 }
