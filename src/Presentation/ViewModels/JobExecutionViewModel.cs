@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Enums;
+using Core.Interfaces;
 using EasySave.Application.Interfaces;
 using Core.Models;
-using Core.Interfaces;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -20,7 +20,7 @@ public class JobExecutionViewModel : ViewModelBase
     private readonly IJobManagementService _jobManagementService;
     private readonly ILanguageService _langManager;
     private readonly IJobStateReader _jobStateReader;
-    private readonly IProgressSnapshotSource? _progressSnapshotSource;
+    private readonly IJobProgressSnapshotSource? _progressSnapshotSource;
 
     /// <summary>
     /// Current job being monitored
@@ -124,7 +124,7 @@ public class JobExecutionViewModel : ViewModelBase
         IJobManagementService jobManagementService,
         ILanguageService languageService,
         IJobStateReader jobStateReader,
-        IProgressSnapshotSource? progressSnapshotSource = null)
+        IJobProgressSnapshotSource? progressSnapshotSource = null)
     {
         _jobManagementService = jobManagementService;
         _langManager = languageService;

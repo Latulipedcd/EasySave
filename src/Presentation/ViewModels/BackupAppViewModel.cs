@@ -25,7 +25,7 @@ public class BackupAppViewModel
         IBackupJobRepository jobRepository,
         IJobManagementService jobManagementService,
         IJobStateReader jobStateReader,
-        IProgressSnapshotSource? progressSnapshotSource = null)
+        IJobProgressSnapshotSource? progressSnapshotSource = null)
     {
         _langManager = languageService;
         Settings = new SettingsViewModel(languageService, userConfigService);

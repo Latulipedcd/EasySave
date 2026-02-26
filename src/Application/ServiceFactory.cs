@@ -23,6 +23,7 @@ public static class ServiceFactory
     private static IProgressWriter? _progressWriterInstance;
     private static ICopyService? _copyServiceInstance;
     private static IJobStateReader? _jobStateReaderInstance;
+    private static IJobProgressSnapshotSource? _jobProgressSnapshotSourceInstance;
 
     /// <summary>
     /// Gets or creates the singleton IJobStateReader instance.
@@ -62,6 +63,21 @@ public static class ServiceFactory
     public static IProgressWriter GetProgressWriter()
     {
         return _progressWriterInstance ??= new ProgressJsonWriter();
+    }
+
+    /// <summary>
+    /// Gets or creates an application-level in-memory progress snapshot source.
+    /// Returns null if the configured progress writer does not support snapshots.
+    /// </summary>
+    public static IJobProgressSnapshotSource? GetJobProgressSnapshotSource()
+    {
+        if (_jobProgressSnapshotSourceInstance != null)
+            return _jobProgressSnapshotSourceInstance;
+
+        if (GetProgressWriter() is IProgressSnapshotSource snapshotSource)
+            _jobProgressSnapshotSourceInstance = new JobProgressSnapshotSourceAdapter(snapshotSource);
+
+        return _jobProgressSnapshotSourceInstance;
     }
 
     /// <summary>
