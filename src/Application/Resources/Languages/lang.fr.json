@@ -89,6 +89,7 @@
   "GuiErrorNoJobSelected": "Aucun travail sélectionné.",
   "GuiErrorNoJobToExecute": "Aucun travail à exécuter.",
   "GuiErrorInvalidSelection": "Sélection invalide.",
+  "GuiErrorJobAlreadyRunning": "Job(s) déjà en cours d'exécution : {0}.",
   "GuiErrorJobNameEmpty": "Le nom du travail ne peut pas être vide.",
 
   "GuiStatusDeletedCount": "{0} job(s) supprimé(s).",
