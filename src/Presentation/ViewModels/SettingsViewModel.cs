@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Enums;
+using Core.Interfaces;
 using EasySave.Application.Interfaces;
 using Log.Enums;
 
@@ -15,6 +16,7 @@ public class SettingsViewModel : ViewModelBase
 {
     private readonly ILanguageService _languageService;
     private readonly IUserConfigRepository _userConfigRepository;
+    private readonly IDockerLoggerService _dockerLoggerService;
     private SettingItemViewModel? _languageSetting;
     private SettingItemViewModel? _logFormatSetting;
     private SettingItemViewModel? _storageModeSetting;
@@ -209,10 +211,14 @@ public class SettingsViewModel : ViewModelBase
     /// </summary>
     public event EventHandler? LanguageChanged;
 
-    public SettingsViewModel(ILanguageService languageService, IUserConfigRepository userConfigRepository)
+    public SettingsViewModel(ILanguageService languageService, IUserConfigRepository userConfigRepository, IDockerLoggerService dockerLoggerService)
     {
         _languageService = languageService;
         _userConfigRepository = userConfigRepository;
+        _dockerLoggerService = dockerLoggerService;
+
+        // Subscribe to Docker server unavailable event
+        _dockerLoggerService.ServerUnavailable += OnDockerServerUnavailable;
 
         // Load saved settings
         var savedLanguage = _userConfigRepository.LoadLanguage();
@@ -397,4 +403,17 @@ public class SettingsViewModel : ViewModelBase
         => Enum.TryParse<LogStorageMode>(value, ignoreCase: true, out var parsed)
             ? parsed
             : LogStorageMode.Local;
+
+    /// <summary>
+    /// Handler called when Docker server becomes unavailable.
+    /// Automatically switches to Local storage mode.
+    /// </summary>
+    private void OnDockerServerUnavailable()
+    {
+        if (StorageMode != LogStorageMode.Local)
+        {
+            StorageMode = LogStorageMode.Local;
+            Console.WriteLine("⚠ Docker server unavailable. Switched to Local storage mode.");
+        }
+    }
 }

@@ -11,6 +11,8 @@ namespace Core.Interfaces
 {
     public interface IDockerLoggerService
     {
+        event Action? ServerUnavailable;
+
         public void Connect();
 
         public void SendLog(LogFormat format, LogEntry entry);

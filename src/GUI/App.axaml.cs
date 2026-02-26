@@ -22,8 +22,9 @@ public partial class App : Application
             var userConfigService = ServiceFactory.GetUserConfigService();
             var jobRepository = ServiceFactory.GetBackupJobRepository();
             var jobStateReader = ServiceFactory.GetJobStateReader();
+            var dockerLoggerService = ServiceFactory.GetDockerLoggerService();
 
-            var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader);
+            var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader, dockerLoggerService);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
         }
 

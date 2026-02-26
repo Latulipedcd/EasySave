@@ -23,6 +23,7 @@ public static class ServiceFactory
     private static IProgressWriter? _progressWriterInstance;
     private static ICopyService? _copyServiceInstance;
     private static IJobStateReader? _jobStateReaderInstance;
+    private static IDockerLoggerService? _dockerLoggerServiceInstance;
 
     /// <summary>
     /// Gets or creates the singleton IJobStateReader instance.
@@ -73,6 +74,14 @@ public static class ServiceFactory
     }
 
     /// <summary>
+    /// Gets or creates the singleton IDockerLoggerService instance.
+    /// </summary>
+    public static IDockerLoggerService GetDockerLoggerService()
+    {
+        return _dockerLoggerServiceInstance ??= new DockerLoggerService();
+    }
+
+    /// <summary>
     /// Gets or creates the singleton IBackupService instance.
     /// Wires the shared BackupOperationLogger instance into every sub-service that
     /// needs it (BackupPreflightChecker, BackupDirectoryService, BackupService itself)
@@ -84,7 +93,7 @@ public static class ServiceFactory
 
         var copyService      = GetCopyService();
         var encryptionService = new EncryptionService(copyService);
-        var dockerLogger     = new DockerLoggerService();
+        var dockerLogger     = GetDockerLoggerService();
         var operationLogger  = new BackupLoggerService(LogService.Instance, dockerLogger);
 
         _backupServiceInstance = new BackupService(

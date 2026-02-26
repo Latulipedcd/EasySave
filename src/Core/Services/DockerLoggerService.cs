@@ -17,6 +17,8 @@ namespace Core.Services
         private readonly Socket _socket;
         private bool _isConnected;
 
+        public event Action? ServerUnavailable;
+
         public DockerLoggerService()
         {
             _ip = IPAddress.Parse("127.0.0.1");
@@ -44,6 +46,7 @@ namespace Core.Services
             catch (SocketException ex)
             {
                 Console.WriteLine("Connection failed: " + ex.Message);
+                ServerUnavailable?.Invoke();
             }
         }
         
@@ -69,6 +72,8 @@ namespace Core.Services
             catch (SocketException ex)
             {
                 Console.WriteLine("Failed to send log: " + ex.Message);
+                _isConnected = false;
+                ServerUnavailable?.Invoke();
             }
         }
 
