@@ -3,9 +3,9 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EasySave.Application;
-using EasySave.Presentation.Services;
+using EasySave.Presentation.Features.CatSpeed;
 using EasySave.Presentation.ViewModels;
-using GUI.Services;
+using GUI.Features.CatSpeed;
 
 namespace GUI;
 
@@ -26,9 +26,15 @@ public partial class App : Application
             var jobRepository = ServiceFactory.GetBackupJobRepository();
             var jobStateReader = ServiceFactory.GetJobStateReader();
 
-            var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader);
+            var appViewModel = new BackupAppViewModel(
+                languageService,
+                userConfigService,
+                jobRepository,
+                jobManagementService,
+                jobStateReader);
+
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
-            CatSpeedLauncher.ConfigureCatSpeedPopup(CatSpeedPopupService.Show);
+            CatSpeedFeature.ConfigurePopup(CatSpeedPopupService.Show);
 
             bool disablePrewarm = string.Equals(
                 Environment.GetEnvironmentVariable("EASYSAVE_DISABLE_VLC_PREWARM"),

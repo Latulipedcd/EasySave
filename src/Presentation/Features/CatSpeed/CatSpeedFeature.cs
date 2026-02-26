@@ -2,26 +2,26 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace EasySave.Presentation.Services;
+namespace EasySave.Presentation.Features.CatSpeed;
 
-public static class CatSpeedLauncher
+public static class CatSpeedFeature
 {
-    private const string CatSpeedTriggerJobName = "Castor";
+    private const string TriggerJobName = "Castor";
     private const byte VkVolumeUp = 0xAF;
     private const uint KeyeventfKeyup = 0x0002;
-    private static Action<string>? _inAppPopupLauncher;
+    private static Action<string>? _showPopup;
 
-    public static bool IsCatSpeedTriggerJob(string? jobName)
+    public static bool IsTriggerJob(string? jobName)
     {
         if (string.IsNullOrWhiteSpace(jobName))
         {
             return false;
         }
 
-        return string.Equals(jobName.Trim(), CatSpeedTriggerJobName, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(jobName.Trim(), TriggerJobName, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static void RunCatSpeed()
+    public static void Run()
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -45,7 +45,7 @@ public static class CatSpeedLauncher
 
         try
         {
-            _inAppPopupLauncher?.Invoke(catVideoPath);
+            _showPopup?.Invoke(catVideoPath);
         }
         catch
         {
@@ -53,9 +53,9 @@ public static class CatSpeedLauncher
         }
     }
 
-    public static void ConfigureCatSpeedPopup(Action<string> launcher)
+    public static void ConfigurePopup(Action<string> showPopup)
     {
-        _inAppPopupLauncher = launcher;
+        _showPopup = showPopup;
     }
 
     private static string? ResolveCatVideoPath()

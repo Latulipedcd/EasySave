@@ -5,24 +5,28 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using LibVLCSharp.Shared;
 
-namespace GUI;
+namespace GUI.Features.CatSpeed;
 
 public partial class CatSpeedPopupWindow : Window
 {
-    private readonly LibVLC _libVlc;
-    private readonly string _videoPath;
+    private readonly LibVLC? _libVlc;
+    private readonly string? _videoPath;
     private MediaPlayer? _mediaPlayer;
     private Media? _media;
     private bool _isClosing;
     private bool _isStarted;
 
-    public CatSpeedPopupWindow(LibVLC libVlc, string videoPath)
+    public CatSpeedPopupWindow()
     {
-        _libVlc = libVlc;
-        _videoPath = videoPath;
         InitializeComponent();
         KeyDown += OnKeyDown;
         Closed += OnClosed;
+    }
+
+    public CatSpeedPopupWindow(LibVLC libVlc, string videoPath) : this()
+    {
+        _libVlc = libVlc;
+        _videoPath = videoPath;
         Opened += OnOpened;
     }
 
@@ -52,7 +56,7 @@ public partial class CatSpeedPopupWindow : Window
 
     private void StartVideo()
     {
-        if (string.IsNullOrWhiteSpace(_videoPath))
+        if (_libVlc == null || string.IsNullOrWhiteSpace(_videoPath))
         {
             return;
         }

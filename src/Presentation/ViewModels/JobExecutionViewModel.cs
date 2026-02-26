@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Core.Enums;
 using EasySave.Application.Interfaces;
 using Core.Models;
-using EasySave.Presentation.Services;
+using EasySave.Presentation.Features.CatSpeed;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -136,9 +136,9 @@ public class JobExecutionViewModel : ViewModelBase
         }
 
         var allJobs = _jobManagementService.GetBackupJobs();
-        if (allJobs.Take(totalJobCount).Any(job => CatSpeedLauncher.IsCatSpeedTriggerJob(job.Name)))
+        if (allJobs.Take(totalJobCount).Any(job => CatSpeedFeature.IsTriggerJob(job.Name)))
         {
-            CatSpeedLauncher.RunCatSpeed();
+            CatSpeedFeature.Run();
         }
 
         var input = $"1-{totalJobCount}";
@@ -169,9 +169,9 @@ public class JobExecutionViewModel : ViewModelBase
             return (false, new List<BackupState>(), _langManager.GetString("GuiErrorInvalidSelection"));
         }
 
-        if (selectedJobs.Any(job => CatSpeedLauncher.IsCatSpeedTriggerJob(job.Name)))
+        if (selectedJobs.Any(job => CatSpeedFeature.IsTriggerJob(job.Name)))
         {
-            CatSpeedLauncher.RunCatSpeed();
+            CatSpeedFeature.Run();
         }
 
         var input = string.Join(';', ids);
