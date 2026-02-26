@@ -5,7 +5,9 @@ using System.Text;
 namespace Core.Interfaces
 {
     /// <summary>
-    /// Interface for file system operations.
+    /// Abstraction layer for underlying file system operations.
+    /// Wraps direct I/O calls to allow for easier unit testing and mocking 
+    /// without touching the actual physical disk.
     /// </summary>
     public interface IFileService
     {

@@ -23,14 +23,8 @@ public class JobExecutionHandle : IDisposable
     public CancellationTokenSource Cts { get; } = new();
 
     /// <summary>
-    /// ManualResetEventSlim is a lightweight signal with two states:
-    ///   Set   (IsSet = true)  → any task polling it proceeds normally.
-    ///   Reset (IsSet = false) → any task polling it waits until Set() is called.
-    /// Initialized to true (not blocking). Reset() is called to pause the job,
-    /// Set() to resume it. Two independent flags (ManuallyPaused / BusinessPaused)
-    /// control it so both causes of pause must be cleared before the job resumes.
-    /// "Slim" means it avoids allocating a kernel WaitHandle until actually needed.
-    /// Must be Disposed after use.
+    /// Thread synchronization event used to pause and resume the job. 
+    /// Unblocks execution when set (true); blocks execution when reset (false).
     /// </summary>
     public ManualResetEventSlim PauseEvent { get; } = new(true);
 
@@ -41,12 +35,14 @@ public class JobExecutionHandle : IDisposable
     /// </summary>
     public Task<BackupState>? ExecutionTask { get; set; }
 
-    /// <summary>Set by the user via PauseJob / PauseAllJobs.</summary>
     public bool ManuallyPaused { get; set; }
 
-    /// <summary>Set by the business software monitor thread when the configured process is running.</summary>
     public bool BusinessPaused { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of the execution handle.
+    /// </summary>
+    /// <param name="jobName">The name of the job to track.</param>
     public JobExecutionHandle(string jobName)
     {
         JobName = jobName;
@@ -64,6 +60,9 @@ public class JobExecutionHandle : IDisposable
             PauseEvent.Set();
     }
 
+    /// <summary>
+    /// Releases the internal wait handles used by the cancellation token and pause event.
+    /// </summary>
     public void Dispose()
     {
         Cts.Dispose();
