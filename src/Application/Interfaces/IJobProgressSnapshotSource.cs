@@ -1,5 +1,4 @@
 using Core.Models;
-using System.Collections.Generic;
 
 namespace EasySave.Application.Interfaces;
 
@@ -9,5 +8,11 @@ namespace EasySave.Application.Interfaces;
 /// </summary>
 public interface IJobProgressSnapshotSource
 {
+    /// <summary>
+    /// Retrieves a read-only snapshot of the current states for all tracked backup jobs.
+    /// This allows the UI to poll or refresh progress bars without affecting the underlying execution state.
+    /// </summary>
+    /// <returns>An <see cref="IReadOnlyList{BackupState}"/> containing 
+    /// the most recent progress data for the jobs.</returns>
     IReadOnlyList<BackupState> GetStatesSnapshot();
 }

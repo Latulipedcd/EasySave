@@ -11,15 +11,15 @@ namespace Core.Interfaces
     public interface IProgressWriter
     {
         /// <summary>
-        /// Writes/updates the backup state for a specific job.
-        /// The writer tracks all job states and persists the full collection.
+        /// Writes or updates the backup state for a specific job.
+        /// The writer tracks the states of all active jobs and persists the full collection to storage.
         /// </summary>
-        /// <param name="backupState">The backup state to write.</param>
+        /// <param name="backupState">The current backup state snapshot to persist.</param>
         void Write(BackupState backupState);
 
         /// <summary>
-        /// Clears all tracked job states and resets the persistent storage.
-        /// Should be called before starting a new batch of jobs.
+        /// Clears all currently tracked job states and resets the persistent storage.
+        /// Typically called before starting a fresh batch of backup jobs to ensure stale data is removed.
         /// </summary>
         void Clear();
     }
