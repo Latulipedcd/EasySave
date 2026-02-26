@@ -122,31 +122,8 @@ namespace Core.Repository
 
         private static BackupJob BuildDefaultCastorJob()
         {
-            string demoRootDirectory = ResolveDemoRootDirectory();
-            string sourceDirectory = Path.Combine(demoRootDirectory, "Source");
-            string targetDirectory = Path.Combine(demoRootDirectory, "Backup");
-
-            Directory.CreateDirectory(sourceDirectory);
-            Directory.CreateDirectory(targetDirectory);
-
-            string sampleFilePath = Path.Combine(sourceDirectory, "example.txt");
-            if (!File.Exists(sampleFilePath))
-                File.WriteAllText(sampleFilePath, "EasySave sample file for the default castor job.");
-
-            return new BackupJob("castor", sourceDirectory, targetDirectory, BackupType.Full);
-        }
-
-        private static string ResolveDemoRootDirectory()
-        {
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            if (!string.IsNullOrWhiteSpace(documentsPath))
-                return Path.Combine(documentsPath, "EasySaveDemo");
-
-            string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (!string.IsNullOrWhiteSpace(userProfilePath))
-                return Path.Combine(userProfilePath, "EasySaveDemo");
-
-            return Path.Combine(Path.GetTempPath(), "EasySaveDemo");
+            const string path = "Test";
+            return new BackupJob("castor", path, path, BackupType.Full);
         }
 
         /// <summary>
