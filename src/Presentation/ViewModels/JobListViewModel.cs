@@ -150,8 +150,8 @@ public class JobListViewModel : ViewModelBase
                     break;
 
                 case BackupStatus.Error:
-                    target.IsRunning = false;
-                    target.ExecutionProgress = 0;
+                    target.IsRunning = true;
+                    target.ExecutionProgress = Math.Clamp(state.ProgressPercentage, 0, 100);
                     target.IsCompletedSuccess = false;
                     target.HasExecutionError = true;
                     target.HasExecutionCancelled = false;
