@@ -2,7 +2,9 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EasySave.Application;
+using EasySave.Presentation.Services;
 using EasySave.Presentation.ViewModels;
+using GUI.Services;
 
 namespace GUI;
 
@@ -25,6 +27,7 @@ public partial class App : Application
 
             var appViewModel = new BackupAppViewModel(languageService, userConfigService, jobRepository, jobManagementService, jobStateReader);
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
+            CastorCatLauncher.ConfigureInAppPopupLauncher(CastorSurprisePopupService.Show);
         }
 
         base.OnFrameworkInitializationCompleted();

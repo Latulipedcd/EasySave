@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Enums;
 using Core.Models;
+using EasySave.Presentation.Services;
 
 namespace EasySave.Presentation.ViewModels;
 
@@ -194,6 +195,10 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         SetCatMessage("GuiCatMessageCreated", name);
+        if (CastorCatLauncher.IsCastorJobName(name))
+        {
+            CastorCatLauncher.LaunchCatVideoSurprise();
+        }
 
         var jobs = await _appViewModel.RefreshJobsAsync();
         _appViewModel.ReplaceJobs(jobs);
