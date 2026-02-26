@@ -1,8 +1,6 @@
-using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using EasySave.Application;
 using EasySave.Presentation.Features.CatSpeed;
 using EasySave.Presentation.ViewModels;
 using GUI.Features.CatSpeed;
@@ -20,36 +18,11 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var jobManagementService = ServiceFactory.CreateJobManagementService();
-            var languageService = ServiceFactory.GetLanguageService();
-            var userConfigService = ServiceFactory.GetUserConfigService();
-            var jobRepository = ServiceFactory.GetBackupJobRepository();
-            var jobStateReader = ServiceFactory.GetJobStateReader();
-            var dockerLoggerService = ServiceFactory.GetDockerLoggerService();
-            var progressSnapshotSource = ServiceFactory.GetJobProgressSnapshotSource();
-
-            var appViewModel = new BackupAppViewModel(
-                languageService,
-                userConfigService,
-                jobRepository,
-                jobManagementService,
-                jobStateReader,
-                dockerLoggerService,
-                progressSnapshotSource);
-
-            desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
-            CatSpeedFeature.ConfigurePopup(CatSpeedPopupService.Show);
-
-            bool disablePrewarm = string.Equals(
-                Environment.GetEnvironmentVariable("EASYSAVE_DISABLE_VLC_PREWARM"),
-                "1",
-                StringComparison.Ordinal);
-
-            if (!disablePrewarm)
-            {
-                CatSpeedPopupService.Prewarm();
-            }
+            desktop.MainWindow = new MainWindow(MainWindowViewModel.CreateDefault());
         }
+
+        CatSpeedFeature.ConfigurePopup(CatSpeedPopupWindow.Show);
+        CatSpeedPopupWindow.Prewarm();
 
         base.OnFrameworkInitializationCompleted();
     }

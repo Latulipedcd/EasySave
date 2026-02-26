@@ -1,5 +1,9 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -9,12 +13,96 @@ namespace GUI.Features.CatSpeed;
 
 public partial class CatSpeedPopupWindow : Window
 {
+    private static bool _isShowing;
+    private static bool _isPrewarming;
+    private static LibVLC? _libVlcSingleton;
+    private static readonly object LibVlcLock = new();
+
     private readonly LibVLC? _libVlc;
     private readonly string? _videoPath;
     private MediaPlayer? _mediaPlayer;
     private Media? _media;
     private bool _isClosing;
     private bool _isStarted;
+
+    public static void Prewarm()
+    {
+        if (_isPrewarming)
+        {
+            return;
+        }
+
+        _isPrewarming = true;
+        Task.Run(() =>
+        {
+            try
+            {
+                using var _ = new MediaPlayer(GetLibVlc());
+            }
+            catch
+            {
+                // Best effort only.
+            }
+        });
+    }
+
+    public static void Show(string videoPath)
+    {
+        if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
+        {
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => ShowOnUiThread(videoPath));
+    }
+
+    private static void ShowOnUiThread(string videoPath)
+    {
+        if (_isShowing)
+        {
+            return;
+        }
+
+        _isShowing = true;
+
+        try
+        {
+            var libVlc = GetLibVlc();
+            var window = new CatSpeedPopupWindow(libVlc, videoPath);
+            window.Closed += (_, _) =>
+            {
+                _isShowing = false;
+            };
+
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                && desktop.MainWindow is not null)
+            {
+                window.Show(desktop.MainWindow);
+            }
+            else
+            {
+                window.Show();
+            }
+        }
+        catch
+        {
+            _isShowing = false;
+        }
+    }
+
+    private static LibVLC GetLibVlc()
+    {
+        lock (LibVlcLock)
+        {
+            if (_libVlcSingleton == null)
+            {
+                LibVLCSharp.Shared.Core.Initialize();
+                _libVlcSingleton = new LibVLC("--quiet", "--no-video-title-show");
+            }
+
+            return _libVlcSingleton;
+        }
+    }
 
     public CatSpeedPopupWindow()
     {
