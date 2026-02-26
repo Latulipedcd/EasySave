@@ -29,13 +29,43 @@ Hypothese de ce guide:
 4. Verifier la presence de logs (local et/ou Docker).
 5. Verifier la presence runtime de `CryptoSoft.exe`.
 
+## 2.1 Setup pour developpeurs (IMPORTANT)
+
+**Si vous etes en environnement de developpement** et que vous voulez tester le chiffrement, vous devez **copier manuellement** `CryptoSoft.exe` dans le dossier de sortie de build:
+
+```powershell
+# Depuis la racine du depot
+Copy-Item .\src\CryptoSoft\bin\Debug\net10.0\CryptoSoft.exe .\src\GUI\bin\Debug\net10.0-windows\Resources\
+```
+
+Ou pour Release:
+
+```powershell
+Copy-Item .\src\CryptoSoft\bin\Release\net10.0\CryptoSoft.exe .\src\GUI\bin\Release\net10.0-windows\Resources\
+```
+
+**Pourquoi?** Le build ne copie pas automatiquement CryptoSoft.exe dans Resources. Vous devez le faire apres chaque rebuild de CryptoSoft ou utiliser un script post-build.
+
+**Alternative automatisee** (ajout d'un Post-Build Event dans le projet GUI):
+
+```xml
+<Target Name="CopyCryptoSoft" AfterTargets="Build">
+  <Copy SourceFiles="$(SolutionDir)src\CryptoSoft\bin\$(Configuration)\net10.0\CryptoSoft.exe" 
+        DestinationFolder="$(OutputPath)Resources\" 
+        SkipUnchangedFiles="true" />
+</Target>
+```
+
 ## 3. Emplacement de CryptoSoft
 
 ## 3.1 Chemin attendu au runtime
 
 EasySave cherche CryptoSoft ici:
 
-- `Resources\CryptoSoft.exe`
+- **Package utilisateur** : `Resources\CryptoSoft.exe` (relatif a l'executable)
+- **Environnement dev** : `bin\Debug\net10.0-windows\Resources\CryptoSoft.exe` ou `bin\Release\net10.0-windows\Resources\CryptoSoft.exe`
+
+**Note importante pour developpeurs** : Ce fichier n'est PAS copie automatiquement. Voir section 2.1.
 
 ## 3.2 Commandes de verification
 
@@ -45,7 +75,17 @@ Lister les copies de CryptoSoft:
 Get-ChildItem -Path . -Recurse -Filter CryptoSoft.exe | Select-Object FullName
 ```
 
-Verifier la copie runtime depuis le dossier courant:
+Verifier la copie runtime depuis le dossier de sortie (developpeurs):
+
+```powershell
+# Debug
+Test-Path .\src\GUI\bin\Debug\net10.0-windows\Resources\CryptoSoft.exe
+
+# Release
+Test-Path .\src\GUI\bin\Release\net10.0-windows\Resources\CryptoSoft.exe
+```
+
+Verifier la copie runtime depuis le dossier package utilisateur:
 
 ```powershell
 Test-Path .\Resources\CryptoSoft.exe
@@ -185,7 +225,7 @@ Verification:
 
 | Symptome | Cause probable | Action |
 |---|---|---|
-| Chiffrement absent | extension non configuree ou CryptoSoft introuvable | verifier extension + chemin runtime |
+| Chiffrement absent | extension non configuree ou CryptoSoft introuvable | verifier extension + chemin runtime (**DEV: voir section 2.1**) |
 | Jobs bloques en pause | process metier actif ou pause manuelle | stopper process, puis `Start` |
 | Pas de logs Docker | serveur non lance ou mauvais mode | lancer `LogServer`, verifier mode |
 | Erreur source introuvable | dossier supprime/inaccessible | verifier chemin et droits |
@@ -195,8 +235,10 @@ Verification:
 Toujours joindre:
 
 - mode d'execution (GUI/CLI)
+- **environnement (developpement/package utilisateur)**
 - commande ou action exacte
 - extrait de `userconfig.json`
 - extrait de `state.json`
 - extrait de log du run concerne
 - resultat du test de presence `Resources\CryptoSoft.exe`
+- **pour developpeurs**: configuration de build (Debug/Release)

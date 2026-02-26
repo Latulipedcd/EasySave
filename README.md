@@ -48,21 +48,83 @@ EasySave is a .NET 10 backup application with:
 - Cross-job priority extension rule
 - Large-file parallelism threshold
 - Business software process monitoring (auto-pause while process is running)
-- Extension-based CryptoSoft encryption
+- Extension-based CryptoSoft encryption (see Development Setup for testing)
 - FR/EN UI and persisted settings
 - Log formats: JSON or XML
-- Log storage modes: Local, Docker, Both
+- Log storage modes: Local, Docker, Both (see Development Setup for Docker server)
 
 ## Requirements
 
 - .NET SDK 10.x
 - Windows recommended (especially for CLI auto-install behavior)
+- Docker Desktop (optional, for Docker log server)
 
 Check SDK:
 
 ```bash
 dotnet --version
 ```
+
+## Development Setup
+
+### CryptoSoft for Encryption Testing
+
+If you want to test file encryption in development, you must manually copy `CryptoSoft.exe` to the output `Resources` folder after building:
+
+**Debug:**
+```powershell
+Copy-Item .\src\CryptoSoft\bin\Debug\net10.0\CryptoSoft.exe .\src\GUI\bin\Debug\net10.0-windows\Resources\
+```
+
+**Release:**
+```powershell
+Copy-Item .\src\CryptoSoft\bin\Release\net10.0\CryptoSoft.exe .\src\GUI\bin\Release\net10.0-windows\Resources\
+```
+
+**Why?** The build process does not automatically copy CryptoSoft to the Resources folder. You must do this after each CryptoSoft rebuild.
+
+**Automated alternative:** Add a Post-Build Event to GUI.csproj:
+
+```xml
+<Target Name="CopyCryptoSoft" AfterTargets="Build">
+  <Copy SourceFiles="$(SolutionDir)src\CryptoSoft\bin\$(Configuration)\net10.0\CryptoSoft.exe" 
+        DestinationFolder="$(OutputPath)Resources\" 
+        SkipUnchangedFiles="true" />
+</Target>
+```
+
+### Docker Log Server
+
+To test Docker logging mode, you need to run the LogServer container:
+
+**Build the Docker image:**
+```bash
+cd LogServer
+docker build -t easysave-logserver .
+```
+
+**Run the container:**
+```bash
+docker run -d -p 11000:11000 -v ${PWD}/logs:/app/logs --name easysave-logs easysave-logserver
+```
+
+**Windows PowerShell:**
+```powershell
+docker run -d -p 11000:11000 -v ${PWD}/logs:/app/logs --name easysave-logs easysave-logserver
+```
+
+**Stop the container:**
+```bash
+docker stop easysave-logs
+docker rm easysave-logs
+```
+
+**View logs in real-time:**
+```bash
+docker logs -f easysave-logs
+```
+
+The server will listen on `127.0.0.1:11000` and write received logs to the mounted `logs` folder.
 
 ## Build and Run
 
@@ -111,8 +173,9 @@ scripts\uninstall-easysave-cli.cmd
 - User config: `%APPDATA%\EasySave\userdata\userconfig.json`
 - Progress state: `%APPDATA%\EasyLog\Progress\state.json`
 - Local logs: `%APPDATA%\EasyLog\Logs\log-YYYY-MM-DD.json|xml`
+- CryptoSoft (dev): `bin\Debug\net10.0-windows\Resources\CryptoSoft.exe` (see Development Setup)
 
-For debugging and Docker logging details, see [docs/debug/DEBUG_GUIDE.md](docs/debug/DEBUG_GUIDE.md).
+For debugging, Docker logging details, and CryptoSoft setup, see [docs/debug/DEBUG_GUIDE.md](docs/debug/DEBUG_GUIDE.md).
 
 ## Run Unit Tests
 
