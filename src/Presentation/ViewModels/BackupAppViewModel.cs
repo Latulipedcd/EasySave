@@ -25,10 +25,11 @@ public class BackupAppViewModel
         IBackupJobRepository jobRepository,
         IJobManagementService jobManagementService,
         IJobStateReader jobStateReader,
+        IDockerLoggerService dockerLoggerService,
         IJobProgressSnapshotSource? progressSnapshotSource = null)
     {
         _langManager = languageService;
-        Settings = new SettingsViewModel(languageService, userConfigService);
+        Settings = new SettingsViewModel(languageService, userConfigService, dockerLoggerService);
         JobEditor = new JobEditorViewModel();
         JobList = new JobListViewModel(jobRepository, languageService);
         JobExecution = new JobExecutionViewModel(jobManagementService, languageService, jobStateReader, progressSnapshotSource);

@@ -71,7 +71,8 @@ public class JobExecutionViewModel : ViewModelBase
     /// <summary>
     /// Indicates if the job is currently running
     /// </summary>
-    public bool IsJobRunning => JobState != null && JobState.Status == BackupStatus.Active;
+    public bool IsJobRunning => JobState != null &&
+        (JobState.Status == BackupStatus.Active || JobState.Status == BackupStatus.Error);
 
     /// <summary>
     /// Indicates if the job is currently paused
@@ -89,11 +90,10 @@ public class JobExecutionViewModel : ViewModelBase
          JobState.Status == BackupStatus.Cancelled);
 
     /// <summary>
-    /// Indicates if job has completed (success, error, or cancelled)
+    /// Indicates if job has completed (success or cancelled)
     /// </summary>
     public bool IsJobCompleted => JobState != null &&
         (JobState.Status == BackupStatus.Completed ||
-         JobState.Status == BackupStatus.Error ||
          JobState.Status == BackupStatus.Cancelled);
 
     public bool ShowSuccessStatusIcon => JobState?.Status == BackupStatus.Completed;

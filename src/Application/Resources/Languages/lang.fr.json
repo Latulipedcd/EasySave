@@ -89,6 +89,7 @@
   "GuiErrorNoJobSelected": "Aucun travail sélectionné.",
   "GuiErrorNoJobToExecute": "Aucun travail à exécuter.",
   "GuiErrorInvalidSelection": "Sélection invalide.",
+  "GuiErrorJobAlreadyRunning": "Job(s) déjà en cours d'exécution : {0}.",
   "GuiErrorJobNameEmpty": "Le nom du travail ne peut pas être vide.",
 
   "GuiStatusDeletedCount": "{0} job(s) supprimé(s).",
@@ -150,5 +151,7 @@
   "GuiCatMessageActionFailed": "Oups, action echouee: {0}",
   "GuiCatMessageNoJobToRun": "Aucun travail a executer.",
   "GuiCatMessageInvalidSelection": "Sélection invalide, vérifie les travaux choisis.",
-  "GuiCatMessageCryptoSoftNotFound": "Miaou ! L'application de chiffrement (CryptoSoft) est introuvable."
+  "GuiCatMessageCryptoSoftNotFound": "Miaou ! L'application de chiffrement (CryptoSoft) est introuvable.",
+  "GuiErrorDockerConnection": "Serveur Docker inaccessible. Les logs sont enregistrés en local. Veuillez contacter le support technique.",
+  "GuiErrorDockerSend": "Impossible d'envoyer les logs vers Docker. Les logs sont enregistrés en local. Veuillez contacter le support technique."
 }

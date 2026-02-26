@@ -9,6 +9,9 @@ namespace Core.Interfaces
     /// </summary>
     public interface IDockerLoggerService
     {
+
+        event Action? ServerUnavailable;
+      
         /// <summary>
         /// Establishes the necessary network or socket connection to the Docker logging service.
         /// Should typically be called before attempting to send any logs.

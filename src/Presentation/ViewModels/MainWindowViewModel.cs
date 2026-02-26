@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Enums;
 using Core.Models;
+using Core.Services;
 using EasySave.Application;
 
 namespace EasySave.Presentation.ViewModels;
@@ -83,6 +84,8 @@ public class MainWindowViewModel : ViewModelBase
 
         RefreshLocalizedTexts();
 
+        DockerLoggerService.ServerError += OnDockerServerError;
+
         _uiContext = SynchronizationContext.Current;
         _stateRefreshTimer = new System.Timers.Timer(500);
         _stateRefreshTimer.Elapsed += OnRefreshTimerTick;
@@ -104,6 +107,7 @@ public class MainWindowViewModel : ViewModelBase
         var userConfigService = ServiceFactory.GetUserConfigService();
         var jobRepository = ServiceFactory.GetBackupJobRepository();
         var jobStateReader = ServiceFactory.GetJobStateReader();
+        var dockerLoggerService = ServiceFactory.GetDockerLoggerService();
         var progressSnapshotSource = ServiceFactory.GetJobProgressSnapshotSource();
 
         var appViewModel = new BackupAppViewModel(
@@ -112,6 +116,7 @@ public class MainWindowViewModel : ViewModelBase
             jobRepository,
             jobManagementService,
             jobStateReader,
+            dockerLoggerService,
             progressSnapshotSource);
 
         return new MainWindowViewModel(appViewModel);
@@ -473,5 +478,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         SetStatusOnUIThread(message);
         SetCatRawMessage(message);
+    }
+
+    private void OnDockerServerError(string technicalMessage)
+    {
+        var msg = TextFormat("GuiErrorDockerConnection", technicalMessage);
+        SetStatus(msg);
+        SetCatMessage("GuiCatMessageActionFailed", msg);
     }
 }
