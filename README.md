@@ -23,21 +23,23 @@ EasySave is a .NET 10 backup application with:
 
 ## UML and Diagrams
 
-### Current (V2)
+### Current (V3)
 
-- Activity diagram: [docs/UML/V2/Activity Diagram EasySave V2.jpg](docs/UML/V2/Activity%20Diagram%20EasySave%20V2.jpg)
-- Class diagram: [docs/UML/V2/Class_V2.jpg](docs/UML/V2/Class_V2.jpg)
-- Sequence diagram: [docs/UML/V2/SequenceV2.png](docs/UML/V2/SequenceV2.png)
-- Use-case diagram: [docs/UML/V2/Use_Case_Diagram_for_EasySave_v2.0.jpg](docs/UML/V2/Use_Case_Diagram_for_EasySave_v2.0.jpg)
+- Activity diagram: [docs/UML/V3/Activity_Diagram_V3.jpg](docs/UML/V3/Activity_Diagram_V3.jpg)
+- Class diagram: [docs/UML/V2/Class_V3.jpg](docs/UML/V2/Class_V2.jpg)
+- Sequence diagram: [docs/UML/V3/Sequence_Diagram_V3.jpg](docs/UML/V3/Sequence_Diagram_V3.jpg)
+- Use-case diagram: [docs/UML/V3/Use_Case_Diagram_V3.jpg](docs/UML/V3/Use_Case_Diagram_V3.jpg)
 - VPP sources:
-  - [docs/UML/V2/Activity-Diagram-V2.0.vpp](docs/UML/V2/Activity-Diagram-V2.0.vpp)
-  - [docs/UML/V2/CLass_V2.vpp](docs/UML/V2/CLass_V2.vpp)
-  - [docs/UML/V2/Use-Case-V2-0.vpp](docs/UML/V2/Use-Case-V2-0.vpp)
+  - [docs/UML/V3/Activity_Diagram_V3.0.vpp](docs/UML/V3/Activity_Diagram_V3.0.vpp)
+  - [docs/UML/V3/Class_Diagram_V3.vpp](docs/UML/V3/Class_Diagram_V3.vpp)
+  - [docs/UML/V3/Use_Case_Diagram_V3.vpp](docs/UML/V3/Use_Case_Diagram_V3.vpp)
+- - [docs/UML/V3/Sequence_Diagram_V3.vpp](docs/UML/V3/Sequence_Diagram_V3.vpp)
 
 ### Archives
 
 - V1.1: [docs/UML/V1.1](docs/UML/V1.1)
 - V1: [docs/UML/V1](docs/UML/V1)
+- V2: [docs/UML/V2](docs/UML/V2)
 
 ## Key Features
 
