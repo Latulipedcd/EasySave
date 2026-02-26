@@ -26,13 +26,16 @@ public partial class App : Application
             var jobRepository = ServiceFactory.GetBackupJobRepository();
             var jobStateReader = ServiceFactory.GetJobStateReader();
             var dockerLoggerService = ServiceFactory.GetDockerLoggerService();
+            var progressSnapshotSource = ServiceFactory.GetJobProgressSnapshotSource();
 
             var appViewModel = new BackupAppViewModel(
                 languageService,
                 userConfigService,
                 jobRepository,
                 jobManagementService,
-                jobStateReader);
+                jobStateReader,
+                dockerLoggerService,
+                progressSnapshotSource);
 
             desktop.MainWindow = new MainWindow(new MainWindowViewModel(appViewModel));
             CatSpeedFeature.ConfigurePopup(CatSpeedPopupService.Show);

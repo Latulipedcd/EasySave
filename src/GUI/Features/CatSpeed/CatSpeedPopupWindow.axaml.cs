@@ -65,6 +65,8 @@ public partial class CatSpeedPopupWindow : Window
         {
             _mediaPlayer = new MediaPlayer(_libVlc);
             _media = new Media(_libVlc, new Uri(_videoPath));
+            _mediaPlayer.Mute = false;
+            _mediaPlayer.Volume = 100;
 
             PlayerView.MediaPlayer = _mediaPlayer;
             _mediaPlayer.Play(_media);

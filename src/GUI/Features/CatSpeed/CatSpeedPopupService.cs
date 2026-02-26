@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using LibVLCSharp.Shared;
-using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -27,7 +26,7 @@ internal static class CatSpeedPopupService
         {
             try
             {
-                // Warm native VLC pipeline once so the first trigger is fast.
+                // Warm native VLC pipeline once so the first trigger is faster.
                 using var _ = new MediaPlayer(GetLibVlc());
             }
             catch
